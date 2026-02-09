@@ -21,8 +21,9 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, setDoc, getDoc, updateDoc, getDocs, doc, Timestamp, where, orderBy, enableNetwork } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- FIREBASE CONFIGURATION (LIVE) ---
-        const firebaseConfig = {
+        // --- FIREBASE CONFIGURATION ---
+        // Logic: Use Environment config (if in Canvas) OR Hardcoded config (if on GitHub)
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyD2aOVfl6bXOpWCL9eaiM85g14WB25aXYg",
             authDomain: "alpha-26f1e.firebaseapp.com",
             projectId: "alpha-26f1e",
@@ -51,10 +52,11 @@
         window.where = where;
         window.orderBy = orderBy;
         window.Timestamp = Timestamp;
-        window.enableNetwork = enableNetwork; // Exposed for retry logic
+        window.enableNetwork = enableNetwork;
         
-        // SHARED APP ID
-        window.appId = 'edusaas-live-demo-v2';
+        // SHARED APP ID LOGIC
+        // If in Canvas, use specific app ID. If on GitHub, use the shared static string.
+        window.appId = typeof __app_id !== 'undefined' ? __app_id : 'edusaas-live-demo-v2';
         
         window.dbCollections = {
             users: `artifacts/${window.appId}/public/data/users`,
@@ -71,18 +73,28 @@
         function showAuthErrorModal(error) {
             if (document.getElementById('auth-error-modal')) return;
 
-            let title = "⚠️ Connection Issue";
-            let message = "We couldn't connect to the authentication server.";
+            let title = "⚠️ Database Permissions Error";
+            let message = "The app cannot read/write to the database.";
             let steps = "";
 
-            if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
-                title = "⚠️ Enable Anonymous Auth";
-                message = "The code is correct, but the <b>Anonymous Sign-in</b> method is disabled in your Firebase Console.";
+            if (error.code === 'permission-denied') {
+                title = "⚠️ Database Locked";
+                message = "Your Firebase Database security rules are rejecting access. This usually happens if you are deploying to GitHub but haven't set the rules to Public mode yet.";
                 steps = `
                     <ol style="list-style-type:decimal; margin-left:20px; color:#e2e8f0; margin-top:10px;">
-                        <li>Go to <a href="https://console.firebase.google.com/" target="_blank" style="color:#fbbf24; text-decoration:underline;">Firebase Console</a> > <b>Authentication</b>.</li>
-                        <li>Click the <b>Sign-in method</b> tab.</li>
-                        <li>Click <b>Anonymous</b> -> Toggle <b>Enable</b> -> Click <b>Save</b>.</li>
+                        <li>Go to <a href="https://console.firebase.google.com/" target="_blank" style="color:#fbbf24; text-decoration:underline;">Firebase Console</a> > <b>Firestore Database</b> > <b>Rules</b>.</li>
+                        <li>Change: <code>allow read, write: if false;</code></li>
+                        <li>To: <code>allow read, write: if true;</code> (for testing)</li>
+                        <li>Click <b>Publish</b>.</li>
+                    </ol>
+                `;
+            } else if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
+                title = "⚠️ Enable Anonymous Auth";
+                message = "Authentication is disabled in your Firebase Console.";
+                steps = `
+                    <ol style="list-style-type:decimal; margin-left:20px; color:#e2e8f0; margin-top:10px;">
+                        <li>Go to Console > <b>Authentication</b> > <b>Sign-in method</b>.</li>
+                        <li>Enable <b>Anonymous</b> provider.</li>
                     </ol>
                 `;
             } else {
@@ -91,7 +103,7 @@
 
             const modalHTML = `
                 <div id="auth-error-modal" style="position:fixed; inset:0; background:rgba(15, 23, 42, 0.95); z-index:9999; color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px; font-family:'Outfit', sans-serif;">
-                    <h2 style="font-size:2rem; margin-bottom:1rem; color:#fbbf24; font-weight:700;">${title}</h2>
+                    <h2 style="font-size:2rem; margin-bottom:1rem; color:#f87171; font-weight:700;">${title}</h2>
                     <p style="max-w:600px; color:#cbd5e1;">${message}</p>
                     <div style="text-align:left; background:#1e293b; padding:20px; border-radius:12px; margin-top:20px; border:1px solid #334155; max-width:500px; width:100%;">
                         ${steps}
@@ -105,9 +117,11 @@
 
         const initAuth = async () => {
              try {
-                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                 // Only attempt custom token sign-in if we are in the internal environment
+                 if (typeof __firebase_config !== 'undefined' && typeof __initial_auth_token !== 'undefined') {
                     await signInWithCustomToken(auth, __initial_auth_token);
                  } else {
+                    // Otherwise (GitHub/External), use Anonymous
                     await signInAnonymously(auth);
                  }
              } catch (e) {
@@ -117,7 +131,8 @@
                      console.error("Auth Critical Error:", err);
                      window.authFailed = true;
                      window.authError = err;
-                     if (typeof __initial_auth_token === 'undefined') {
+                     // Show modal if we are NOT in internal environment (to help user debug their firebase setup)
+                     if (typeof __firebase_config === 'undefined') {
                          showAuthErrorModal(err);
                      }
                  }
@@ -406,14 +421,12 @@
                 try {
                     return await window.getDoc(docRef);
                 } catch (e) {
-                    // Check for offline/unavailable errors
                     if ((e.code === 'unavailable' || e.message.includes('offline')) && i < retries - 1) {
                         console.warn(`Connection unstable, retrying data fetch (${i + 1}/${retries})...`);
                         await new Promise(r => setTimeout(r, delay));
-                        // Attempt to force network enabled
                         try { await window.enableNetwork(window.dbFirestore); } catch (netErr) { console.log("Network enable attempt:", netErr); }
                     } else {
-                        throw e; // Rethrow other errors immediately
+                        throw e; 
                     }
                 }
             }
@@ -421,13 +434,11 @@
         }
 
         async function login(roleKey) {
-            // IMMEDIATE FAIL CHECK
             if (window.authFailed) {
                 showAuthErrorModal(window.authError);
                 return;
             }
 
-            // Short timeout check instead of long poll
             if (!window.isAuthReady) {
                 showToast("Connecting to cloud... please wait.");
                 try {
@@ -441,9 +452,8 @@
                             } else if (window.authFailed) {
                                 clearInterval(interval);
                                 reject("Auth failed during wait");
-                            } else if (attempts > 50) { // Increased wait to 5s
+                            } else if (attempts > 50) { 
                                 clearInterval(interval);
-                                // Don't reject, try to proceed, maybe auth is slow but will happen during fetch
                                 console.warn("Auth wait timeout - attempting to proceed");
                                 resolve(); 
                             }
@@ -458,14 +468,13 @@
             const defaultUser = db.users[roleKey];
             const isStudent = defaultUser.role === 'student';
             
-            // Fetch or Create User Profile from Firestore with RETRY logic
             const userRef = window.doc(window.dbFirestore, window.dbCollections.users, defaultUser.id);
             try {
+                // Try to get doc with retries
                 const docSnap = await safeGetDoc(userRef);
                 if (docSnap.exists()) {
                     currentUser = { ...defaultUser, ...docSnap.data() };
                 } else {
-                    // Create initial profile
                     await window.setDoc(userRef, {
                         name: defaultUser.name,
                         role: defaultUser.role,
@@ -480,20 +489,28 @@
                 // Fallback to local data so app doesn't crash
                 currentUser = defaultUser;
                 showToast("Offline Mode: Some features restricted");
+                
+                // Attempt catch-up write in background
+                window.setDoc(userRef, {
+                     name: defaultUser.name,
+                     role: defaultUser.role,
+                     schoolId: defaultUser.schoolId,
+                     bio: isStudent ? 'Student' : 'Faculty Member',
+                     notificationsEnabled: true
+                }, { merge: true }).catch(err => console.log("Background write failed:", err));
             }
 
             document.getElementById('login-modal').classList.add('hidden');
             updateUIHeader();
             renderSidebar();
             
-            // Listen for profile changes (Real-time updates to self)
             userProfileUnsubscribe = window.onSnapshot(userRef, (doc) => {
                 if (doc.exists()) {
                     const newData = doc.data();
                     currentUser = { ...currentUser, ...newData };
-                    updateUIHeader(); // Update header name immediately
+                    updateUIHeader(); 
                 }
-            });
+            }, (err) => console.log("Profile listener offline"));
 
             setupGlobalNotifications();
             
@@ -891,46 +908,12 @@
                     </div>
                 </div>
             `;
-            
-            if(activeChatPartner) {
-                markMessagesRead(activeChatPartner.id);
-                setupChatListener(activeChatPartner.id);
-            }
-
-            const msgRef = window.collection(window.dbFirestore, window.dbCollections.messages);
-            const q = window.query(msgRef, window.where("receiverId", "==", String(currentUser.id)), window.where("read", "==", false));
-            const countUnsub = window.onSnapshot(q, (snapshot) => {
-                const unreadCounts = {};
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    unreadCounts[data.senderId] = (unreadCounts[data.senderId] || 0) + 1;
-                });
-                
-                contacts.forEach(c => {
-                    const el = document.getElementById(`contact-name-${c.id}`);
-                    const badge = document.getElementById(`contact-badge-${c.id}`);
-                    const count = unreadCounts[c.id] || 0;
-                    
-                    if (el && badge) {
-                        if (count > 0 && activeChatPartner?.id !== c.id) { 
-                            el.classList.add('font-extrabold', 'text-blue-600');
-                            el.classList.remove('font-medium', 'text-slate-700');
-                            badge.innerText = count;
-                            badge.classList.remove('hidden');
-                        } else {
-                            el.classList.remove('font-extrabold', 'text-blue-600');
-                            el.classList.add('font-medium', 'text-slate-700');
-                            badge.classList.add('hidden');
-                        }
-                    }
-                });
-            });
-            firestoreUnsubscribes.push(countUnsub);
+            if(activeChatPartner) setupChatListener(activeChatPartner.id);
         }
 
         function switchChat(id, name) {
-            activeChatPartner = { id, name };
-            renderPage('teacher-chat');
+            activeChatPartner = {id, name};
+            renderChat(document.getElementById('app-content'));
         }
 
         function setupChatListener(pid) {
@@ -941,7 +924,6 @@
                 let msgs = [];
                 snap.forEach(d => msgs.push({id: d.id, ...d.data()}));
                 msgs.sort((a,b)=>(a.timestamp?.seconds||0)-(b.timestamp?.seconds||0));
-                
                 const div = document.getElementById('msg-stream');
                 div.innerHTML = msgs.map(m => {
                     if (m.senderId === activeChatPartner.id && !m.read) {
