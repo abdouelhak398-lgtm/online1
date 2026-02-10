@@ -496,33 +496,47 @@
         let isFileSynced = false;
 
         const routes = {
-            superadmin: [
-                { id: 'saas-dashboard', label: 'Platform Overview', icon: 'fa-chart-line' },
-                { id: 'saas-schools', label: 'Manage Schools', icon: 'fa-school' },
-                { id: 'saas-subs', label: 'Subscriptions', icon: 'fa-credit-card' },
-                { id: 'settings', label: 'Settings', icon: 'fa-cog' }
-            ],
-            schooladmin: [
-                { id: 'admin-dashboard', label: 'Dashboard', icon: 'fa-chart-pie' },
-                { id: 'admin-finance', label: 'Financial Module', icon: 'fa-coins' },
-                { id: 'admin-users', label: 'User Management', icon: 'fa-users' },
-                { id: 'admin-payroll', label: 'Teacher Payroll', icon: 'fa-file-invoice-dollar' },
-                { id: 'settings', label: 'Settings', icon: 'fa-cog' }
-            ],
-            teacher: [
-                { id: 'teacher-classes', label: 'My Classes & Scanning', icon: 'fa-chalkboard-user', key: 'title-teacher-classes' },
-                { id: 'teacher-calendar', label: 'Attendance Calendar', icon: 'fa-calendar-check', key: 'title-teacher-calendar' },
-                { id: 'teacher-chat', label: 'Chat with Students', icon: 'fa-comments', key: 'title-teacher-chat' },
-                { id: 'settings', label: 'Settings', icon: 'fa-cog', key: 'title-settings' }
-            ],
-            student: [
-                { id: 'student-qr', label: 'My Digital ID', icon: 'fa-id-card', key: 'title-student-qr' },
-                { id: 'student-calendar', label: 'Attendance Calendar', icon: 'fa-calendar-days', key: 'title-student-calendar' },
-                { id: 'student-materials', label: 'Received Materials', icon: 'fa-folder-open', key: 'title-student-materials' },
-                { id: 'teacher-chat', label: 'Chat with Teacher', icon: 'fa-comments', key: 'title-teacher-chat' },
-                { id: 'settings', label: 'Settings', icon: 'fa-cog', key: 'title-settings' }
-            ]
+            superadmin: [{ id: 'saas-dashboard', label: 'Platform Overview', icon: 'fa-chart-line' }, { id: 'saas-schools', label: 'Manage Schools', icon: 'fa-school' }, { id: 'saas-subs', label: 'Subscriptions', icon: 'fa-credit-card' }, { id: 'settings', label: 'Settings', icon: 'fa-cog' }],
+            schooladmin: [{ id: 'admin-dashboard', label: 'Dashboard', icon: 'fa-chart-pie' }, { id: 'admin-finance', label: 'Financial Module', icon: 'fa-coins' }, { id: 'admin-users', label: 'User Management', icon: 'fa-users' }, { id: 'admin-payroll', label: 'Teacher Payroll', icon: 'fa-file-invoice-dollar' }, { id: 'settings', label: 'Settings', icon: 'fa-cog' }],
+            teacher: [{ id: 'teacher-classes', label: 'My Classes & Scanning', icon: 'fa-chalkboard-user', key: 'title-teacher-classes' }, { id: 'teacher-calendar', label: 'Attendance Calendar', icon: 'fa-calendar-check', key: 'title-teacher-calendar' }, { id: 'teacher-chat', label: 'Chat with Students', icon: 'fa-comments', key: 'title-teacher-chat' }, { id: 'settings', label: 'Settings', icon: 'fa-cog', key: 'title-settings' }],
+            student: [{ id: 'student-qr', label: 'My Digital ID', icon: 'fa-id-card', key: 'title-student-qr' }, { id: 'student-calendar', label: 'Attendance Calendar', icon: 'fa-calendar-days', key: 'title-student-calendar' }, { id: 'student-materials', label: 'Received Materials', icon: 'fa-folder-open', key: 'title-student-materials' }, { id: 'teacher-chat', label: 'Chat with Teacher', icon: 'fa-comments', key: 'title-teacher-chat' }, { id: 'settings', label: 'Settings', icon: 'fa-cog', key: 'title-settings' }]
         };
+
+        // --- HELPER FUNCTIONS (DEFINED EARLY) ---
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            t.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-24', 'opacity-0'), 3000);
+        }
+
+        function getTranslation(key) {
+            return translations[currentLang][key] || key;
+        }
+
+        function updateUIHeader() {
+            if (!currentUser) return;
+            document.getElementById('user-name').innerText = currentUser.name;
+            document.getElementById('user-role').innerText = currentUser.role.toUpperCase();
+            document.getElementById('user-initials').innerText = currentUser.name.charAt(0);
+            const sName = currentUser.schoolId ? db.schools.find(s => s.id === currentUser.schoolId).name : 'Super Admin';
+            document.getElementById('school-name-display').innerText = sName;
+        }
+
+        function updateNotificationBadge() {
+            const badge = document.getElementById('notif-badge');
+            const count = notificationStore.length;
+            if (count > 0) {
+                badge.innerText = count > 9 ? '9+' : count;
+                badge.classList.remove('hidden');
+                badge.classList.remove('badge-pop');
+                void badge.offsetWidth; // Trigger reflow
+                badge.classList.add('badge-pop');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
 
         // --- AUTH & INIT ---
         async function safeGetDoc(docRef, retries = 5, delay = 1000) {
@@ -585,8 +599,6 @@
             }
         };
 
-        function getTranslation(key) { return translations[currentLang][key] || key; }
-
         // --- REST OF FUNCTIONS ---
         function renderSidebar() {
             const nav = document.getElementById('nav-menu');
@@ -611,15 +623,6 @@
             currentUser = null; notificationStore = []; updateNotificationBadge();
             document.getElementById('login-modal').classList.remove('hidden');
             document.getElementById('app-content').innerHTML = '';
-        }
-
-        function updateUIHeader() {
-            if (!currentUser) return;
-            document.getElementById('user-name').innerText = currentUser.name;
-            document.getElementById('user-role').innerText = currentUser.role.toUpperCase();
-            document.getElementById('user-initials').innerText = currentUser.name.charAt(0);
-            const sName = currentUser.schoolId ? db.schools.find(s => s.id === currentUser.schoolId).name : 'Super Admin';
-            document.getElementById('school-name-display').innerText = sName;
         }
 
         // --- NOTIFICATIONS & CHAT ---
@@ -670,13 +673,6 @@
             `).join('');
         }
 
-        function updateNotificationBadge() {
-            const badge = document.getElementById('notif-badge');
-            const count = notificationStore.length;
-            if (count > 0) { badge.innerText = count > 9 ? '9+' : count; badge.classList.remove('hidden'); badge.classList.remove('badge-pop'); void badge.offsetWidth; badge.classList.add('badge-pop'); } 
-            else { badge.classList.add('hidden'); }
-        }
-
         function clearNotifications() { notificationStore = []; updateNotificationBadge(); renderNotificationList(); }
 
         function openChatFromNotif(partnerId, partnerName) {
@@ -690,9 +686,14 @@
 
         async function markMessagesRead(senderId) {
             try {
-                const q = window.query(window.collection(window.dbFirestore, window.dbCollections.messages), window.where("senderId", "==", senderId), window.where("receiverId", "==", String(currentUser.id)), window.where("read", "==", false));
+                const q = window.query(window.collection(window.dbFirestore, window.dbCollections.messages), window.where("senderId", "==", senderId), window.where("receiverId", "==", String(currentUser.id)));
                 const snapshot = await window.getDocs(q);
-                snapshot.forEach(doc => window.updateDoc(window.doc(window.dbFirestore, window.dbCollections.messages, doc.id), { read: true }));
+                snapshot.forEach(doc => {
+                    // Filter in memory to avoid complex query error if index missing
+                    if(doc.data().read === false) {
+                        window.updateDoc(window.doc(window.dbFirestore, window.dbCollections.messages, doc.id), { read: true });
+                    }
+                });
             } catch(e) {}
         }
 
@@ -769,13 +770,12 @@
                 let sData = txt.startsWith('{') ? JSON.parse(txt) : {id:txt, name:"Student #"+txt};
                 const clsSnap = await window.getDoc(window.doc(window.dbFirestore, window.dbCollections.classes, activeClassId));
                 const fileToSend = clsSnap.data()?.currentFile;
-                const fileDataToSend = clsSnap.data()?.currentFileData;
 
                 await window.addDoc(window.collection(window.dbFirestore, window.dbCollections.attendance), {
                     studentId: String(sData.id), studentName: sData.name, classId: activeClassId, className: db.classes.find(c=>c.id===activeClassId).name, timestamp: window.Timestamp.now(), status: 'present'
                 });
                 if(fileToSend) await window.addDoc(window.collection(window.dbFirestore, window.dbCollections.materials), {
-                    studentId: String(sData.id), fileName: fileToSend, fileData: fileDataToSend, classId: activeClassId, className: db.classes.find(c=>c.id===activeClassId).name, timestamp: window.Timestamp.now()
+                    studentId: String(sData.id), fileName: fileToSend, classId: activeClassId, className: db.classes.find(c=>c.id===activeClassId).name, timestamp: window.Timestamp.now()
                 });
                 showToast(`${sData.name} Marked Present`);
             } catch(e) { showToast("Scan Error"); }
@@ -813,106 +813,26 @@
              firestoreUnsubscribes.push(unsub);
         }
         
-        async function uploadFile(cid, input) {
-            if(input.files[0]) {
-                const file = input.files[0];
-                
-                // Read file as Base64 to store in Firestore (since no Storage setup)
-                // Limit size to avoid Firestore quota issues
-                if (file.size > 800000) {
-                     showToast("File too large (>800KB)");
-                     return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = async function(e) {
-                    const base64Data = e.target.result;
-                    // Store both name and data
-                    await window.setDoc(window.doc(window.dbFirestore, window.dbCollections.classes, cid), { 
-                        currentFile: file.name,
-                        currentFileData: base64Data
-                    }, { merge: true });
-                    showToast("File Attached");
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
+        async function uploadFile(cid, input) { if(input.files[0]) { await window.setDoc(window.doc(window.dbFirestore, window.dbCollections.classes, cid), { currentFile: input.files[0].name }, { merge: true }); showToast("File Attached"); } }
         function startScanning(cid) { activeClassId=cid; renderPage('teacher-scan'); }
         function manualTeacherScan() { handleTeacherScanSuccess(document.getElementById('manual-student-id').value); }
-        
         function renderStudentMaterials(c) { 
             c.innerHTML = `<div class="mb-6"><h2 class="text-2xl font-bold text-slate-800">${getTranslation('title-student-materials')}</h2></div><div id="materials-list" class="space-y-3"></div>`;
             const ref = window.collection(window.dbFirestore, window.dbCollections.materials);
             const q = window.query(ref, window.where('studentId', '==', String(currentUser.id)));
             const unsub = window.onSnapshot(q, (snap) => {
                 const mats = []; snap.forEach(d=>mats.push(d.data()));
-                document.getElementById('materials-list').innerHTML = mats.length ? mats.map(m=>`
-                    <div class="p-4 bg-white rounded-xl border border-slate-100 flex items-center gap-4 group hover:shadow-md transition">
-                        <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-file"></i></div>
-                        <div class="flex-1">
-                            <p class="font-bold text-slate-700 text-sm">${m.fileName}</p>
-                            <p class="text-xs text-slate-400">${m.className}</p>
-                        </div>
-                        <button onclick="downloadFile('${m.fileName}', '${m.fileData}')" class="ml-auto w-8 h-8 flex items-center justify-center text-slate-400 hover:text-blue-600 transition" title="Download">
-                            <i class="fa-solid fa-download"></i>
-                        </button>
-                    </div>`).join('') : `<div class="p-8 text-center text-slate-400">${getTranslation('lbl-no-materials')}</div>`;
+                document.getElementById('materials-list').innerHTML = mats.length ? mats.map(m=>`<div class="p-4 bg-white rounded-xl border border-slate-100 flex items-center gap-4"><div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-file"></i></div><div><p class="font-bold text-slate-700 text-sm">${m.fileName}</p><p class="text-xs text-slate-400">${m.className}</p></div></div>`).join('') : `<div class="p-8 text-center text-slate-400">${getTranslation('lbl-no-materials')}</div>`;
             });
             firestoreUnsubscribes.push(unsub);
         }
+        function renderTeacherCalendar(c) { c.innerHTML = `<div class="p-8 text-center text-slate-400">Calendar Module</div>`; } 
+        function renderStudentCalendar(c) { c.innerHTML = `<div class="p-8 text-center text-slate-400">Calendar Module</div>`; } 
         
-        function downloadFile(fileName, fileData) {
-            // Support both text placeholder and real Base64
-            let href = fileData;
-            if (!href || !href.startsWith('data:')) {
-                 href = 'data:text/plain;charset=utf-8,' + encodeURIComponent("File Content Placeholder for " + fileName);
-            }
-            
-            const element = document.createElement('a');
-            element.setAttribute('href', href);
-            element.setAttribute('download', fileName);
-            element.style.display = 'none';
-            document.body.appendChild(element);
-            element.click();
-            document.body.removeChild(element);
-            showToast("Downloading...");
-        }
-
-        // CALENDARS
-        window.changeMonth = changeMonth; 
-        function changeMonth(offset, role) {
-            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + offset);
-            role === 'teacher' ? renderTeacherCalendar(document.getElementById('app-content')) : renderStudentCalendar(document.getElementById('app-content'));
-        }
-
-        function renderTeacherCalendar(container) {
-            container.innerHTML = `
-                <div class="flex flex-col h-full bg-white rounded-3xl shadow-sm border border-slate-100 fade-in overflow-hidden"><div class="p-6 border-b border-slate-50 flex justify-between items-center"><button onclick="changeMonth(-1, 'teacher')" class="p-2"><i class="fa-solid fa-chevron-left"></i></button><h2 id="calendar-title" class="text-lg font-bold"></h2><button onclick="changeMonth(1, 'teacher')" class="p-2"><i class="fa-solid fa-chevron-right"></i></button></div><div class="flex-1 p-8"><div id="calendar-days" class="calendar-grid"></div></div></div>`;
-             renderCalendarGrid('calendar-days', 'calendar-title', {}, 'teacher');
-        }
-
-        function renderStudentCalendar(container) {
-             container.innerHTML = `
-                <div class="flex flex-col h-full bg-white rounded-3xl shadow-sm border border-slate-100 fade-in overflow-hidden"><div class="p-6 border-b border-slate-50 flex justify-between items-center"><button onclick="changeMonth(-1, 'student')" class="p-2"><i class="fa-solid fa-chevron-left"></i></button><h2 id="calendar-title" class="text-lg font-bold"></h2><button onclick="changeMonth(1, 'student')" class="p-2"><i class="fa-solid fa-chevron-right"></i></button></div><div class="flex-1 p-8"><div id="calendar-days" class="calendar-grid"></div></div></div>`;
-             renderCalendarGrid('calendar-days', 'calendar-title', {}, 'student');
-        }
-
-        function renderCalendarGrid(gid, tid, ev, role) {
-            const grid = document.getElementById(gid), title = document.getElementById(tid); if(!grid) return;
-            const y = currentCalendarDate.getFullYear(), m = currentCalendarDate.getMonth();
-            title.innerText = new Date(y, m).toLocaleDateString(currentLang, {month:'long', year:'numeric'});
-            grid.innerHTML = '';
-            const first = new Date(y, m, 1).getDay(), days = new Date(y, m+1, 0).getDate();
-            for(let i=0; i<first; i++) grid.innerHTML+=`<div class="empty"></div>`;
-            for(let i=1; i<=days; i++) grid.innerHTML+=`<div class="calendar-day">${i}</div>`;
-        }
-
         // CHAT
         function renderChat(container) {
             let contacts = currentUser.role === 'teacher' ? db.students.map(s => ({id:s.id, name:s.name})) : [{id:db.users.teacher.id, name:db.users.teacher.name}];
             if (!activeChatPartner && contacts.length) activeChatPartner = contacts[0];
-
             container.innerHTML = `
                 <div class="flex h-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden fade-in">
                     <div class="w-1/3 border-r border-slate-50 bg-slate-50 flex flex-col">
@@ -928,7 +848,32 @@
                     </div>
                 </div>`;
             if(activeChatPartner) { markMessagesRead(activeChatPartner.id); setupChatListener(activeChatPartner.id); }
-            // Unread count listener omitted for brevity but should exist here
+            
+            // Unread Count Listener
+            const msgRef = window.collection(window.dbFirestore, window.dbCollections.messages);
+            const q = window.query(msgRef, window.where("receiverId", "==", String(currentUser.id)));
+            const countUnsub = window.onSnapshot(q, (snapshot) => {
+                const unreadCounts = {};
+                snapshot.forEach(doc => { 
+                    const data = doc.data(); 
+                    if(data.read === false) unreadCounts[data.senderId] = (unreadCounts[data.senderId] || 0) + 1; 
+                });
+                contacts.forEach(c => {
+                    const el = document.getElementById(`contact-name-${c.id}`);
+                    const badge = document.getElementById(`contact-badge-${c.id}`);
+                    const count = unreadCounts[c.id] || 0;
+                    if (el && badge) {
+                        if (count > 0 && activeChatPartner?.id !== c.id) { 
+                            el.classList.add('font-extrabold', 'text-blue-600'); el.classList.remove('font-medium', 'text-slate-700');
+                            badge.innerText = count; badge.classList.remove('hidden');
+                        } else {
+                            el.classList.remove('font-extrabold', 'text-blue-600'); el.classList.add('font-medium', 'text-slate-700');
+                            badge.classList.add('hidden');
+                        }
+                    }
+                });
+            });
+            firestoreUnsubscribes.push(countUnsub);
         }
         function switchChat(id, name) { activeChatPartner = { id, name }; renderPage('teacher-chat'); }
         function setupChatListener(pid) {
@@ -955,47 +900,30 @@
             });
             firestoreUnsubscribes.push(unsub);
         }
-
-        window.viewImage = (src) => {
-            const modal = document.getElementById('image-modal');
-            const img = document.getElementById('modal-img');
-            img.src = src;
-            modal.classList.remove('hidden');
-        };
-
         async function handleSendMessage(e) {
             e.preventDefault(); const inp = document.getElementById('chat-input'), finp = document.getElementById('chat-file-input'), txt = inp.value.trim();
             const file = finp.files[0];
-
             if(!txt && !file) return;
             
-            let fileData = null;
+            let fData = null;
             if(file) {
-                 if (file.size > 800000) { showToast("File too large (>800KB)"); return; }
-                 const reader = new FileReader();
-                 fileData = await new Promise(resolve => { reader.onload = e => resolve(e.target.result); reader.readAsDataURL(file); });
+                 if (file.size > 800000) { showToast("File too large"); return; }
+                 const r = new FileReader();
+                 fData = await new Promise(res => { r.onload = e => res(e.target.result); r.readAsDataURL(file); });
             }
 
             const cid = [String(currentUser.id), String(activeChatPartner.id)].sort().join('_');
-            await window.addDoc(window.collection(window.dbFirestore, window.dbCollections.messages), { 
-                chatId: cid, 
-                senderId: String(currentUser.id), 
-                senderName: currentUser.name, 
-                receiverId: String(activeChatPartner.id), 
-                text: txt || (file ? "Sent an attachment" : ""), 
-                file: file ? file.name : null, 
-                fileData: fileData,
-                timestamp: window.Timestamp.now(), 
-                read: false 
-            });
+            await window.addDoc(window.collection(window.dbFirestore, window.dbCollections.messages), { chatId: cid, senderId: String(currentUser.id), senderName: currentUser.name, receiverId: String(activeChatPartner.id), text: txt, file: file?file.name:null, fileData: fData, timestamp: window.Timestamp.now(), read: false });
             inp.value = ''; finp.value = ''; document.getElementById('file-indicator').classList.add('hidden');
         }
         function showFileSelected(input) { if(input.files[0]) { const el = document.getElementById('file-indicator'); el.innerText = `📎 ${input.files[0].name}`; el.classList.remove('hidden'); } }
 
         // Helpers
-        window.toggleNotifications=toggleNotifications; window.clearNotifications=clearNotifications; window.openChatFromNotif=openChatFromNotif; window.renderPage=renderPage; window.uploadFile=uploadFile; window.startScanning=startScanning; window.login=login; window.logout=logout; window.saveSettings=saveSettings; window.switchChat=switchChat; window.handleSendMessage=handleSendMessage; window.showFileSelected=showFileSelected; window.manualTeacherScan=manualTeacherScan; window.setLanguage=setLanguage; window.downloadFile=downloadFile;
+        window.toggleNotifications=toggleNotifications; window.clearNotifications=clearNotifications; window.openChatFromNotif=openChatFromNotif; window.renderPage=renderPage; window.uploadFile=uploadFile; window.startScanning=startScanning; window.login=login; window.logout=logout; window.saveSettings=saveSettings; window.switchChat=switchChat; window.handleSendMessage=handleSendMessage; window.showFileSelected=showFileSelected; window.manualTeacherScan=manualTeacherScan; window.setLanguage=setLanguage; window.downloadFile=downloadFile; window.viewImage=viewImage;
 
         function showToast(msg) { const t=document.getElementById('toast'); document.getElementById('toast-msg').innerText=msg; t.classList.remove('translate-y-24','opacity-0'); setTimeout(()=>t.classList.add('translate-y-24','opacity-0'),3000); }
+        function viewImage(src) { const m=document.getElementById('image-modal'); document.getElementById('modal-img').src=src; m.classList.remove('hidden'); }
+        function downloadFile(name, data) { const a=document.createElement('a'); a.href=data; a.download=name; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
     </script>
 </body>
 </html>
