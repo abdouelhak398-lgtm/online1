@@ -347,6 +347,11 @@
         </div>
     </div>
 
+    <!-- Image Viewer Modal -->
+    <div id="image-modal" class="fixed inset-0 z-[100] bg-black/90 hidden flex items-center justify-center p-4 cursor-pointer" onclick="this.classList.add('hidden')">
+        <img id="modal-img" src="" class="max-w-full max-h-full rounded-lg shadow-2xl">
+    </div>
+
     <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 z-50 flex items-center gap-4">
         <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white shrink-0"><i class="fa-solid fa-check"></i></div>
@@ -402,7 +407,15 @@
                 'title-student-qr': 'My Digital ID',
                 'title-student-calendar': 'My History',
                 'title-student-materials': 'Materials',
-                'title-settings': 'Account Settings'
+                'title-settings': 'Account Settings',
+                'lbl-sending': 'Sending:',
+                'lbl-no-file': 'No file attached',
+                'lbl-file-loading': 'Loading file status...',
+                'lbl-contacts': 'Contacts',
+                'lbl-type-msg': 'Type message...',
+                'lbl-display-name': 'Display Name',
+                'lbl-save': 'Save Changes',
+                'lbl-no-materials': 'No materials received yet'
             },
             fr: {
                 'lbl-active-tenant': 'Locataire Actif',
@@ -420,7 +433,15 @@
                 'title-student-qr': 'Mon ID Numérique',
                 'title-student-calendar': 'Mon Historique',
                 'title-student-materials': 'Matériaux',
-                'title-settings': 'Paramètres du Compte'
+                'title-settings': 'Paramètres du Compte',
+                'lbl-sending': 'Envoi:',
+                'lbl-no-file': 'Aucun fichier joint',
+                'lbl-file-loading': 'Chargement...',
+                'lbl-contacts': 'Contacts',
+                'lbl-type-msg': 'Tapez un message...',
+                'lbl-display-name': 'Nom d\'affichage',
+                'lbl-save': 'Enregistrer',
+                'lbl-no-materials': 'Aucun matériel reçu'
             },
             ar: {
                 'lbl-active-tenant': 'المستأجر النشط',
@@ -438,7 +459,15 @@
                 'title-student-qr': 'هويتي الرقمية',
                 'title-student-calendar': 'تاريخي',
                 'title-student-materials': 'المواد',
-                'title-settings': 'إعدادات الحساب'
+                'title-settings': 'إعدادات الحساب',
+                'lbl-sending': 'جاري الإرسال:',
+                'lbl-no-file': 'لم يتم إرفاق ملف',
+                'lbl-file-loading': 'جار التحميل...',
+                'lbl-contacts': 'جهات الاتصال',
+                'lbl-type-msg': 'اكتب رسالة...',
+                'lbl-display-name': 'الاسم المعروض',
+                'lbl-save': 'حفظ التغييرات',
+                'lbl-no-materials': 'لم يتم استلام أي مواد'
             }
         };
 
@@ -515,20 +544,20 @@
                 showToast("Connecting...");
                 try { await new Promise((res, rej) => { let at=0; const i=setInterval(()=>{ at++; if(window.isAuthReady){clearInterval(i);res();}else if(window.authFailed){clearInterval(i);rej();}else if(at>50){clearInterval(i);res();} },100); }); } catch (e) { showAuthErrorModal('timeout'); return; }
             }
-            const defaultUser = db.users[roleKey];
-            const isStudent = defaultUser.role === 'student';
-            const userRef = window.doc(window.dbFirestore, window.dbCollections.users, defaultUser.id);
+            const defUser = db.users[roleKey];
+            const isStudent = defUser.role === 'student';
+            const userRef = window.doc(window.dbFirestore, window.dbCollections.users, defUser.id);
             try {
                 const snap = await safeGetDoc(userRef);
-                if (snap.exists()) currentUser = { ...defaultUser, ...snap.data() };
+                if (snap.exists()) currentUser = { ...defUser, ...snap.data() };
                 else {
-                    await window.setDoc(userRef, { name: defaultUser.name, role: defaultUser.role, schoolId: defaultUser.schoolId, bio: isStudent ? 'Student' : 'Faculty', notificationsEnabled: true });
-                    currentUser = { ...defaultUser, bio: isStudent ? 'Student' : 'Faculty', notificationsEnabled: true };
+                    await window.setDoc(userRef, { name: defUser.name, role: defUser.role, schoolId: defUser.schoolId, bio: isStudent ? 'Student' : 'Faculty', notificationsEnabled: true });
+                    currentUser = { ...defUser, bio: isStudent ? 'Student' : 'Faculty', notificationsEnabled: true };
                 }
             } catch (e) {
                 console.error(e);
                 if (e.code === 'permission-denied') { showAuthErrorModal(e.code); return; }
-                currentUser = defaultUser; showToast("Offline Mode");
+                currentUser = defUser; showToast("Offline Mode");
             }
 
             document.getElementById('login-modal').classList.add('hidden');
@@ -537,7 +566,7 @@
             updateUIHeader(); renderSidebar();
             userProfileUnsubscribe = window.onSnapshot(userRef, (doc) => { if(doc.exists()) { currentUser={...currentUser, ...doc.data()}; updateUIHeader(); } });
             setupGlobalNotifications();
-            renderPage(isStudent ? 'student-qr' : (defaultUser.role === 'teacher' ? 'teacher-classes' : 'saas-dashboard'));
+            renderPage(isStudent ? 'student-qr' : (defUser.role === 'teacher' ? 'teacher-classes' : 'saas-dashboard'));
             showToast(`Welcome back, ${currentUser.name}`);
         }
 
@@ -677,8 +706,11 @@
             container.innerHTML = '';
             
             let title = 'Dashboard';
-            Object.values(routes).flat().forEach(r => { if(r.id === pageId && r.key) title = getTranslation(r.key); });
-            document.getElementById('page-title').innerText = title;
+            let titleKey = null;
+            Object.values(routes).flat().forEach(r => { if(r.id === pageId) { titleKey = r.key; title = r.key ? getTranslation(r.key) : r.label; } });
+            const titleEl = document.getElementById('page-title');
+            titleEl.innerText = title;
+            if(titleKey) titleEl.dataset.key = titleKey;
 
             switch(pageId) {
                 case 'teacher-classes': renderTeacherClasses(container); break;
@@ -737,12 +769,13 @@
                 let sData = txt.startsWith('{') ? JSON.parse(txt) : {id:txt, name:"Student #"+txt};
                 const clsSnap = await window.getDoc(window.doc(window.dbFirestore, window.dbCollections.classes, activeClassId));
                 const fileToSend = clsSnap.data()?.currentFile;
+                const fileDataToSend = clsSnap.data()?.currentFileData;
 
                 await window.addDoc(window.collection(window.dbFirestore, window.dbCollections.attendance), {
                     studentId: String(sData.id), studentName: sData.name, classId: activeClassId, className: db.classes.find(c=>c.id===activeClassId).name, timestamp: window.Timestamp.now(), status: 'present'
                 });
                 if(fileToSend) await window.addDoc(window.collection(window.dbFirestore, window.dbCollections.materials), {
-                    studentId: String(sData.id), fileName: fileToSend, classId: activeClassId, className: db.classes.find(c=>c.id===activeClassId).name, timestamp: window.Timestamp.now()
+                    studentId: String(sData.id), fileName: fileToSend, fileData: fileDataToSend, classId: activeClassId, className: db.classes.find(c=>c.id===activeClassId).name, timestamp: window.Timestamp.now()
                 });
                 showToast(`${sData.name} Marked Present`);
             } catch(e) { showToast("Scan Error"); }
@@ -780,20 +813,72 @@
              firestoreUnsubscribes.push(unsub);
         }
         
-        async function uploadFile(cid, input) { if(input.files[0]) { await window.setDoc(window.doc(window.dbFirestore, window.dbCollections.classes, cid), { currentFile: input.files[0].name }, { merge: true }); showToast("File Attached"); } }
+        async function uploadFile(cid, input) {
+            if(input.files[0]) {
+                const file = input.files[0];
+                
+                // Read file as Base64 to store in Firestore (since no Storage setup)
+                // Limit size to avoid Firestore quota issues
+                if (file.size > 800000) {
+                     showToast("File too large (>800KB)");
+                     return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const base64Data = e.target.result;
+                    // Store both name and data
+                    await window.setDoc(window.doc(window.dbFirestore, window.dbCollections.classes, cid), { 
+                        currentFile: file.name,
+                        currentFileData: base64Data
+                    }, { merge: true });
+                    showToast("File Attached");
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
         function startScanning(cid) { activeClassId=cid; renderPage('teacher-scan'); }
         function manualTeacherScan() { handleTeacherScanSuccess(document.getElementById('manual-student-id').value); }
+        
         function renderStudentMaterials(c) { 
             c.innerHTML = `<div class="mb-6"><h2 class="text-2xl font-bold text-slate-800">${getTranslation('title-student-materials')}</h2></div><div id="materials-list" class="space-y-3"></div>`;
             const ref = window.collection(window.dbFirestore, window.dbCollections.materials);
             const q = window.query(ref, window.where('studentId', '==', String(currentUser.id)));
             const unsub = window.onSnapshot(q, (snap) => {
                 const mats = []; snap.forEach(d=>mats.push(d.data()));
-                document.getElementById('materials-list').innerHTML = mats.length ? mats.map(m=>`<div class="p-4 bg-white rounded-xl border border-slate-100 flex items-center gap-4"><div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-file"></i></div><div><p class="font-bold text-slate-700 text-sm">${m.fileName}</p><p class="text-xs text-slate-400">${m.className}</p></div></div>`).join('') : `<div class="p-8 text-center text-slate-400">${getTranslation('lbl-no-materials')}</div>`;
+                document.getElementById('materials-list').innerHTML = mats.length ? mats.map(m=>`
+                    <div class="p-4 bg-white rounded-xl border border-slate-100 flex items-center gap-4 group hover:shadow-md transition">
+                        <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-file"></i></div>
+                        <div class="flex-1">
+                            <p class="font-bold text-slate-700 text-sm">${m.fileName}</p>
+                            <p class="text-xs text-slate-400">${m.className}</p>
+                        </div>
+                        <button onclick="downloadFile('${m.fileName}', '${m.fileData}')" class="ml-auto w-8 h-8 flex items-center justify-center text-slate-400 hover:text-blue-600 transition" title="Download">
+                            <i class="fa-solid fa-download"></i>
+                        </button>
+                    </div>`).join('') : `<div class="p-8 text-center text-slate-400">${getTranslation('lbl-no-materials')}</div>`;
             });
             firestoreUnsubscribes.push(unsub);
         }
         
+        function downloadFile(fileName, fileData) {
+            // Support both text placeholder and real Base64
+            let href = fileData;
+            if (!href || !href.startsWith('data:')) {
+                 href = 'data:text/plain;charset=utf-8,' + encodeURIComponent("File Content Placeholder for " + fileName);
+            }
+            
+            const element = document.createElement('a');
+            element.setAttribute('href', href);
+            element.setAttribute('download', fileName);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+            showToast("Downloading...");
+        }
+
         // CALENDARS
         window.changeMonth = changeMonth; 
         function changeMonth(offset, role) {
@@ -827,6 +912,7 @@
         function renderChat(container) {
             let contacts = currentUser.role === 'teacher' ? db.students.map(s => ({id:s.id, name:s.name})) : [{id:db.users.teacher.id, name:db.users.teacher.name}];
             if (!activeChatPartner && contacts.length) activeChatPartner = contacts[0];
+
             container.innerHTML = `
                 <div class="flex h-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden fade-in">
                     <div class="w-1/3 border-r border-slate-50 bg-slate-50 flex flex-col">
@@ -856,23 +942,58 @@
                 div.innerHTML = msgs.map(m => {
                     if (m.senderId === activeChatPartner.id && !m.read) setTimeout(() => window.updateDoc(window.doc(window.dbFirestore, window.dbCollections.messages, m.id), { read: true }), 500);
                     const isMe = String(m.senderId) === String(currentUser.id);
-                    return `<div class="flex w-full ${isMe?'justify-end':'justify-start'} slide-in-right"><div class="msg-bubble px-4 py-3 text-sm ${isMe?'msg-sent':'msg-received'}">${m.file?`<div class="mb-1 bg-white/20 p-2 rounded flex items-center gap-2 text-xs font-bold"><i class="fa-solid fa-file"></i> ${m.file}</div>`:''} ${m.text} <span class="text-[9px] opacity-60 block text-right mt-1">${new Date(m.timestamp?.seconds*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div></div>`;
+                    let content = m.text;
+                    if(m.file && m.fileData) {
+                        const isImg = m.file.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                        content = isImg 
+                            ? `<div class="mb-1"><img src="${m.fileData}" class="max-w-[150px] rounded-lg cursor-pointer" onclick="viewImage('${m.fileData}')"></div>`
+                            : `<div class="flex items-center gap-2 mb-1 bg-black/10 p-2 rounded"><i class="fa-solid fa-file"></i> <span class="underline text-xs font-bold cursor-pointer" onclick="downloadFile('${m.file}', '${m.fileData}')">${m.file}</span></div>`;
+                    }
+                    return `<div class="flex w-full ${isMe?'justify-end':'justify-start'} slide-in-right"><div class="msg-bubble px-4 py-3 text-sm ${isMe?'msg-sent':'msg-received'}">${content} <span class="text-[9px] opacity-60 block text-right mt-1">${new Date(m.timestamp?.seconds*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div></div>`;
                 }).join('');
                 div.scrollTop = div.scrollHeight;
             });
             firestoreUnsubscribes.push(unsub);
         }
+
+        window.viewImage = (src) => {
+            const modal = document.getElementById('image-modal');
+            const img = document.getElementById('modal-img');
+            img.src = src;
+            modal.classList.remove('hidden');
+        };
+
         async function handleSendMessage(e) {
             e.preventDefault(); const inp = document.getElementById('chat-input'), finp = document.getElementById('chat-file-input'), txt = inp.value.trim();
-            if(!txt && !finp.files[0]) return;
+            const file = finp.files[0];
+
+            if(!txt && !file) return;
+            
+            let fileData = null;
+            if(file) {
+                 if (file.size > 800000) { showToast("File too large (>800KB)"); return; }
+                 const reader = new FileReader();
+                 fileData = await new Promise(resolve => { reader.onload = e => resolve(e.target.result); reader.readAsDataURL(file); });
+            }
+
             const cid = [String(currentUser.id), String(activeChatPartner.id)].sort().join('_');
-            await window.addDoc(window.collection(window.dbFirestore, window.dbCollections.messages), { chatId: cid, senderId: String(currentUser.id), senderName: currentUser.name, receiverId: String(activeChatPartner.id), text: txt || (finp.files[0]?"File":""), file: finp.files[0]?.name||null, timestamp: window.Timestamp.now(), read: false });
+            await window.addDoc(window.collection(window.dbFirestore, window.dbCollections.messages), { 
+                chatId: cid, 
+                senderId: String(currentUser.id), 
+                senderName: currentUser.name, 
+                receiverId: String(activeChatPartner.id), 
+                text: txt || (file ? "Sent an attachment" : ""), 
+                file: file ? file.name : null, 
+                fileData: fileData,
+                timestamp: window.Timestamp.now(), 
+                read: false 
+            });
             inp.value = ''; finp.value = ''; document.getElementById('file-indicator').classList.add('hidden');
         }
         function showFileSelected(input) { if(input.files[0]) { const el = document.getElementById('file-indicator'); el.innerText = `📎 ${input.files[0].name}`; el.classList.remove('hidden'); } }
 
         // Helpers
-        window.toggleNotifications=toggleNotifications; window.clearNotifications=clearNotifications; window.openChatFromNotif=openChatFromNotif; window.renderPage=renderPage; window.uploadFile=uploadFile; window.startScanning=startScanning; window.login=login; window.logout=logout; window.saveSettings=saveSettings; window.switchChat=switchChat; window.handleSendMessage=handleSendMessage; window.showFileSelected=showFileSelected; window.manualTeacherScan=manualTeacherScan; window.setLanguage=setLanguage;
+        window.toggleNotifications=toggleNotifications; window.clearNotifications=clearNotifications; window.openChatFromNotif=openChatFromNotif; window.renderPage=renderPage; window.uploadFile=uploadFile; window.startScanning=startScanning; window.login=login; window.logout=logout; window.saveSettings=saveSettings; window.switchChat=switchChat; window.handleSendMessage=handleSendMessage; window.showFileSelected=showFileSelected; window.manualTeacherScan=manualTeacherScan; window.setLanguage=setLanguage; window.downloadFile=downloadFile;
 
         function showToast(msg) { const t=document.getElementById('toast'); document.getElementById('toast-msg').innerText=msg; t.classList.remove('translate-y-24','opacity-0'); setTimeout(()=>t.classList.add('translate-y-24','opacity-0'),3000); }
     </script>
