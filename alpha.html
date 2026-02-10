@@ -15,7 +15,134 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     
-    <!-- Firebase SDKs -->
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; }
+        .font-arabic { font-family: 'Tajawal', sans-serif; }
+        .sidebar-item { transition: all 0.3s ease; border-left: 4px solid transparent; }
+        .sidebar-item:hover { background-color: #eff6ff; color: #2563eb; padding-left: 1.75rem; }
+        html[dir="rtl"] .sidebar-item:hover { padding-left: 1rem; padding-right: 1.75rem; border-left: none; border-right: 4px solid transparent; }
+        .sidebar-item.active { background-color: #eff6ff; color: #2563eb; border-left: 4px solid #fbbf24; font-weight: 600; }
+        html[dir="rtl"] .sidebar-item.active { border-left: none; border-right: 4px solid #fbbf24; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        .dropdown-enter { animation: dropDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; transform-origin: top right; }
+        html[dir="rtl"] .dropdown-enter { transform-origin: top left; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes dropDown { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .msg-bubble { max-width: 80%; border-radius: 16px; position: relative; word-wrap: break-word; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .msg-sent { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border-bottom-right-radius: 4px; margin-left: auto; }
+        html[dir="rtl"] .msg-sent { margin-left: 0; margin-right: auto; border-bottom-right-radius: 16px; border-bottom-left-radius: 4px; }
+        .msg-received { background-color: white; color: #334155; border-bottom-left-radius: 4px; margin-right: auto; border: 1px solid #f1f5f9; }
+        html[dir="rtl"] .msg-received { margin-right: 0; margin-left: auto; border-bottom-left-radius: 16px; border-bottom-right-radius: 4px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+        .calendar-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; position: relative; background: white; border: 1px solid #f1f5f9; }
+        .calendar-day:hover:not(.empty) { background-color: #f0f9ff; border-color: #bae6fd; transform: translateY(-2px); }
+        .calendar-day.selected { border: 2px solid #3b82f6; background-color: #eff6ff; box-shadow: 0 0 0 2px #bfdbfe; z-index: 10; }
+        .calendar-day.has-event { background-color: #eff6ff; color: #1d4ed8; font-weight: 600; border-color: #bfdbfe; }
+        .calendar-day.present { background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+        .empty { background: transparent; border: none; pointer-events: none; }
+        .scan-flash { animation: flash-green 0.5s ease-out; }
+        @keyframes flash-green { 0% { background-color: rgba(34, 197, 94, 0.5); } 100% { background-color: transparent; } }
+    </style>
+</head>
+<body class="text-slate-600 antialiased h-screen flex overflow-hidden bg-slate-50">
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="w-72 bg-white shadow-xl z-20 hidden md:flex flex-col h-full border-r border-slate-100">
+        <div class="p-8 flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">E</div>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800 tracking-tight">EduSaaS</h1>
+                <p id="role-display" class="text-[10px] font-semibold text-yellow-500 uppercase tracking-wider mt-1">School Manager</p>
+            </div>
+        </div>
+        <div class="mx-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 mb-2">
+            <p id="lbl-active-tenant" class="text-[10px] text-blue-400 uppercase font-bold mb-1">Active Tenant</p>
+            <div id="school-name-display" class="font-bold text-sm text-blue-900 truncate">Select Role</div>
+        </div>
+        <nav id="nav-menu" class="flex-1 overflow-y-auto py-4 space-y-1 px-4"></nav>
+        <div class="p-6 border-t border-slate-50">
+            <button onclick="logout()" class="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+                <i class="fa-solid fa-right-from-bracket"></i> <span id="lbl-signout">Sign Out</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full relative overflow-hidden bg-slate-50/50">
+        <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 h-20 flex items-center justify-between px-8 shadow-sm z-30 sticky top-0">
+            <div class="flex items-center gap-4">
+                <button class="md:hidden text-slate-500 hover:text-blue-600 transition">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <div class="flex flex-col">
+                    <h2 id="page-title" class="text-xl font-bold text-slate-800 leading-tight">Dashboard</h2>
+                    <div class="flex items-center gap-1.5 mt-0.5">
+                        <span id="conn-status-dot" class="w-2 h-2 rounded-full bg-red-400"></span>
+                        <span id="conn-status-text" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Connecting...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 md:gap-6">
+                <div class="relative group">
+                    <button class="p-2 text-slate-400 hover:text-blue-600 transition flex items-center gap-1"><i class="fa-solid fa-globe text-lg"></i></button>
+                    <div class="hidden group-hover:block absolute right-0 mt-0 w-32 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-50">
+                        <button onclick="setLanguage('en')" class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50">🇺🇸 English</button>
+                        <button onclick="setLanguage('fr')" class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50">🇫🇷 Français</button>
+                        <button onclick="setLanguage('ar')" class="block w-full text-right px-4 py-2 text-sm hover:bg-slate-50 font-arabic">🇩🇿 العربية</button>
+                    </div>
+                </div>
+                <div class="relative">
+                    <button onclick="toggleNotifications()" class="relative p-2 text-slate-400 hover:text-blue-600 transition-colors focus:outline-none">
+                        <i class="fa-regular fa-bell text-xl"></i>
+                        <span id="notif-badge" class="absolute top-0 right-0 w-5 h-5 bg-yellow-400 text-blue-900 rounded-full border-2 border-white text-[10px] font-bold flex items-center justify-center hidden shadow-sm">0</span>
+                    </button>
+                    <div id="notification-dropdown" class="hidden absolute right-0 mt-4 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden transform dropdown-enter">
+                        <div class="p-4 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center"><h3 id="lbl-notif-title" class="font-bold text-slate-700 text-sm">Notifications</h3><button id="lbl-mark-read" onclick="clearNotifications()" class="text-xs text-blue-500 font-medium hover:text-blue-700">Mark all read</button></div>
+                        <div id="notification-list" class="max-h-80 overflow-y-auto"><div class="p-8 text-center text-slate-400 text-xs"><i class="fa-regular fa-bell-slash text-2xl mb-2 opacity-50"></i><p id="lbl-no-notif">No new notifications</p></div></div>
+                    </div>
+                </div>
+                <div class="h-8 w-px bg-slate-200"></div>
+                <div class="flex items-center gap-3"><div class="text-right hidden sm:block"><p id="user-name" class="text-sm font-bold text-slate-800">Guest</p><p id="user-role" class="text-xs text-slate-500 font-medium">Not Logged In</p></div><div class="w-10 h-10 rounded-full bg-yellow-100 border-2 border-yellow-200 flex items-center justify-center text-yellow-700 font-bold shadow-sm" id="user-initials">?</div></div>
+            </div>
+        </header>
+
+        <div id="app-content" class="flex-1 overflow-y-auto p-8 relative scroll-smooth"></div>
+
+        <div class="bg-slate-900 text-white text-[10px] py-1 px-4 flex justify-between items-center z-50">
+            <div class="flex items-center gap-2" id="conn-status">
+                <span id="conn-dot" class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
+                <span id="conn-text" class="text-yellow-400">Connecting...</span>
+            </div>
+            <div id="debug-user-id" class="text-slate-500 font-mono"></div>
+        </div>
+    </main>
+
+    <div id="login-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-5xl w-full overflow-hidden flex flex-col md:flex-row fade-in border border-white/20">
+            <div class="md:w-5/12 bg-blue-600 p-12 flex flex-col justify-center text-white relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                <div class="relative z-10"><div class="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-3xl font-bold mb-6">E</div><h1 class="text-4xl font-bold mb-4 tracking-tight">EduSaaS</h1><p class="text-blue-100 text-lg mb-8 leading-relaxed">The next-gen platform for modern schools.</p></div>
+            </div>
+            <div class="md:w-7/12 p-12 bg-white">
+                <h2 id="lbl-welcome" class="text-2xl font-bold text-slate-800 mb-2">Welcome Back</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+                    <button onclick="login('superadmin')" class="p-5 border rounded-xl hover:bg-purple-50 text-left"><span class="font-bold block text-slate-700">Super Admin</span></button>
+                    <button onclick="login('schooladmin')" class="p-5 border rounded-xl hover:bg-blue-50 text-left"><span class="font-bold block text-slate-700">School Admin</span></button>
+                    <button onclick="login('teacher')" class="p-5 border rounded-xl hover:bg-green-50 text-left"><span class="font-bold block text-slate-700">Teacher</span></button>
+                    <div class="p-5 border rounded-xl bg-yellow-50"><span class="font-bold text-slate-700 block mb-2">Student</span><div class="space-y-2"><button onclick="login('student1')" class="block text-xs font-bold text-slate-600 hover:text-yellow-600">Yacine Brahimi</button><button onclick="login('student2')" class="block text-xs font-bold text-slate-600 hover:text-yellow-600">Meriem Hadjadj</button><button onclick="login('student3')" class="block text-xs font-bold text-slate-600 hover:text-yellow-600">Youcef Belaili</button></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="image-modal" class="fixed inset-0 z-[100] bg-black/90 hidden flex items-center justify-center p-4 cursor-pointer" onclick="this.classList.add('hidden')"><img id="modal-img" src="" class="max-w-full max-h-full rounded-lg shadow-2xl"></div>
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 z-50 flex items-center gap-4"><div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white shrink-0"><i class="fa-solid fa-check"></i></div><span id="toast-msg" class="font-medium text-sm">Notification</span></div>
+    <audio id="scan-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+    <audio id="msg-sound" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3" preload="auto"></audio>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -36,25 +163,10 @@
         const auth = getAuth(app);
         const dbFirestore = getFirestore(app);
         
-        // Expose to window
+        // Expose Firebase
         window.dbFirestore = dbFirestore;
         window.auth = auth;
-        window.collection = collection;
-        window.addDoc = addDoc;
-        window.setDoc = setDoc;
-        window.getDoc = getDoc;
-        window.updateDoc = updateDoc;
-        window.getDocs = getDocs;
-        window.doc = doc;
-        window.onSnapshot = onSnapshot;
-        window.query = query;
-        window.where = where;
-        window.orderBy = orderBy;
-        window.Timestamp = Timestamp;
-        window.enableNetwork = enableNetwork;
-        
         window.appId = typeof __app_id !== 'undefined' ? __app_id : 'edusaas-live-demo-v2';
-        
         window.dbCollections = {
             users: `artifacts/${window.appId}/public/data/users`,
             classes: `artifacts/${window.appId}/public/data/classes`,
@@ -63,54 +175,53 @@
             messages: `artifacts/${window.appId}/public/data/messages`
         };
 
-        window.isAuthReady = false;
-        window.authFailed = false;
-        window.authError = null;
+        // --- GLOBAL VARIABLES (State) ---
+        // DEFINED AT TOP LEVEL TO AVOID REFERENCE ERRORS
+        const db = {
+            schools: [{ id: 's1', name: 'École Privée El Nardjess' }],
+            users: {
+                superadmin: { name: 'Amine Benali', role: 'superadmin', schoolId: null, id: 'super_dz' },
+                schooladmin: { name: 'Mourad Boukhalfa', role: 'schooladmin', schoolId: 's1', id: 'admin_dz' },
+                teacher: { name: 'Fatima Zohra', role: 'teacher', schoolId: 's1', id: 'teacher_dz' },
+                student1: { name: 'Yacine Brahimi', role: 'student', schoolId: 's1', id: 'student_dz_1' },
+                student2: { name: 'Meriem Hadjadj', role: 'student', schoolId: 's1', id: 'student_dz_2' },
+                student3: { name: 'Youcef Belaili', role: 'student', schoolId: 's1', id: 'student_dz_3' }
+            },
+            classes: [{ id: 'c1', name: 'Advanced Calculus', time: '09:00 AM', room: '101', currentFile: null }, { id: 'c2', name: 'Linear Algebra', time: '11:00 AM', room: '102', currentFile: null }],
+            students: [ { id: 'student_dz_1', name: 'Yacine Brahimi' }, { id: 'student_dz_2', name: 'Meriem Hadjadj' }, { id: 'student_dz_3', name: 'Youcef Belaili' } ]
+        };
 
-        function showAuthErrorModal(error) {
+        const translations = { en: { 'lbl-active-tenant': 'Active Tenant', 'lbl-signout': 'Sign Out', 'lbl-notif-title': 'Notifications', 'lbl-mark-read': 'Mark all read', 'lbl-no-notif': 'No new notifications', 'lbl-contacts': 'Contacts', 'lbl-type-msg': 'Type message...', 'lbl-display-name': 'Display Name', 'lbl-save': 'Save Changes', 'title-teacher-classes': 'My Classes', 'title-teacher-calendar': 'Attendance Records', 'title-teacher-chat': 'Messages', 'title-student-qr': 'My Digital ID', 'title-student-calendar': 'My History', 'title-student-materials': 'Materials', 'title-settings': 'Account Settings', 'lbl-sending': 'Sending:', 'lbl-no-file': 'No file attached', 'lbl-file-loading': 'Loading status...', 'lbl-no-materials': 'No materials received' }, fr: { 'lbl-active-tenant': 'Locataire Actif', 'lbl-signout': 'Déconnexion', 'lbl-notif-title': 'Notifications', 'lbl-mark-read': 'Tout lu', 'lbl-no-notif': 'Aucune notif', 'lbl-contacts': 'Contacts', 'lbl-type-msg': 'Message...', 'lbl-display-name': 'Nom', 'lbl-save': 'Enregistrer', 'title-teacher-classes': 'Mes Cours', 'title-teacher-calendar': 'Présence', 'title-teacher-chat': 'Messages', 'title-student-qr': 'Mon ID', 'title-student-calendar': 'Historique', 'title-student-materials': 'Matériaux', 'title-settings': 'Paramètres', 'lbl-sending': 'Envoi:', 'lbl-no-file': 'Aucun fichier', 'lbl-file-loading': 'Chargement...', 'lbl-no-materials': 'Aucun matériel' }, ar: { 'lbl-active-tenant': 'المستأجر', 'lbl-signout': 'خروج', 'lbl-notif-title': 'إشعارات', 'lbl-mark-read': 'قراءة الكل', 'lbl-no-notif': 'لا إشعارات', 'lbl-contacts': 'جهات الاتصال', 'lbl-type-msg': 'رسالة...', 'lbl-display-name': 'الاسم', 'lbl-save': 'حفظ', 'title-teacher-classes': 'فصولي', 'title-teacher-calendar': 'الحضور', 'title-teacher-chat': 'الرسائل', 'title-student-qr': 'هويتي', 'title-student-calendar': 'التاريخ', 'title-student-materials': 'المواد', 'title-settings': 'الإعدادات', 'lbl-sending': 'جاري الإرسال:', 'lbl-no-file': 'بلا ملف', 'lbl-file-loading': 'تحميل...', 'lbl-no-materials': 'لا مواد' } };
+        const routes = { superadmin: [{ id: 'saas-dashboard', label: 'Platform Overview', icon: 'fa-chart-line' }, { id: 'settings', label: 'Settings', icon: 'fa-cog' }], schooladmin: [{ id: 'admin-dashboard', label: 'Dashboard', icon: 'fa-chart-pie' }, { id: 'settings', label: 'Settings', icon: 'fa-cog' }], teacher: [{ id: 'teacher-classes', label: 'Classes', icon: 'fa-chalkboard-user', key: 'title-teacher-classes' }, { id: 'teacher-calendar', label: 'Attendance', icon: 'fa-calendar-check', key: 'title-teacher-calendar' }, { id: 'teacher-chat', label: 'Chat', icon: 'fa-comments', key: 'title-teacher-chat' }, { id: 'settings', label: 'Settings', icon: 'fa-cog', key: 'title-settings' }], student: [{ id: 'student-qr', label: 'Digital ID', icon: 'fa-id-card', key: 'title-student-qr' }, { id: 'student-calendar', label: 'History', icon: 'fa-calendar-days', key: 'title-student-calendar' }, { id: 'student-materials', label: 'Materials', icon: 'fa-folder-open', key: 'title-student-materials' }, { id: 'teacher-chat', label: 'Chat', icon: 'fa-comments', key: 'title-teacher-chat' }, { id: 'settings', label: 'Settings', icon: 'fa-cog', key: 'title-settings' }] };
+
+        let currentLang = 'en', currentUser = null, activeClassId = null, activeScanner = null, activeChatPartner = null;
+        let firestoreUnsubscribes = [], globalUnsubscribe = null, userProfileUnsubscribe = null, notificationStore = [], currentCalendarDate = new Date(), activeSessionFile = null, isFileSynced = false, heartbeatInterval = null, presenceUnsubscribes = [];
+        let currentCalendarEvents = {}, currentSelectedDate = null;
+        
+        window.isAuthReady = false; window.authFailed = false;
+
+        const platform = navigator.userAgent.toLowerCase().includes('mobile') ? 'mobile' : 'desktop';
+        document.body.classList.add(`platform-${platform}`);
+
+        // --- AUTH & INIT ---
+        const showAuthErrorModal = (error) => {
             if (document.getElementById('auth-error-modal')) return;
-
-            let title = "⚠️ Connection Issue";
-            let message = "We couldn't connect to the authentication server.";
-            let steps = "";
-
-            if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
-                title = "⚠️ Enable Anonymous Auth";
-                message = "The code is correct, but the <b>Anonymous Sign-in</b> method is disabled in your Firebase Console.";
-                steps = `
-                    <ol style="list-style-type:decimal; margin-left:20px; color:#e2e8f0; margin-top:10px;">
-                        <li>Go to <a href="https://console.firebase.google.com/" target="_blank" style="color:#fbbf24; text-decoration:underline;">Firebase Console</a> > <b>Authentication</b>.</li>
-                        <li>Click the <b>Sign-in method</b> tab.</li>
-                        <li>Click <b>Anonymous</b> -> Toggle <b>Enable</b> -> Click <b>Save</b>.</li>
-                    </ol>
-                `;
-            } else if (error.code === 'permission-denied') {
-                 title = "⚠️ Database Permissions";
-                 message = "Your database rules are blocking access.";
-                 steps = `
-                    <ol style="list-style-type:decimal; margin-left:20px; color:#e2e8f0; margin-top:10px;">
-                        <li>Go to <a href="https://console.firebase.google.com/" target="_blank" style="color:#fbbf24; text-decoration:underline;">Firebase Console</a> > <b>Firestore Database</b> > <b>Rules</b>.</li>
-                        <li>Change to: <code>allow read, write: if true;</code></li>
-                        <li>Click <b>Publish</b>.</li>
-                    </ol>
-                 `;
-            } else {
-                message = `Error: ${error.message}`;
-            }
-
-            const modalHTML = `
-                <div id="auth-error-modal" style="position:fixed; inset:0; background:rgba(15, 23, 42, 0.95); z-index:9999; color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px; font-family:'Outfit', sans-serif;">
-                    <h2 style="font-size:2rem; margin-bottom:1rem; color:#fbbf24; font-weight:700;">${title}</h2>
-                    <p style="max-w:600px; color:#cbd5e1;">${message}</p>
-                    <div style="text-align:left; background:#1e293b; padding:20px; border-radius:12px; margin-top:20px; border:1px solid #334155; max-width:500px; width:100%;">
-                        ${steps}
-                        <div style="margin-top:15px; font-size:0.75rem; color:#94a3b8; font-family:monospace;">Code: ${error.code}</div>
-                    </div>
-                    <button onclick="location.reload()" style="margin-top:30px; padding:12px 30px; background:#2563eb; color:white; border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:1rem; transition:all 0.2s;">Retry Connection</button>
-                </div>
-            `;
+            const modalHTML = `<div id="auth-error-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999; color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center;"><h2 class="text-2xl font-bold text-red-400 mb-4">Connection Error</h2><p class="mb-4">Could not connect to database.</p><div class="text-xs mb-4 text-slate-400 font-mono">${error.code || error.message}</div><button onclick="location.reload()" class="bg-blue-600 px-6 py-2 rounded-lg text-white">Retry</button></div>`;
             document.body.insertAdjacentHTML('beforeend', modalHTML);
-        }
+        };
+
+        const safeGetDoc = async (docRef, retries = 5, delay = 1000) => {
+            for (let i = 0; i < retries; i++) {
+                try { return await getDoc(docRef); } catch (e) {
+                    if ((e.code === 'unavailable' || e.code === 'permission-denied' || e.message.includes('offline')) && i < retries - 1) {
+                         if (e.code === 'permission-denied') throw e; 
+                         await new Promise(r => setTimeout(r, delay));
+                         try { await enableNetwork(dbFirestore); } catch (netErr) {}
+                    } else { throw e; }
+                }
+            }
+            throw new Error("Max retries reached for document fetch.");
+        };
 
         const initAuth = async () => {
              try {
@@ -120,15 +231,9 @@
                     await signInAnonymously(auth);
                  }
              } catch (e) {
-                 try {
-                     await signInAnonymously(auth);
-                 } catch (err) {
-                     console.error("Auth Critical Error:", err);
+                 try { await signInAnonymously(auth); } catch (err) {
                      window.authFailed = true;
-                     window.authError = err;
-                     if (typeof __initial_auth_token === 'undefined') {
-                         showAuthErrorModal(err);
-                     }
+                     if (typeof __initial_auth_token === 'undefined') showAuthErrorModal(err);
                  }
              }
         };
@@ -137,476 +242,86 @@
             if (user) {
                 console.log("Auth State: Connected", user.uid);
                 window.isAuthReady = true;
+                const dot = document.getElementById('conn-status-dot');
+                const txt = document.getElementById('conn-status-text');
+                if(dot && txt) { dot.className="w-2 h-2 rounded-full bg-green-500 shadow-lg"; txt.innerText="Online"; }
                 window.dispatchEvent(new Event('auth-ready'));
             }
         });
         
         initAuth();
-    </script>
-    
-    <style>
-        body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; }
-        .font-arabic { font-family: 'Tajawal', sans-serif; }
-        .sidebar-item { transition: all 0.3s ease; border-left: 4px solid transparent; }
-        .sidebar-item:hover { background-color: #eff6ff; color: #2563eb; padding-left: 1.75rem; }
-        html[dir="rtl"] .sidebar-item:hover { padding-left: 1rem; padding-right: 1.75rem; border-left: none; border-right: 4px solid transparent; }
-        .sidebar-item.active { background-color: #eff6ff; color: #2563eb; border-left: 4px solid #fbbf24; font-weight: 600; }
-        html[dir="rtl"] .sidebar-item.active { border-left: none; border-right: 4px solid #fbbf24; }
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        .slide-in-right { animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-        .dropdown-enter { animation: dropDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; transform-origin: top right; }
-        html[dir="rtl"] .dropdown-enter { transform-origin: top left; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideInRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes dropDown { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .msg-bubble { max-width: 80%; border-radius: 16px; position: relative; word-wrap: break-word; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .msg-sent { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border-bottom-right-radius: 4px; margin-left: auto; }
-        html[dir="rtl"] .msg-sent { margin-left: 0; margin-right: auto; border-bottom-right-radius: 16px; border-bottom-left-radius: 4px; }
-        .msg-received { background-color: white; color: #334155; border-bottom-left-radius: 4px; margin-right: auto; border: 1px solid #f1f5f9; }
-        html[dir="rtl"] .msg-received { margin-right: 0; margin-left: auto; border-bottom-left-radius: 16px; border-bottom-right-radius: 4px; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-        .calendar-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; position: relative; background: white; border: 1px solid #f1f5f9; }
-        .calendar-day:hover:not(.empty) { background-color: #f0f9ff; border-color: #bae6fd; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .calendar-day.today { border: 2px solid #3b82f6; color: #3b82f6; font-weight: 700; }
-        .calendar-day.has-event { background-color: #eff6ff; color: #1d4ed8; font-weight: 600; border-color: #bfdbfe; }
-        .calendar-day.present { background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
-        .empty { background: transparent; border: none; pointer-events: none; }
-        .badge-pop { animation: bounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes bounce { 0% { transform: scale(0); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
-        @keyframes flash-green { 0% { background-color: rgba(34, 197, 94, 0.5); } 100% { background-color: transparent; } }
-        .scan-flash { animation: flash-green 0.5s ease-out; }
-    </style>
-</head>
-<body class="text-slate-600 antialiased h-screen flex overflow-hidden bg-slate-50">
 
-    <!-- Sidebar Navigation -->
-    <aside id="sidebar" class="w-72 bg-white shadow-xl z-20 hidden md:flex flex-col h-full border-r border-slate-100">
-        <div class="p-8 flex items-center gap-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">E</div>
-            <div>
-                <h1 class="text-2xl font-bold text-slate-800 tracking-tight leading-none">EduSaaS</h1>
-                <p id="role-display" class="text-[10px] font-semibold text-yellow-500 uppercase tracking-wider mt-1">School Manager</p>
-            </div>
-        </div>
-        
-        <!-- School Context -->
-        <div class="mx-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 mb-2">
-            <p id="lbl-active-tenant" class="text-[10px] text-blue-400 uppercase font-bold mb-1">Active Tenant</p>
-            <div id="school-name-display" class="font-bold text-sm text-blue-900 truncate">Select Role</div>
-        </div>
-
-        <nav id="nav-menu" class="flex-1 overflow-y-auto py-4 space-y-1 px-4">
-            <!-- Nav Items -->
-        </nav>
-
-        <div class="p-6 border-t border-slate-50">
-            <button onclick="logout()" class="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
-                <i class="fa-solid fa-right-from-bracket"></i> <span id="lbl-signout">Sign Out</span>
-            </button>
-        </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="flex-1 flex flex-col h-full relative overflow-hidden bg-slate-50/50">
-        
-        <!-- Header -->
-        <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 h-20 flex items-center justify-between px-8 shadow-sm z-30 sticky top-0">
-            <div class="flex items-center gap-4">
-                <button class="md:hidden text-slate-500 hover:text-blue-600 transition">
-                    <i class="fa-solid fa-bars text-xl"></i>
-                </button>
-                <div class="flex flex-col">
-                    <h2 id="page-title" class="text-xl font-bold text-slate-800 leading-tight">Dashboard</h2>
-                    <div class="flex items-center gap-1.5 mt-0.5">
-                        <span id="conn-status-dot" class="w-2 h-2 rounded-full bg-red-400"></span>
-                        <span id="conn-status-text" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Connecting...</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-4 md:gap-6">
-                <!-- Language Selector -->
-                <div class="relative group">
-                    <button class="p-2 text-slate-400 hover:text-blue-600 transition flex items-center gap-1">
-                        <i class="fa-solid fa-globe text-lg"></i>
-                    </button>
-                    <div class="hidden group-hover:block absolute right-0 mt-0 w-32 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-50">
-                        <button onclick="setLanguage('en')" class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50">🇺🇸 English</button>
-                        <button onclick="setLanguage('fr')" class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50">🇫🇷 Français</button>
-                        <button onclick="setLanguage('ar')" class="block w-full text-right px-4 py-2 text-sm hover:bg-slate-50 font-arabic">🇩🇿 العربية</button>
-                    </div>
-                </div>
-
-                <!-- Notifications with Dropdown -->
-                <div class="relative">
-                    <button onclick="toggleNotifications()" class="relative p-2 text-slate-400 hover:text-blue-600 transition-colors focus:outline-none">
-                        <i class="fa-regular fa-bell text-xl"></i>
-                        <span id="notif-badge" class="absolute top-0 right-0 w-5 h-5 bg-yellow-400 text-blue-900 rounded-full border-2 border-white text-[10px] font-bold flex items-center justify-center hidden shadow-sm">0</span>
-                    </button>
-                    
-                    <!-- Dropdown Menu -->
-                    <div id="notification-dropdown" class="hidden absolute right-0 mt-4 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden transform dropdown-enter">
-                        <div class="p-4 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
-                            <h3 id="lbl-notif-title" class="font-bold text-slate-700 text-sm">Notifications</h3>
-                            <button id="lbl-mark-read" onclick="clearNotifications()" class="text-xs text-blue-500 font-medium hover:text-blue-700">Mark all read</button>
-                        </div>
-                        <div id="notification-list" class="max-h-80 overflow-y-auto">
-                            <!-- Items Injected Here -->
-                            <div class="p-8 text-center text-slate-400 text-xs">
-                                <i class="fa-regular fa-bell-slash text-2xl mb-2 opacity-50"></i>
-                                <p id="lbl-no-notif">No new notifications</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="h-8 w-px bg-slate-200"></div>
-                
-                <div class="flex items-center gap-3">
-                    <div class="text-right hidden sm:block">
-                        <p id="user-name" class="text-sm font-bold text-slate-800">Guest</p>
-                        <p id="user-role" class="text-xs text-slate-500 font-medium">Not Logged In</p>
-                    </div>
-                    <div class="w-10 h-10 rounded-full bg-yellow-100 border-2 border-yellow-200 flex items-center justify-center text-yellow-700 font-bold shadow-sm" id="user-initials">?</div>
-                </div>
-            </div>
-        </header>
-
-        <!-- Dynamic View Container -->
-        <div id="app-content" class="flex-1 overflow-y-auto p-8 relative scroll-smooth">
-            <!-- Views injected here -->
-        </div>
-
-        <!-- Connection Status Bar -->
-        <div class="bg-slate-900 text-white text-[10px] py-1 px-4 flex justify-between items-center z-50">
-            <div class="flex items-center gap-2" id="conn-status">
-                <span id="conn-dot" class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
-                <span id="conn-text" class="text-yellow-400">Connecting...</span>
-            </div>
-            <div id="debug-user-id" class="text-slate-500 font-mono"></div>
-        </div>
-
-    </main>
-
-    <!-- Login Modal -->
-    <div id="login-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-5xl w-full overflow-hidden flex flex-col md:flex-row fade-in border border-white/20">
-            <!-- Left Side: Brand -->
-            <div class="md:w-5/12 bg-blue-600 p-12 flex flex-col justify-center text-white relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                <div class="relative z-10">
-                    <div class="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-3xl font-bold mb-6">E</div>
-                    <h1 class="text-4xl font-bold mb-4 tracking-tight">EduSaaS</h1>
-                    <p class="text-blue-100 text-lg mb-8 leading-relaxed">The next-gen platform for modern schools. Scan, track, and learn.</p>
-                    <div class="space-y-4 text-sm font-medium text-blue-50">
-                        <div class="flex items-center gap-3 bg-blue-700/30 p-3 rounded-xl border border-blue-500/30">
-                            <i class="fa-solid fa-qrcode text-yellow-400"></i> <span id="lbl-feat-attendance">Smart Attendance</span>
-                        </div>
-                        <div class="flex items-center gap-3 bg-blue-700/30 p-3 rounded-xl border border-blue-500/30">
-                            <i class="fa-solid fa-comments text-yellow-400"></i> <span id="lbl-feat-chat">Real-time Chat</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Right Side: Roles -->
-            <div class="md:w-7/12 p-12 bg-white">
-                <h2 id="lbl-welcome" class="text-2xl font-bold text-slate-800 mb-2">Welcome Back</h2>
-                <p id="lbl-select-role" class="text-slate-500 mb-8">Select your role to access the dashboard.</p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <button onclick="login('superadmin')" class="p-5 border border-slate-200 rounded-2xl hover:border-purple-500 hover:bg-purple-50 hover:shadow-md transition-all group text-left">
-                        <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-shield-halved"></i></div>
-                        <span id="lbl-role-super" class="font-bold text-slate-700 group-hover:text-purple-700 block">Super Admin</span>
-                        <span id="lbl-desc-super" class="text-xs text-slate-400">Platform Owner</span>
-                    </button>
-
-                    <button onclick="login('schooladmin')" class="p-5 border border-slate-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 hover:shadow-md transition-all group text-left">
-                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-building-columns"></i></div>
-                        <span id="lbl-role-admin" class="font-bold text-slate-700 group-hover:text-blue-700 block">School Admin</span>
-                        <span id="lbl-desc-admin" class="text-xs text-slate-400">Principal/Staff</span>
-                    </button>
-
-                    <button onclick="login('teacher')" class="p-5 border border-slate-200 rounded-2xl hover:border-green-500 hover:bg-green-50 hover:shadow-md transition-all group text-left">
-                        <div class="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-chalkboard-user"></i></div>
-                        <span id="lbl-role-teacher" class="font-bold text-slate-700 group-hover:text-green-700 block">Teacher</span>
-                        <span id="lbl-desc-teacher" class="text-xs text-slate-400">Faculty Member</span>
-                    </button>
-
-                    <!-- Student Selection Group -->
-                    <div class="p-5 border border-slate-200 rounded-2xl bg-yellow-50/50 hover:shadow-md transition-all group">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-10 h-10 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center"><i class="fa-solid fa-graduation-cap"></i></div>
-                            <div>
-                                <span id="lbl-role-student" class="font-bold text-slate-700 block">Student</span>
-                                <span id="lbl-select-profile" class="text-xs text-slate-400">Select Profile</span>
-                            </div>
-                        </div>
-                        <div class="space-y-2 pl-2">
-                            <button onclick="login('student1')" class="w-full text-left text-xs font-bold text-slate-600 hover:text-yellow-600 flex items-center gap-2">
-                                <span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Yacine Brahimi
-                            </button>
-                            <button onclick="login('student2')" class="w-full text-left text-xs font-bold text-slate-600 hover:text-yellow-600 flex items-center gap-2">
-                                <span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Meriem Hadjadj
-                            </button>
-                            <button onclick="login('student3')" class="w-full text-left text-xs font-bold text-slate-600 hover:text-yellow-600 flex items-center gap-2">
-                                <span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Youcef Belaili
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Image Viewer Modal -->
-    <div id="image-modal" class="fixed inset-0 z-[100] bg-black/90 hidden flex items-center justify-center p-4 cursor-pointer" onclick="this.classList.add('hidden')">
-        <img id="modal-img" src="" class="max-w-full max-h-full rounded-lg shadow-2xl">
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 z-50 flex items-center gap-4">
-        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white shrink-0"><i class="fa-solid fa-check"></i></div>
-        <span id="toast-msg" class="font-medium text-sm">Notification</span>
-    </div>
-
-    <!-- Audio Assets -->
-    <audio id="scan-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
-    <audio id="msg-sound" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3" preload="auto"></audio>
-
-    <script>
-        // --- 1. STATE & DATA ---
-        const db = {
-            schools: [
-                { id: 's1', name: 'École Privée El Nardjess', type: 'Private' },
-                { id: 's2', name: 'Lycée Emir Abdelkader', type: 'Public' }
-            ],
-            users: {
-                superadmin: { name: 'Amine Benali', role: 'superadmin', schoolId: null, id: 'super_dz' },
-                schooladmin: { name: 'Mourad Boukhalfa', role: 'schooladmin', schoolId: 's1', id: 'admin_dz' },
-                teacher: { name: 'Fatima Zohra', role: 'teacher', schoolId: 's1', id: 'teacher_dz' },
-                student1: { name: 'Yacine Brahimi', role: 'student', schoolId: 's1', id: 'student_dz_1' },
-                student2: { name: 'Meriem Hadjadj', role: 'student', schoolId: 's1', id: 'student_dz_2' },
-                student3: { name: 'Youcef Belaili', role: 'student', schoolId: 's1', id: 'student_dz_3' }
-            },
-            classes: [
-                { id: 'c1', name: 'Advanced Calculus', time: '09:00 AM', room: '101', currentFile: null },
-                { id: 'c2', name: 'Linear Algebra', time: '11:00 AM', room: '102', currentFile: null }
-            ],
-            students: [
-                { id: 'student_dz_1', name: 'Yacine Brahimi', attendance: 85, tuitionStatus: 'Paid', tuitionDue: 0 },
-                { id: 'student_dz_2', name: 'Meriem Hadjadj', attendance: 100, tuitionStatus: 'Paid', tuitionDue: 0 },
-                { id: 'student_dz_3', name: 'Youcef Belaili', attendance: 92, tuitionStatus: 'Overdue', tuitionDue: 1200 },
-                { id: 'student_dz_4', name: 'Sofiane Feghouli', attendance: 45, tuitionStatus: 'Pending', tuitionDue: 500 },
-            ]
-        };
-
-        // --- TRANSLATIONS ---
-        const translations = {
-            en: {
-                'lbl-active-tenant': 'Active Tenant',
-                'lbl-signout': 'Sign Out',
-                'lbl-notif-title': 'Notifications',
-                'lbl-mark-read': 'Mark all read',
-                'lbl-no-notif': 'No new notifications',
-                'lbl-feat-attendance': 'Smart Attendance',
-                'lbl-feat-chat': 'Real-time Chat',
-                'lbl-welcome': 'Welcome Back',
-                'lbl-select-role': 'Select your role to access the dashboard.',
-                'title-teacher-classes': 'My Classes',
-                'title-teacher-calendar': 'Attendance Records',
-                'title-teacher-chat': 'Messages',
-                'title-student-qr': 'My Digital ID',
-                'title-student-calendar': 'My History',
-                'title-student-materials': 'Materials',
-                'title-settings': 'Account Settings',
-                'lbl-sending': 'Sending:',
-                'lbl-no-file': 'No file attached',
-                'lbl-file-loading': 'Loading status...',
-                'lbl-contacts': 'Contacts',
-                'lbl-type-msg': 'Type message...',
-                'lbl-display-name': 'Display Name',
-                'lbl-save': 'Save Changes',
-                'lbl-no-materials': 'No materials received yet'
-            },
-            fr: {
-                'lbl-active-tenant': 'Locataire Actif',
-                'lbl-signout': 'Déconnexion',
-                'lbl-notif-title': 'Notifications',
-                'lbl-mark-read': 'Tout marquer comme lu',
-                'lbl-no-notif': 'Aucune nouvelle notification',
-                'lbl-feat-attendance': 'Présence Intelligente',
-                'lbl-feat-chat': 'Chat en temps réel',
-                'lbl-welcome': 'Bon retour',
-                'lbl-select-role': 'Sélectionnez votre rôle pour accéder au tableau de bord.',
-                'title-teacher-classes': 'Mes Cours',
-                'title-teacher-calendar': 'Registres de Présence',
-                'title-teacher-chat': 'Messages',
-                'title-student-qr': 'Mon ID Numérique',
-                'title-student-calendar': 'Mon Historique',
-                'title-student-materials': 'Matériaux',
-                'title-settings': 'Paramètres du Compte',
-                'lbl-sending': 'Envoi:',
-                'lbl-no-file': 'Aucun fichier joint',
-                'lbl-file-loading': 'Chargement...',
-                'lbl-contacts': 'Contacts',
-                'lbl-type-msg': 'Tapez un message...',
-                'lbl-display-name': 'Nom d\'affichage',
-                'lbl-save': 'Enregistrer',
-                'lbl-no-materials': 'Aucun matériel reçu'
-            },
-            ar: {
-                'lbl-active-tenant': 'المستأجر النشط',
-                'lbl-signout': 'تسجيل الخروج',
-                'lbl-notif-title': 'إشعارات',
-                'lbl-mark-read': 'ضع علامة مقروء على الكل',
-                'lbl-no-notif': 'لا إشعارات جديدة',
-                'lbl-feat-attendance': 'الحضور الذكي',
-                'lbl-feat-chat': 'دردشة حية',
-                'lbl-welcome': 'مرحبا بعودتك',
-                'lbl-select-role': 'اختر دورك للوصول إلى لوحة القيادة.',
-                'title-teacher-classes': 'فصولي',
-                'title-teacher-calendar': 'سجلات الحضور',
-                'title-teacher-chat': 'الرسائل',
-                'title-student-qr': 'هويتي الرقمية',
-                'title-student-calendar': 'تاريخي',
-                'title-student-materials': 'المواد',
-                'title-settings': 'إعدادات الحساب',
-                'lbl-sending': 'جاري الإرسال:',
-                'lbl-no-file': 'لم يتم إرفاق ملف',
-                'lbl-file-loading': 'جار التحميل...',
-                'lbl-contacts': 'جهات الاتصال',
-                'lbl-type-msg': 'اكتب رسالة...',
-                'lbl-display-name': 'الاسم المعروض',
-                'lbl-save': 'حفظ التغييرات',
-                'lbl-no-materials': 'لم يتم استلام أي مواد'
-            }
-        };
-
-        let currentLang = 'en';
-        let currentUser = null;
-        let activeClassId = null;
-        let activeScanner = null;
-        let activeChatPartner = null;
-        let firestoreUnsubscribes = [];
-        let globalUnsubscribe = null;
-        let userProfileUnsubscribe = null; 
-        let notificationStore = []; 
-        let currentCalendarDate = new Date();
-        let activeSessionFile = null;
-        let isFileSynced = false;
-        let heartbeatInterval = null; 
-        let presenceUnsubscribes = [];
-
-        const routes = {
-            superadmin: [{ id: 'saas-dashboard', label: 'Platform Overview', icon: 'fa-chart-line' }, { id: 'settings', label: 'Settings', icon: 'fa-cog' }],
-            schooladmin: [{ id: 'admin-dashboard', label: 'Dashboard', icon: 'fa-chart-pie' }, { id: 'settings', label: 'Settings', icon: 'fa-cog' }],
-            teacher: [{ id: 'teacher-classes', label: 'My Classes & Scanning', icon: 'fa-chalkboard-user', key: 'title-teacher-classes' }, { id: 'teacher-calendar', label: 'Attendance Calendar', icon: 'fa-calendar-check', key: 'title-teacher-calendar' }, { id: 'teacher-chat', label: 'Chat with Students', icon: 'fa-comments', key: 'title-teacher-chat' }, { id: 'settings', label: 'Settings', icon: 'fa-cog', key: 'title-settings' }],
-            student: [{ id: 'student-qr', label: 'My Digital ID', icon: 'fa-id-card', key: 'title-student-qr' }, { id: 'student-calendar', label: 'Attendance Calendar', icon: 'fa-calendar-days', key: 'title-student-calendar' }, { id: 'student-materials', label: 'Received Materials', icon: 'fa-folder-open', key: 'title-student-materials' }, { id: 'teacher-chat', label: 'Chat with Teacher', icon: 'fa-comments', key: 'title-teacher-chat' }, { id: 'settings', label: 'Settings', icon: 'fa-cog', key: 'title-settings' }]
-        };
-
-        // --- PLATFORM ---
-        const platform = (() => {
-            const ua = navigator.userAgent.toLowerCase();
-            if (ua.includes('iphone') || ua.includes('ipad')) return 'ios';
-            if (ua.includes('android')) return 'android';
-            return 'desktop';
-        })();
-        document.body.classList.add(`platform-${platform}`);
-
-        // --- HELPER FUNCTIONS ---
-        function showToast(msg) {
+        // --- GLOBAL FUNCTION EXPORTS ---
+        window.showToast = (msg) => {
             const t = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = msg;
             t.classList.remove('translate-y-24', 'opacity-0');
             setTimeout(() => t.classList.add('translate-y-24', 'opacity-0'), 3000);
-        }
+        };
 
-        function getTranslation(key) {
-            return translations[currentLang][key] || key;
-        }
+        window.getTranslation = (key) => translations[currentLang][key] || key;
 
-        function updateUIHeader() {
+        window.updateUIHeader = () => {
             if (!currentUser) return;
             document.getElementById('user-name').innerText = currentUser.name;
             document.getElementById('user-role').innerText = currentUser.role.toUpperCase();
             document.getElementById('user-initials').innerText = currentUser.name.charAt(0);
             const sName = currentUser.schoolId ? db.schools.find(s => s.id === currentUser.schoolId).name : 'Super Admin';
             document.getElementById('school-name-display').innerText = sName;
-        }
+        };
 
-        function updateNotificationBadge() {
+        window.updateNotificationBadge = () => {
             const badge = document.getElementById('notif-badge');
             const count = notificationStore.length;
-            if (count > 9) badge.innerText = '9+'; else badge.innerText = count;
-            if (count > 0) { badge.classList.remove('hidden'); badge.classList.remove('badge-pop'); void badge.offsetWidth; badge.classList.add('badge-pop'); } else { badge.classList.add('hidden'); }
-        }
+            if (count > 0) { badge.innerText = count > 9 ? '9+' : count; badge.classList.remove('hidden'); badge.classList.remove('badge-pop'); void badge.offsetWidth; badge.classList.add('badge-pop'); } else { badge.classList.add('hidden'); }
+        };
 
-        async function safeGetDoc(docRef, retries = 5, delay = 1000) {
-            for (let i = 0; i < retries; i++) {
-                try { return await window.getDoc(docRef); } catch (e) {
-                    if ((e.code === 'unavailable' || e.code === 'permission-denied' || e.message.includes('offline')) && i < retries - 1) {
-                         if (e.code === 'permission-denied') throw e; 
-                         await new Promise(r => setTimeout(r, delay));
-                         try { await window.enableNetwork(window.dbFirestore); } catch (netErr) {}
-                    } else { throw e; }
-                }
-            }
-            throw new Error("Max retries");
-        }
-
-        // --- AUTH ---
-        window.login = async function(roleKey) {
-            if (window.authFailed) { showAuthErrorModal(window.authError?.code); return; }
-            if (!window.isAuthReady) {
-                showToast("Connecting...");
-                try { await new Promise((res, rej) => { let at=0; const i=setInterval(()=>{ at++; if(window.isAuthReady){clearInterval(i);res();}else if(window.authFailed){clearInterval(i);rej();}else if(at>50){clearInterval(i);res();} },100); }); } catch (e) { showAuthErrorModal('timeout'); return; }
-            }
+        window.login = async (roleKey) => {
+            if (window.authFailed) return alert("Auth Failed");
+            if (!window.isAuthReady) { window.showToast("Connecting..."); await new Promise(r=>setTimeout(r,1000)); }
+            
             const defUser = db.users[roleKey];
             const isStudent = defUser.role === 'student';
-            const userRef = window.doc(window.dbFirestore, window.dbCollections.users, defUser.id);
+            const userRef = doc(dbFirestore, window.dbCollections.users, defUser.id);
+            
             try {
+                // Diagnostic write
+                const diagRef = doc(dbFirestore, window.dbCollections.users, 'diagnostic_' + Date.now());
+                await setDoc(diagRef, { t: 1 });
+
                 const snap = await safeGetDoc(userRef);
                 if (snap.exists()) currentUser = { ...defUser, ...snap.data() };
                 else {
-                    await window.setDoc(userRef, { name: defUser.name, role: defUser.role, schoolId: defUser.schoolId, bio: isStudent ? 'Student' : 'Faculty', notificationsEnabled: true });
-                    currentUser = { ...defUser, bio: isStudent ? 'Student' : 'Faculty', notificationsEnabled: true };
+                    await setDoc(userRef, { name: defUser.name, role: defUser.role, schoolId: defUser.schoolId, bio: isStudent?'Student':'Faculty', notificationsEnabled: true });
+                    currentUser = { ...defUser, bio: isStudent?'Student':'Faculty', notificationsEnabled: true };
                 }
-            } catch (e) {
-                if (e.code === 'permission-denied') { showAuthErrorModal(e.code); return; }
-                currentUser = defUser; showToast("Offline Mode");
+            } catch(e) { 
+                console.error(e);
+                if (e.code === 'permission-denied') { showAuthErrorModal(e); return; } 
+                currentUser = defUser; window.showToast("Offline Mode"); 
             }
 
             document.getElementById('login-modal').classList.add('hidden');
-            const browserLang = navigator.language.split('-')[0];
-            if (['en', 'fr', 'ar'].includes(browserLang)) window.setLanguage(browserLang);
-            updateUIHeader(); renderSidebar(); startHeartbeat();
-            userProfileUnsubscribe = window.onSnapshot(userRef, (doc) => { if(doc.exists()) { currentUser={...currentUser, ...doc.data()}; updateUIHeader(); } });
-            setupGlobalNotifications();
-            renderPage(isStudent ? 'student-qr' : (defUser.role === 'teacher' ? 'teacher-classes' : 'saas-dashboard'));
-            showToast(`Welcome back, ${currentUser.name}`);
+            const lang = navigator.language.split('-')[0];
+            if (['en', 'fr', 'ar'].includes(lang)) window.setLanguage(lang);
             
-            // Visual feedback
-            const dot = document.getElementById('conn-status-dot');
-            const txt = document.getElementById('conn-status-text');
-            if(dot && txt) { dot.className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"; txt.innerText="Live"; }
+            window.updateUIHeader(); renderSidebar(); startHeartbeat();
+            window.setupGlobalNotifications();
+            window.renderPage(isStudent ? 'student-qr' : (defUser.role === 'teacher' ? 'teacher-classes' : 'saas-dashboard'));
+            window.showToast(`Welcome ${currentUser.name}`);
         };
 
-        // --- GLOBAL EXPORTS (Explicitly defined) ---
         window.setLanguage = (lang) => {
-            currentLang = lang;
-            document.documentElement.setAttribute('dir', lang==='ar'?'rtl':'ltr');
+            currentLang = lang; document.documentElement.setAttribute('dir', lang==='ar'?'rtl':'ltr');
             if(lang==='ar') document.body.classList.add('font-arabic'); else document.body.classList.remove('font-arabic');
             document.querySelectorAll('[id^="lbl-"]').forEach(el => { const k=el.id; if(translations[lang][k]) el.innerText=translations[lang][k]; });
             renderSidebar();
-            const titleEl = document.getElementById('page-title');
-            if(titleEl && titleEl.dataset.key) titleEl.innerText = getTranslation(titleEl.dataset.key);
+            if(document.getElementById('app-content').innerHTML !== '') {
+                const t = document.getElementById('page-title'); if(t.dataset.key) t.innerText = window.getTranslation(t.dataset.key);
+            }
         };
 
-        window.renderPage = (pageId) => {
+        window.renderPage = async (pageId) => {
             document.getElementById('notification-dropdown').classList.add('hidden');
             if(activeScanner) { activeScanner.stop().catch(()=>{}); activeScanner=null; }
             firestoreUnsubscribes.forEach(u => u()); firestoreUnsubscribes = [];
@@ -614,20 +329,162 @@
             const container = document.getElementById('app-content'); container.innerHTML = '';
             
             let title = 'Dashboard'; let titleKey = null;
-            Object.values(routes).flat().forEach(r => { if(r.id === pageId) { titleKey = r.key; title = r.key ? getTranslation(r.key) : r.label; } });
+            Object.values(routes).flat().forEach(r => { if(r.id === pageId) { titleKey = r.key; title = r.key ? window.getTranslation(r.key) : r.label; } });
             const te = document.getElementById('page-title'); te.innerText = title; te.dataset.key = titleKey;
 
-            switch(pageId) {
-                case 'teacher-classes': renderTeacherClasses(container); break;
-                case 'teacher-scan': renderTeacherScanner(container); break;
-                case 'teacher-chat': window.renderChat(container); break;
-                case 'student-qr': renderStudentQR(container); break;
-                case 'student-materials': renderStudentMaterials(container); break;
-                case 'settings': renderSettings(container); break;
-                default: container.innerHTML = '<div class="text-center mt-10 text-slate-400">Section Under Development</div>';
-            }
+            if(pageId==='teacher-classes') renderTeacherClasses(container);
+            else if(pageId==='teacher-scan') renderTeacherScanner(container);
+            else if(pageId.includes('chat')) window.renderChat(container);
+            else if(pageId==='student-qr') renderStudentQR(container);
+            else if(pageId==='student-materials') renderStudentMaterials(container);
+            else if(pageId.includes('calendar')) pageId==='teacher-calendar'?window.renderTeacherCalendar(container):window.renderStudentCalendar(container);
+            else if(pageId==='settings') renderSettings(container);
         };
 
+        function renderSidebar() {
+            const nav = document.getElementById('nav-menu');
+            if (!nav || !currentUser) return;
+            nav.innerHTML = '';
+            const r = routes[currentUser.role];
+            r.forEach((rt, idx) => {
+                const b = document.createElement('button');
+                b.className = `sidebar-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-xl mb-1`;
+                const label = rt.key ? window.getTranslation(rt.key) : rt.label;
+                b.innerHTML = `<i class="fa-solid ${rt.icon} w-6"></i> ${label}`;
+                b.onclick = () => { document.querySelectorAll('.sidebar-item').forEach(x=>x.classList.remove('active')); b.classList.add('active'); window.renderPage(rt.id); };
+                nav.appendChild(b);
+            });
+        }
+
+        function startHeartbeat() {
+            if(heartbeatInterval) clearInterval(heartbeatInterval);
+            const update = () => { if(currentUser) updateDoc(doc(dbFirestore, window.dbCollections.users, currentUser.id), { lastSeen: Timestamp.now(), isOnline: true }).catch(()=>{}); };
+            update(); heartbeatInterval = setInterval(update, 30000);
+        }
+
+        function stopHeartbeat() { if(heartbeatInterval) clearInterval(heartbeatInterval); }
+
+        function trackContactsPresence(contacts) {
+            presenceUnsubscribes.forEach(u => u()); presenceUnsubscribes = [];
+            contacts.forEach(contact => {
+                const ref = doc(dbFirestore, window.dbCollections.users, contact.id);
+                const unsub = onSnapshot(ref, (doc) => {
+                    const data = doc.data();
+                    const el = document.getElementById(`status-indicator-${contact.id}`);
+                    const headerEl = document.getElementById('chat-header-status');
+                    const isOnline = (Date.now()/1000 - (data?.lastSeen?.seconds || 0)) < 120;
+                    if(el) el.className = `absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-300'}`;
+                    if(activeChatPartner?.id === contact.id && headerEl) headerEl.innerText = isOnline ? 'Online' : 'Offline';
+                });
+                presenceUnsubscribes.push(unsub);
+            });
+        }
+
+        window.setupGlobalNotifications = () => {
+            if (globalUnsubscribe) globalUnsubscribe();
+            const q = query(collection(dbFirestore, window.dbCollections.messages), where("receiverId", "==", String(currentUser.id)));
+            let initialLoad = true;
+            globalUnsubscribe = onSnapshot(q, (snap) => {
+                snap.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        const msg = change.doc.data();
+                        if (msg.read !== true && !notificationStore.find(n => n.id === change.doc.id)) {
+                             notificationStore.unshift({ id: change.doc.id, senderId: msg.senderId, senderName: msg.senderName, text: msg.text, time: msg.timestamp ? new Date(msg.timestamp.seconds * 1000) : new Date() });
+                        }
+                        const now = Date.now() / 1000;
+                        const msgTime = msg.timestamp?.seconds || 0;
+                        if (!initialLoad && (now - msgTime) < 10 && msg.read !== true && currentUser.notificationsEnabled !== false) {
+                            document.getElementById('msg-sound').play().catch(()=>{});
+                            window.showToast(`New message from ${msg.senderName}`);
+                        }
+                    }
+                    if (change.type === "modified" && change.doc.data().read === true) notificationStore = notificationStore.filter(n => n.id !== change.doc.id);
+                });
+                notificationStore.sort((a,b) => b.time - a.time); window.updateNotificationBadge(); window.renderNotificationList(); initialLoad = false;
+            }, (error) => {});
+        };
+
+        window.renderNotificationList = () => {
+            const list = document.getElementById('notification-list');
+            if (notificationStore.length === 0) {
+                list.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs"><i class="fa-regular fa-bell-slash text-2xl mb-2 opacity-50"></i><p>${window.getTranslation('lbl-no-notif')}</p></div>`;
+                return;
+            }
+            list.innerHTML = notificationStore.map((notif) => `
+                <div onclick="window.openChatFromNotif('${notif.senderId}', '${notif.senderName}')" class="p-4 border-b border-slate-50 hover:bg-blue-50 cursor-pointer transition flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">${notif.senderName.charAt(0)}</div>
+                    <div class="flex-1 overflow-hidden"><p class="text-sm font-bold text-slate-700 truncate">${notif.senderName}</p><p class="text-xs text-slate-500 truncate">${notif.text}</p><p class="text-[10px] text-slate-400 mt-1">${notif.time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p></div><div class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                </div>
+            `).join('');
+        };
+
+        window.clearNotifications = () => { notificationStore = []; window.updateNotificationBadge(); window.renderNotificationList(); };
+
+        window.openChatFromNotif = (pid, pname) => {
+            document.getElementById('notification-dropdown').classList.add('hidden');
+            notificationStore = notificationStore.filter(n => n.senderId !== partnerId);
+            window.updateNotificationBadge();
+            window.renderNotificationList();
+            activeChatPartner = { id: pid, name: pname };
+            window.renderPage('teacher-chat');
+            window.markMessagesRead(pid);
+        };
+
+        window.markMessagesRead = async (senderId) => {
+            try {
+                const q = query(collection(dbFirestore, window.dbCollections.messages), where("senderId", "==", senderId), where("receiverId", "==", String(currentUser.id)), where("read", "==", false));
+                const snapshot = await getDocs(q);
+                snapshot.forEach(d => updateDoc(doc(dbFirestore, window.dbCollections.messages, d.id), { read: true }));
+            } catch(e) {}
+        };
+
+        window.logout = () => {
+            if(activeScanner) try { activeScanner.stop(); activeScanner = null; } catch(e){}
+            firestoreUnsubscribes.forEach(u => u()); firestoreUnsubscribes = [];
+            if(globalUnsubscribe) globalUnsubscribe();
+            if(userProfileUnsubscribe) userProfileUnsubscribe();
+            stopHeartbeat();
+            currentUser = null; notificationStore = []; window.updateNotificationBadge();
+            document.getElementById('login-modal').classList.remove('hidden');
+            document.getElementById('app-content').innerHTML = '';
+        };
+
+        window.toggleNotifications = () => { document.getElementById('notification-dropdown').classList.toggle('hidden'); };
+        
+        window.manualTeacherScan = () => { window.handleTeacherScanSuccess(JSON.stringify({id:document.getElementById('manual-student-id').value, name:"Student"})); };
+
+        window.uploadFile = async (cid, input) => { if(input.files[0]) { const f=input.files[0]; if(f.size>500000){window.showToast("File too large");return;} const r=new FileReader(); r.onload=async(e)=>{ await setDoc(doc(dbFirestore, window.dbCollections.classes, cid), { currentFile: f.name, currentFileData: e.target.result }, { merge: true }); window.showToast("Attached"); }; r.readAsDataURL(f); } };
+        
+        window.startScanning = (cid) => { activeClassId=cid; window.renderPage('teacher-scan'); };
+
+        window.saveSettings = async () => { const n = document.getElementById('settings-name').value.trim(); if(!n) return window.showToast("Name empty"); await setDoc(doc(dbFirestore, window.dbCollections.users, currentUser.id), {name:n}, {merge:true}); currentUser.name=n; window.updateUIHeader(); window.showToast("Saved"); };
+
+        window.changeMonth = (offset, role) => { currentCalendarDate.setMonth(currentCalendarDate.getMonth() + offset); role==='teacher'?window.renderTeacherCalendar(document.getElementById('app-content')):window.renderStudentCalendar(document.getElementById('app-content')); };
+
+        window.switchChat = (id, name) => { activeChatPartner = { id, name }; window.renderPage('teacher-chat'); };
+
+        window.handleSendMessage = async (e) => {
+            e.preventDefault(); const inp = document.getElementById('chat-input'), finp = document.getElementById('chat-file-input'), txt = inp.value.trim();
+            const file = finp.files[0];
+            if(!txt && !file) return;
+            let fData = null;
+            if(file) {
+                 if (file.size > 500000) { window.showToast("File too large (>500KB)"); return; }
+                 const r = new FileReader();
+                 fData = await new Promise(res => { r.onload = e => res(e.target.result); r.readAsDataURL(file); });
+            }
+            const cid = [String(currentUser.id), String(activeChatPartner.id)].sort().join('_');
+            await addDoc(collection(dbFirestore, window.dbCollections.messages), { chatId: cid, senderId: String(currentUser.id), senderName: currentUser.name, receiverId: String(activeChatPartner.id), text: txt || (file ? "Sent attachment" : ""), file: file?file.name:null, fileData: fData, timestamp: Timestamp.now(), read: false });
+            inp.value = ''; finp.value = ''; document.getElementById('file-indicator').classList.add('hidden');
+        };
+
+        window.showFileSelected = (input) => { if(input.files[0]) { const el = document.getElementById('file-indicator'); el.innerText = `📎 ${input.files[0].name}`; el.classList.remove('hidden'); } };
+        
+        window.downloadFile = (name, data) => { let h=data; if(!h||!h.startsWith('data:')) h='data:text/plain;charset=utf-8,'+encodeURIComponent("Placeholder for "+name); const a=document.createElement('a'); a.href=h; a.download=name; document.body.appendChild(a); a.click(); document.body.removeChild(a); window.showToast("Downloading..."); };
+        
+        window.viewImage = (src) => { const m=document.getElementById('image-modal'); document.getElementById('modal-img').src=src; m.classList.remove('hidden'); };
+
+        // CHAT RENDERER
         window.renderChat = (container) => {
             let contacts = currentUser.role === 'teacher' ? db.students.map(s => ({id:s.id, name:s.name})) : [{id:db.users.teacher.id, name:db.users.teacher.name}];
             if (!activeChatPartner && contacts.length) activeChatPartner = contacts[0];
@@ -635,25 +492,24 @@
             container.innerHTML = `
                 <div class="flex h-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden fade-in">
                     <div class="w-1/3 border-r border-slate-50 bg-slate-50 flex flex-col">
-                        <div class="p-6 border-b border-slate-100"><h3 class="font-bold text-slate-700">${getTranslation('lbl-contacts')}</h3></div>
+                        <div class="p-6 border-b border-slate-100"><h3 class="font-bold text-slate-700">${window.getTranslation('lbl-contacts')}</h3></div>
                         <div class="overflow-y-auto flex-1 p-2 space-y-1">
-                            ${contacts.map(c => `<div onclick="switchChat('${c.id}', '${c.name}')" class="p-3 rounded-xl cursor-pointer hover:bg-white transition flex items-center gap-3 ${activeChatPartner?.id === c.id ? 'bg-white shadow-sm ring-1 ring-slate-100' : ''}"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center font-bold relative">${c.name.charAt(0)}<div id="status-indicator-${c.id}" class="absolute bottom-0 right-0 w-3 h-3 bg-gray-300 border-2 border-white rounded-full"></div><div id="contact-badge-${c.id}" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] flex items-center justify-center hidden border border-white text-white">0</div></div><span id="contact-name-${c.id}" class="font-medium text-slate-700 text-sm">${c.name}</span></div>`).join('')}
+                            ${contacts.map(c => `<div onclick="window.switchChat('${c.id}', '${c.name}')" class="p-3 rounded-xl cursor-pointer hover:bg-white transition flex items-center gap-3 ${activeChatPartner?.id === c.id ? 'bg-white shadow-sm ring-1 ring-slate-100' : ''}"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center font-bold relative">${c.name.charAt(0)}<div id="status-indicator-${c.id}" class="absolute bottom-0 right-0 w-3 h-3 bg-gray-300 border-2 border-white rounded-full"></div><div id="contact-badge-${c.id}" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] flex items-center justify-center hidden border border-white text-white">0</div></div><span id="contact-name-${c.id}" class="font-medium text-slate-700 text-sm">${c.name}</span></div>`).join('')}
                         </div>
                     </div>
                     <div class="flex-1 flex flex-col bg-white">
                         <div class="p-4 border-b border-slate-50 flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center font-bold">${activeChatPartner?.name.charAt(0)}</div><h4 class="font-bold text-slate-800">${activeChatPartner?.name}</h4></div>
                         <div id="msg-stream" class="flex-1 p-6 overflow-y-auto space-y-3 bg-slate-50/30"></div>
-                        <div class="p-4 bg-white border-t border-slate-50"><form onsubmit="handleSendMessage(event)" class="flex gap-2"><label class="p-3 text-slate-400 hover:text-blue-600 cursor-pointer transition"><i class="fa-solid fa-paperclip"></i><input type="file" id="chat-file-input" class="hidden" onchange="showFileSelected(this)"></label><div class="flex-1 bg-slate-100 rounded-full flex items-center px-4 border border-transparent focus-within:border-blue-300 focus-within:bg-white transition"><input type="text" id="chat-input" placeholder="${getTranslation('lbl-type-msg')}" class="w-full bg-transparent border-none outline-none text-sm py-3"><span id="file-indicator" class="text-xs text-blue-600 font-bold hidden mr-2"></span></div><button type="submit" class="w-12 h-12 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow-lg shadow-blue-200 transition transform hover:scale-105"><i class="fa-solid fa-paper-plane"></i></button></form></div>
+                        <div class="p-4 bg-white border-t border-slate-50"><form onsubmit="window.handleSendMessage(event)" class="flex gap-2"><label class="p-3 text-slate-400 hover:text-blue-600 cursor-pointer transition"><i class="fa-solid fa-paperclip"></i><input type="file" id="chat-file-input" class="hidden" onchange="window.showFileSelected(this)"></label><div class="flex-1 bg-slate-100 rounded-full flex items-center px-4 border border-transparent focus-within:border-blue-300 focus-within:bg-white transition"><input type="text" id="chat-input" placeholder="${window.getTranslation('lbl-type-msg')}" class="w-full bg-transparent border-none outline-none text-sm py-3"><span id="file-indicator" class="text-xs text-blue-600 font-bold hidden mr-2"></span></div><button type="submit" class="w-12 h-12 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow-lg shadow-blue-200 transition transform hover:scale-105"><i class="fa-solid fa-paper-plane"></i></button></form></div>
                     </div>
                 </div>`;
             
             if(activeChatPartner) { window.markMessagesRead(activeChatPartner.id); setupChatListener(activeChatPartner.id); }
             trackContactsPresence(contacts);
             
-            // Unread Count Listener - Simple Query
-            const msgRef = window.collection(window.dbFirestore, window.dbCollections.messages);
-            const q = window.query(msgRef, window.where("receiverId", "==", String(currentUser.id)));
-            const countUnsub = window.onSnapshot(q, (snapshot) => {
+            const msgRef = collection(dbFirestore, window.dbCollections.messages);
+            const q = query(msgRef, where("receiverId", "==", String(currentUser.id)));
+            const countUnsub = onSnapshot(q, (snapshot) => {
                 const unreadCounts = {};
                 snapshot.forEach(doc => { 
                     const data = doc.data(); 
@@ -676,157 +532,19 @@
             firestoreUnsubscribes.push(countUnsub);
         };
 
-        window.switchChat = (id, name) => { activeChatPartner = { id, name }; window.renderPage('teacher-chat'); };
+        // SCANNER RENDERERS
+        function renderTeacherScanner(c) { c.innerHTML = `<div class="max-w-md mx-auto fade-in"><div class="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 relative overflow-hidden"><div class="flex justify-between items-center mb-6"><button onclick="window.renderPage('teacher-classes')" class="text-slate-400 hover:text-blue-600"><i class="fa-solid fa-arrow-left"></i></button><h3 class="font-bold text-slate-800">Scan Attendance</h3><div class="w-6"></div></div><div id="scanner-file-display" class="mb-4 text-xs text-center p-2 bg-slate-50 rounded-lg">Loading file...</div><div id="reader" class="rounded-2xl overflow-hidden bg-slate-900 min-h-[300px] shadow-inner relative"><div id="scan-feedback" class="absolute inset-0 z-10 hidden"></div></div><div class="mt-6 flex gap-2"><input id="manual-student-id" placeholder="Enter ID..." class="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-sm outline-none"><button onclick="window.manualTeacherScan()" class="bg-blue-600 text-white px-4 rounded-xl"><i class="fa-solid fa-check"></i></button></div></div></div>`; const unsub = onSnapshot(doc(dbFirestore, window.dbCollections.classes, activeClassId), (d) => { activeSessionFile = d.data()?.currentFile || null; isFileSynced = true; document.getElementById('scanner-file-display').innerHTML = activeSessionFile ? `<span class="text-green-600 font-bold">Sending: ${activeSessionFile}</span>` : `<span class="text-slate-400">No file</span>`; }); firestoreUnsubscribes.push(unsub); setTimeout(() => { activeScanner = new Html5Qrcode("reader"); activeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, (txt) => { if(!isFileSynced)return; document.getElementById('scan-feedback').classList.add('scan-flash','hidden'); void document.getElementById('scan-feedback').offsetWidth; document.getElementById('scan-feedback').classList.remove('hidden'); document.getElementById('scan-sound').play().catch(()=>{}); window.handleTeacherScanSuccess(txt); activeScanner.pause(true); setTimeout(()=>activeScanner.resume(), 1500); }); }, 300); }
+        window.handleTeacherScanSuccess = async function(txt) { try { let sData = JSON.parse(txt); const clsSnap = await safeGetDoc(doc(dbFirestore, window.dbCollections.classes, activeClassId)); const f = clsSnap.data()?.currentFile; const fd = clsSnap.data()?.currentFileData; await addDoc(collection(dbFirestore, window.dbCollections.attendance), { studentId: String(sData.id), studentName: sData.name, classId: activeClassId, className: db.classes.find(c=>c.id===activeClassId).name, timestamp: Timestamp.now(), status: 'present' }); if(f) await addDoc(collection(dbFirestore, window.dbCollections.materials), { studentId: String(sData.id), fileName: f, fileData: fd, classId: activeClassId, className: db.classes.find(c=>c.id===activeClassId).name, timestamp: Timestamp.now() }); window.showToast(`${sData.name} Marked`); } catch(e) { window.showToast("Error"); } };
 
-        window.handleSendMessage = async (e) => {
-            e.preventDefault(); const inp = document.getElementById('chat-input'), finp = document.getElementById('chat-file-input'), txt = inp.value.trim();
-            const file = finp.files[0];
-            if(!txt && !file) return;
-            let fData = null;
-            if(file) {
-                 if (file.size > 800000) { showToast("File too large (>800KB)"); return; }
-                 const r = new FileReader();
-                 fData = await new Promise(res => { r.onload = e => res(e.target.result); r.readAsDataURL(file); });
-            }
-            const cid = [String(currentUser.id), String(activeChatPartner.id)].sort().join('_');
-            await window.addDoc(window.collection(window.dbFirestore, window.dbCollections.messages), { chatId: cid, senderId: String(currentUser.id), senderName: currentUser.name, receiverId: String(activeChatPartner.id), text: txt || (file ? "Sent attachment" : ""), file: file?file.name:null, fileData: fData, timestamp: window.Timestamp.now(), read: false });
-            inp.value = ''; finp.value = ''; document.getElementById('file-indicator').classList.add('hidden');
-        };
+        // CALENDAR
+        window.renderTeacherCalendar = (c) => { c.innerHTML = `<div class="flex flex-col md:flex-row h-full bg-white rounded-3xl shadow-sm border border-slate-100 fade-in overflow-hidden"><div class="md:w-2/3 flex flex-col border-r border-slate-50"><div class="p-6 border-b border-slate-50 flex justify-between items-center"><button onclick="window.changeMonth(-1, 'teacher')" class="p-2"><i class="fa-solid fa-chevron-left"></i></button><h2 id="calendar-title" class="text-lg font-bold"></h2><button onclick="window.changeMonth(1, 'teacher')" class="p-2"><i class="fa-solid fa-chevron-right"></i></button></div><div class="flex-1 p-8 overflow-y-auto"><div id="calendar-days" class="calendar-grid gap-2"></div></div></div><div class="md:w-1/3 bg-slate-50 p-6 flex flex-col"><h3 class="font-bold text-slate-700 mb-4">Details</h3><div id="attendance-list" class="flex-1 overflow-y-auto space-y-2"><div class="text-center text-slate-400 text-xs">Select date</div></div></div></div>`; const unsub = onSnapshot(collection(dbFirestore, window.dbCollections.attendance), (snap) => { currentCalendarEvents = {}; snap.forEach(d => { const data = d.data(); const date = new Date(data.timestamp.seconds * 1000).toISOString().split('T')[0]; if(!currentCalendarEvents[date]) currentCalendarEvents[date] = []; currentCalendarEvents[date].push(data.studentName); }); renderCalendarGrid('calendar-days', 'calendar-title', currentCalendarEvents, 'teacher'); if(currentSelectedDate) window.selectDate(currentSelectedDate, document.querySelector(`.calendar-day[data-date="${currentSelectedDate}"]`)); }); firestoreUnsubscribes.push(unsub); }
+        window.renderStudentCalendar = (c) => { c.innerHTML = `<div class="flex flex-col h-full bg-white rounded-3xl shadow-sm border border-slate-100 fade-in overflow-hidden"><div class="p-6 border-b border-slate-50 flex justify-between items-center"><button onclick="window.changeMonth(-1, 'student')" class="p-2"><i class="fa-solid fa-chevron-left"></i></button><h2 id="calendar-title" class="text-lg font-bold"></h2><button onclick="window.changeMonth(1, 'student')" class="p-2"><i class="fa-solid fa-chevron-right"></i></button></div><div class="flex-1 p-8"><div id="calendar-days" class="calendar-grid"></div></div></div>`; const q = query(collection(dbFirestore, window.dbCollections.attendance), where('studentId', '==', String(currentUser.id))); const unsub = onSnapshot(q, (snap) => { const events = {}; snap.forEach(d => { const data = d.data(); const date = new Date(data.timestamp.seconds * 1000).toISOString().split('T')[0]; events[date] = true; }); renderCalendarGrid('calendar-days', 'calendar-title', events, 'student'); }); firestoreUnsubscribes.push(unsub); }
 
-        window.markMessagesRead = async (senderId) => {
-            try {
-                const q = window.query(window.collection(window.dbFirestore, window.dbCollections.messages), window.where("senderId", "==", senderId), window.where("receiverId", "==", String(currentUser.id)));
-                const snapshot = await window.getDocs(q);
-                snapshot.forEach(doc => {
-                    if (doc.data().read === false) window.updateDoc(window.doc(window.dbFirestore, window.dbCollections.messages, doc.id), { read: true });
-                });
-            } catch(e) {}
-        };
-
-        window.showFileSelected = (input) => { if(input.files[0]) { const el = document.getElementById('file-indicator'); el.innerText = `📎 ${input.files[0].name}`; el.classList.remove('hidden'); } };
-        
-        window.downloadFile = (name, data) => { let h=data; if(!h||!h.startsWith('data:')) h='data:text/plain;charset=utf-8,'+encodeURIComponent("Placeholder for "+name); const a=document.createElement('a'); a.href=h; a.download=name; document.body.appendChild(a); a.click(); document.body.removeChild(a); showToast("Downloading..."); };
-        
-        window.viewImage = (src) => { const m=document.getElementById('image-modal'); document.getElementById('modal-img').src=src; m.classList.remove('hidden'); };
-
-        window.logout = () => { location.reload(); };
-
-        window.toggleNotifications = () => { document.getElementById('notification-dropdown').classList.toggle('hidden'); };
-        
-        window.clearNotifications = () => { notificationStore = []; updateNotificationBadge(); renderNotificationList(); };
-
-        window.openChatFromNotif = (pid, pname) => { document.getElementById('notification-dropdown').classList.add('hidden'); notificationStore=notificationStore.filter(n=>n.senderId!==pid); updateNotificationBadge(); renderNotificationList(); activeChatPartner={id:pid,name:pname}; window.renderPage('teacher-chat'); window.markMessagesRead(pid); };
-        
-        window.manualTeacherScan = () => { handleTeacherScanSuccess(JSON.stringify({id:document.getElementById('manual-student-id').value, name:"Student"})); };
-
-        window.uploadFile = async (cid, input) => { if(input.files[0]) { const f=input.files[0]; if(f.size>800000){showToast("File too large");return;} const r=new FileReader(); r.onload=async(e)=>{ await window.setDoc(window.doc(window.dbFirestore, window.dbCollections.classes, cid), { currentFile: f.name, currentFileData: e.target.result }, { merge: true }); showToast("Attached"); }; r.readAsDataURL(f); } };
-        
-        window.startScanning = (cid) => { activeClassId=cid; window.renderPage('teacher-scan'); };
-
-        window.saveSettings = async () => { const n = document.getElementById('settings-name').value.trim(); if(!n) return showToast("Name empty"); await window.setDoc(window.doc(window.dbFirestore, window.dbCollections.users, currentUser.id), {name:n}, {merge:true}); currentUser.name=n; updateUIHeader(); showToast("Saved"); };
-
-        window.changeMonth = (offset, role) => { currentCalendarDate.setMonth(currentCalendarDate.getMonth() + offset); role==='teacher'?renderTeacherCalendar(document.getElementById('app-content')):renderStudentCalendar(document.getElementById('app-content')); };
-
-        // Internal functions
-        function renderSidebar() {
-            const nav = document.getElementById('nav-menu');
-            if (!nav || !currentUser) return;
-            nav.innerHTML = '';
-            const r = routes[currentUser.role];
-            r.forEach((rt, idx) => {
-                const b = document.createElement('button');
-                b.className = `sidebar-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-xl mb-1`;
-                const label = rt.key ? getTranslation(rt.key) : rt.label;
-                b.innerHTML = `<i class="fa-solid ${rt.icon} w-6"></i> ${label}`;
-                b.onclick = () => { document.querySelectorAll('.sidebar-item').forEach(x=>x.classList.remove('active')); b.classList.add('active'); window.renderPage(rt.id); };
-                nav.appendChild(b);
-            });
-        }
-
-        function startHeartbeat() {
-            if(heartbeatInterval) clearInterval(heartbeatInterval);
-            const update = () => { if(currentUser) window.updateDoc(window.doc(window.dbFirestore, window.dbCollections.users, currentUser.id), { lastSeen: window.Timestamp.now(), isOnline: true }).catch(()=>{}); };
-            update(); heartbeatInterval = setInterval(update, 30000);
-        }
-
-        function stopHeartbeat() { if(heartbeatInterval) clearInterval(heartbeatInterval); }
-
-        function trackContactsPresence(contacts) {
-            presenceUnsubscribes.forEach(u => u()); presenceUnsubscribes = [];
-            contacts.forEach(contact => {
-                const ref = window.doc(window.dbFirestore, window.dbCollections.users, contact.id);
-                const unsub = window.onSnapshot(ref, (doc) => {
-                    const data = doc.data();
-                    const el = document.getElementById(`status-indicator-${contact.id}`);
-                    const headerEl = document.getElementById('chat-header-status');
-                    const isOnline = (Date.now()/1000 - (data?.lastSeen?.seconds || 0)) < 120;
-                    if(el) el.className = `absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-300'}`;
-                    if(activeChatPartner?.id === contact.id && headerEl) headerEl.innerText = isOnline ? 'Online' : 'Offline';
-                });
-                presenceUnsubscribes.push(unsub);
-            });
-        }
-
-        function setupChatListener(pid) {
-            const cid = [String(currentUser.id), String(pid)].sort().join('_');
-            const q = window.query(window.collection(window.dbFirestore, window.dbCollections.messages), window.where('chatId', '==', cid));
-            const unsub = window.onSnapshot(q, (snap) => {
-                let msgs = []; snap.forEach(d => msgs.push({id: d.id, ...d.data()}));
-                msgs.sort((a,b)=>(a.timestamp?.seconds||0)-(b.timestamp?.seconds||0));
-                const div = document.getElementById('msg-stream');
-                div.innerHTML = msgs.map(m => {
-                    if (m.senderId === activeChatPartner.id && !m.read) setTimeout(() => window.updateDoc(window.doc(window.dbFirestore, window.dbCollections.messages, m.id), { read: true }), 500);
-                    const isMe = String(m.senderId) === String(currentUser.id);
-                    let content = m.text;
-                    if(m.file && m.fileData) {
-                        const isImg = m.file.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-                        content = isImg ? `<img src="${m.fileData}" class="max-w-[150px] rounded-lg cursor-pointer" onclick="viewImage('${m.fileData}')">` : `<div class="flex items-center gap-2 bg-black/10 p-2 rounded"><i class="fa-solid fa-file"></i> <span class="underline text-xs font-bold cursor-pointer" onclick="downloadFile('${m.file}', '${m.fileData}')">${m.file}</span></div>`;
-                    }
-                    // Seen indicator
-                    let status = '';
-                    if(isMe) status = m.read ? '<i class="fa-solid fa-check-double text-blue-300 text-[10px] ml-1"></i>' : '<i class="fa-solid fa-check text-slate-300 text-[10px] ml-1"></i>';
-                    
-                    return `<div class="flex w-full ${isMe?'justify-end':'justify-start'} slide-in-right"><div class="msg-bubble px-4 py-3 text-sm ${isMe?'msg-sent':'msg-received'}">${content} <div class="flex items-center justify-end gap-1 mt-1"><span class="text-[9px] opacity-60">${new Date(m.timestamp?.seconds*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span> ${status}</div></div></div>`;
-                }).join('');
-                div.scrollTop = div.scrollHeight;
-            });
-            firestoreUnsubscribes.push(unsub);
-        }
-
-        // Renderers 
-        function renderTeacherClasses(c) { c.innerHTML = `<div class="mb-6"><h2 class="text-2xl font-bold text-slate-800">${getTranslation('title-teacher-classes')}</h2></div><div id="classes-list" class="space-y-4"></div>`; const unsub = window.onSnapshot(window.collection(window.dbFirestore, window.dbCollections.classes), (s) => { const d = s.empty ? {} : s.docs.reduce((a,x)=>({...a,[x.id]:x.data()}),{}); document.getElementById('classes-list').innerHTML = db.classes.map(cl => `<div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex justify-between items-center"><div><h3 class="font-bold text-lg text-slate-800">${cl.name}</h3><p class="text-sm text-slate-400">${cl.time}</p></div><div class="flex gap-3"><label class="w-10 h-10 bg-slate-100 hover:bg-yellow-100 rounded-full flex items-center justify-center cursor-pointer text-slate-500 relative"><i class="fa-solid fa-file-arrow-up"></i><input type="file" class="hidden" onchange="uploadFile('${cl.id}', this)">${d[cl.id]?.currentFile?'<div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>':''}</label><button onclick="startScanning('${cl.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl shadow-lg transition"><i class="fa-solid fa-camera mr-2"></i> Scan</button></div></div>`).join(''); }); firestoreUnsubscribes.push(unsub); }
-        function renderTeacherScanner(c) { c.innerHTML = `<div class="max-w-md mx-auto fade-in"><div class="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 relative overflow-hidden"><div class="flex justify-between items-center mb-6"><button onclick="renderPage('teacher-classes')" class="text-slate-400 hover:text-blue-600"><i class="fa-solid fa-arrow-left"></i></button><h3 class="font-bold text-slate-800">Scan</h3><div class="w-6"></div></div><div id="scanner-file-display" class="mb-4 text-xs text-center p-2 bg-slate-50 rounded-lg">Loading...</div><div id="reader" class="rounded-2xl overflow-hidden bg-slate-900 min-h-[300px] shadow-inner relative"><div id="scan-feedback" class="absolute inset-0 z-10 hidden"></div></div><div class="mt-6 flex gap-2"><input id="manual-student-id" placeholder="Enter ID..." class="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-sm outline-none"><button onclick="manualTeacherScan()" class="bg-blue-600 text-white px-4 rounded-xl"><i class="fa-solid fa-check"></i></button></div></div></div>`; const unsub = window.onSnapshot(window.doc(window.dbFirestore, window.dbCollections.classes, activeClassId), (d) => { activeSessionFile = d.data()?.currentFile || null; isFileSynced = true; document.getElementById('scanner-file-display').innerHTML = activeSessionFile ? `<span class="text-green-600 font-bold"><i class="fa-solid fa-paperclip"></i> Sending: ${activeSessionFile}</span>` : `<span class="text-slate-400">No file</span>`; }); firestoreUnsubscribes.push(unsub); setTimeout(() => { activeScanner = new Html5Qrcode("reader"); activeScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, (txt) => { if(!isFileSynced)return; document.getElementById('scan-feedback').classList.add('scan-flash','hidden'); void document.getElementById('scan-feedback').offsetWidth; document.getElementById('scan-feedback').classList.remove('hidden'); document.getElementById('scan-sound').play().catch(()=>{}); handleTeacherScanSuccess(txt); activeScanner.pause(true); setTimeout(()=>activeScanner.resume(), 1500); }); }, 300); }
-        async function handleTeacherScanSuccess(txt) { try { let sData = JSON.parse(txt); const clsSnap = await window.getDoc(window.doc(window.dbFirestore, window.dbCollections.classes, activeClassId)); const f = clsSnap.data()?.currentFile; const fd = clsSnap.data()?.currentFileData; await window.addDoc(window.collection(window.dbFirestore, window.dbCollections.attendance), { studentId: String(sData.id), studentName: sData.name, classId: activeClassId, className: db.classes.find(c=>c.id===activeClassId).name, timestamp: window.Timestamp.now() }); if(f) await window.addDoc(window.collection(window.dbFirestore, window.dbCollections.materials), { studentId: String(sData.id), fileName: f, fileData: fd, classId: activeClassId, className: db.classes.find(c=>c.id===activeClassId).name, timestamp: window.Timestamp.now() }); showToast(`${sData.name} Marked`); } catch(e) { showToast("Error"); } }
+        // OTHER
+        function renderTeacherClasses(c) { c.innerHTML = `<div class="mb-6"><h2 class="text-2xl font-bold text-slate-800">${window.getTranslation('title-teacher-classes')}</h2></div><div id="classes-list" class="space-y-4"></div>`; const unsub = onSnapshot(collection(dbFirestore, window.dbCollections.classes), (s) => { const d = s.empty ? {} : s.docs.reduce((a,x)=>({...a,[x.id]:x.data()}),{}); document.getElementById('classes-list').innerHTML = db.classes.map(cl => `<div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex justify-between items-center"><div><h3 class="font-bold text-lg text-slate-800">${cl.name}</h3><p class="text-sm text-slate-400">${cl.time}</p></div><div class="flex gap-3"><label class="w-10 h-10 bg-slate-100 hover:bg-yellow-100 rounded-full flex items-center justify-center cursor-pointer text-slate-500 relative"><i class="fa-solid fa-file-arrow-up"></i><input type="file" class="hidden" onchange="window.uploadFile('${cl.id}', this)">${d[cl.id]?.currentFile?'<div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>':''}</label><button onclick="window.startScanning('${cl.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl shadow-lg transition"><i class="fa-solid fa-camera mr-2"></i> Scan</button></div></div>`).join(''); }); firestoreUnsubscribes.push(unsub); }
         function renderStudentQR(c) { c.innerHTML=`<div class="h-full flex flex-col items-center justify-center p-6"><div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 text-center max-w-sm w-full"><div class="w-24 h-24 bg-slate-50 rounded-full mx-auto mb-4 border-4 border-white shadow-lg flex items-center justify-center text-3xl font-bold text-slate-400">${currentUser.name.charAt(0)}</div><h2 class="text-2xl font-bold text-slate-800">${currentUser.name}</h2><div id="sqr" class="flex justify-center mb-6 p-4 border-2 border-dashed border-slate-200 rounded-2xl mt-4"></div></div></div>`; setTimeout(()=>new QRCode(document.getElementById("sqr"), {text:JSON.stringify({type:'edusaas_student_id',id:currentUser.id,name:currentUser.name}),width:180,height:180}),100); }
-        function renderStudentMaterials(c) { c.innerHTML = `<div class="mb-6"><h2 class="text-2xl font-bold text-slate-800">${getTranslation('title-student-materials')}</h2></div><div id="materials-list" class="space-y-3"></div>`; const q = window.query(window.collection(window.dbFirestore, window.dbCollections.materials), window.where('studentId', '==', String(currentUser.id))); const unsub = window.onSnapshot(q, (snap) => { const mats = []; snap.forEach(d=>mats.push(d.data())); document.getElementById('materials-list').innerHTML = mats.length ? mats.map(m=>`<div class="p-4 bg-white rounded-xl border border-slate-100 flex items-center gap-4"><div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-file"></i></div><div><p class="font-bold text-slate-700 text-sm">${m.fileName}</p><p class="text-xs text-slate-400">${m.className}</p></div><button onclick="downloadFile('${m.fileName}', '${m.fileData}')" class="ml-auto w-8 h-8 flex items-center justify-center text-slate-400 hover:text-blue-600 transition"><i class="fa-solid fa-download"></i></button></div>`).join('') : `<div class="p-8 text-center text-slate-400">${getTranslation('lbl-no-materials')}</div>`; }); firestoreUnsubscribes.push(unsub); }
-        function renderTeacherCalendar(c) { c.innerHTML = `<div>Calendar</div>`; } // Simplified
-        function renderStudentCalendar(c) { c.innerHTML = `<div>Calendar</div>`; } // Simplified
-
-        function setupGlobalNotifications() {
-            if (globalUnsubscribe) globalUnsubscribe();
-            const q = window.query(window.collection(window.dbFirestore, window.dbCollections.messages), window.where("receiverId", "==", String(currentUser.id)));
-            let initialLoad = true;
-            globalUnsubscribe = window.onSnapshot(q, (snap) => {
-                snap.docChanges().forEach((change) => {
-                    if (change.type === "added") {
-                        const msg = change.doc.data();
-                        if (msg.read !== true && !notificationStore.find(n => n.id === change.doc.id)) {
-                             notificationStore.unshift({ id: change.doc.id, senderId: msg.senderId, senderName: msg.senderName, text: msg.text, time: msg.timestamp ? new Date(msg.timestamp.seconds * 1000) : new Date() });
-                        }
-                        const now = Date.now() / 1000;
-                        const msgTime = msg.timestamp?.seconds || 0;
-                        if (!initialLoad && (now - msgTime) < 10 && msg.read !== true && currentUser.notificationsEnabled !== false) {
-                            document.getElementById('msg-sound').play().catch(()=>{});
-                            showToast(`New message from ${msg.senderName}`);
-                        }
-                    }
-                    if (change.type === "modified" && change.doc.data().read === true) notificationStore = notificationStore.filter(n => n.id !== change.doc.id);
-                });
-                notificationStore.sort((a,b) => b.time - a.time); updateNotificationBadge(); renderNotificationList(); initialLoad = false;
-            }, (error) => {});
-        }
-        function renderNotificationList() { const l=document.getElementById('notification-list'); l.innerHTML = notificationStore.length?notificationStore.map(n=>`<div onclick="openChatFromNotif('${n.senderId}','${n.senderName}')" class="p-4 border-b hover:bg-blue-50 cursor-pointer"><p class="font-bold text-sm">${n.senderName}</p><p class="text-xs truncate">${n.text}</p></div>`).join(''):`<div class="p-8 text-center text-slate-400 text-xs">${getTranslation('lbl-no-notif')}</div>`; }
-
+        function renderStudentMaterials(c) { c.innerHTML = `<div class="mb-6"><h2 class="text-2xl font-bold text-slate-800">${window.getTranslation('title-student-materials')}</h2></div><div id="materials-list" class="space-y-3"></div>`; const q = query(collection(dbFirestore, window.dbCollections.materials), where('studentId', '==', String(currentUser.id))); const unsub = onSnapshot(q, (snap) => { const mats = []; snap.forEach(d=>mats.push(d.data())); document.getElementById('materials-list').innerHTML = mats.length ? mats.map(m=>`<div class="p-4 bg-white rounded-xl border border-slate-100 flex items-center gap-4"><div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-file"></i></div><div><p class="font-bold text-slate-700 text-sm">${m.fileName}</p><p class="text-xs text-slate-400">${m.className}</p></div><button onclick="window.downloadFile('${m.fileName}', '${m.fileData}')" class="ml-auto w-8 h-8 flex items-center justify-center text-slate-400 hover:text-blue-600 transition"><i class="fa-solid fa-download"></i></button></div>`).join('') : `<div class="p-8 text-center text-slate-400">${window.getTranslation('lbl-no-materials')}</div>`; }); firestoreUnsubscribes.push(unsub); }
+        function renderSettings(c) { c.innerHTML=`<div class="max-w-xl mx-auto bg-white p-8 rounded-3xl shadow-sm border border-slate-100"><h2 class="text-xl font-bold mb-6">${window.getTranslation('title-settings')}</h2><div class="space-y-4"><input id="s-name" value="${currentUser.name}" class="w-full border p-3 rounded-xl"><button onclick="window.saveSettings()" class="bg-blue-600 text-white px-6 py-3 rounded-xl w-full">${window.getTranslation('lbl-save')}</button></div></div>`; }
     </script>
 </body>
 </html>
