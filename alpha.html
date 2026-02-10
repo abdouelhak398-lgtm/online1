@@ -19,17 +19,19 @@
         
         .dark { 
             --bg: #020617; --card: #0f172a; --border: #1e293b; --text: #f8fafc; --text-muted: #94a3b8;
+            --brand-light: rgba(37, 99, 235, 0.1);
         }
 
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             background-color: var(--bg); color: var(--text); 
-            -webkit-tap-highlight-color: transparent; transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent; transition: background 0.3s ease, color 0.3s ease;
         }
         .font-arabic { font-family: 'Tajawal', sans-serif; }
         
-        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
-        .dark .glass { background: rgba(15, 23, 42, 0.8); }
+        .glass { background: rgba(var(--bg), 0.7); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+        .light .glass { background: rgba(255, 255, 255, 0.7); }
+        .dark .glass { background: rgba(2, 6, 23, 0.7); }
 
         .card-premium { 
             background: var(--card); border: 1px solid var(--border); 
@@ -41,40 +43,43 @@
             transition: all 0.2s ease; border-radius: 12px; margin: 4px 12px; 
             padding: 12px 16px; color: var(--text-muted); font-weight: 600; cursor: pointer;
         }
-        .sidebar-item.active { background-color: var(--brand); color: white; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+        .sidebar-item:hover { background: var(--brand-light); color: var(--brand); }
+        .sidebar-item.active { background-color: var(--brand); color: white !important; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
 
         .msg-bubble { max-width: 80%; border-radius: 1.25rem; padding: 12px 20px; font-size: 0.95rem; line-height: 1.6; }
         .msg-sent { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border-bottom-right-radius: 4px; }
         .msg-received { background: var(--card); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
         
-        .timetable-grid { display: grid; grid-template-columns: 70px repeat(5, 1fr); gap: 1px; background: var(--border); border-radius: 1.25rem; overflow: hidden; }
-        .timetable-header { background: #f1f5f9; padding: 15px; font-size: 10px; font-weight: 800; color: var(--text-muted); text-align: center; text-transform: uppercase; }
+        .timetable-grid { display: grid; grid-template-columns: 80px repeat(7, 1fr); gap: 1px; background: var(--border); border-radius: 1.25rem; overflow: hidden; border: 1px solid var(--border); }
+        .timetable-header { background: #f1f5f9; padding: 12px 4px; font-size: 9px; font-weight: 800; color: var(--text-muted); text-align: center; text-transform: uppercase; }
         .dark .timetable-header { background: #1e293b; }
-        .timetable-slot { background: var(--card); min-height: 100px; padding: 10px; }
-        
+        .timetable-slot { background: var(--card); min-height: 100px; padding: 6px; position: relative; }
+        .timetable-card { background: var(--brand-light); border-left: 3px solid var(--brand); border-radius: 8px; padding: 8px; font-size: 10px; height: 100%; color: var(--text); overflow: hidden; cursor: pointer; }
+
         @keyframes typing { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         .typing-pulse { animation: typing 1s infinite; }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="h-screen flex overflow-hidden light">
 
     <div id="mobile-overlay" class="hidden fixed inset-0 bg-slate-900/40 z-[60] backdrop-blur-sm transition-opacity" onclick="window.toggleMobileMenu()"></div>
     
-    <!-- Sidebar -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-[var(--card)] z-[70] transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out hidden md:flex flex-col h-full border-r border-[var(--border)]">
-        <div class="p-8 flex items-center gap-4">
+        <div class="p-8 flex items-center gap-4 text-slate-800 dark:text-white">
             <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">E</div>
             <h1 class="text-2xl font-extrabold tracking-tight">EduSaaS</h1>
         </div>
         
         <div class="px-6 mb-8">
-            <button onclick="window.toggleDarkMode()" class="w-full p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex items-center justify-between transition-all">
+            <button onclick="window.toggleDarkMode()" class="w-full p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex items-center justify-between transition-all group">
                 <div class="flex items-center gap-3">
                     <i id="theme-icon" class="fa-solid fa-moon text-blue-600"></i>
-                    <span class="text-xs font-bold uppercase tracking-widest text-slate-500">Theme</span>
+                    <span id="txt-theme" class="text-xs font-bold uppercase tracking-widest text-slate-500">Theme</span>
                 </div>
-                <div id="theme-switch" class="w-10 h-5 bg-slate-200 dark:bg-blue-600 rounded-full relative transition-colors">
-                    <div class="absolute top-1 left-1 dark:translate-x-5 w-3 h-3 bg-white rounded-full transition-transform"></div>
+                <div class="w-10 h-5 bg-slate-200 dark:bg-blue-600 rounded-full relative transition-colors">
+                    <div id="theme-ball" class="absolute top-1 left-1 dark:translate-x-5 w-3 h-3 bg-white rounded-full transition-transform"></div>
                 </div>
             </button>
         </div>
@@ -82,115 +87,174 @@
         <nav id="nav-menu" class="flex-1 overflow-y-auto space-y-1"></nav>
 
         <div class="p-6 border-t border-[var(--border)]">
-            <button onclick="window.logout()" class="flex items-center gap-3 w-full px-5 py-4 text-sm font-bold text-red-500 hover:bg-red-50 rounded-2xl">
-                <i class="fa-solid fa-power-off"></i> Sign Out
+            <button onclick="window.logout()" class="flex items-center gap-3 w-full px-5 py-4 text-sm font-bold text-red-500 hover:bg-red-50 rounded-2xl transition-all">
+                <i class="fa-solid fa-power-off"></i> <span id="txt-signout">Sign Out</span>
             </button>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col h-full relative overflow-hidden lg:ml-72">
-        <!-- Header -->
-        <header class="glass h-16 md:h-20 flex items-center justify-between px-4 md:px-10 shrink-0 z-40 sticky top-0">
+        <header class="glass h-16 md:h-20 flex items-center justify-between px-4 md:px-10 shrink-0 z-40 sticky top-0 text-slate-800 dark:text-white">
             <div class="flex items-center gap-6">
                 <button onclick="window.toggleMobileMenu()" class="lg:hidden w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-xl">
                     <i class="fa-solid fa-bars-staggered"></i>
                 </button>
                 <div class="flex flex-col">
-                    <h2 id="page-title" class="text-lg md:text-xl font-bold tracking-tight">Loading...</h2>
+                    <h2 id="page-title" class="text-lg md:text-xl font-bold tracking-tight">Workspace</h2>
                     <div class="flex items-center gap-2 mt-0.5">
                         <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <span id="conn-text" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Encrypted Stream</span>
+                        <span id="conn-text" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Active Link</span>
                     </div>
                 </div>
             </div>
 
             <div class="flex items-center gap-4">
-                <button onclick="window.toggleLangMenu()" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:bg-slate-50 rounded-xl">
+                <button onclick="window.toggleLangMenu()" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all">
                     <i class="fa-solid fa-globe text-xl"></i>
                 </button>
                 <div class="w-10 h-10 rounded-2xl bg-slate-800 flex items-center justify-center text-white font-bold" id="user-initials">?</div>
             </div>
 
             <div id="lang-dropdown" class="hidden absolute right-16 top-16 w-36 bg-[var(--card)] rounded-2xl shadow-2xl border border-[var(--border)] py-2 z-50">
-                <button onclick="window.setLanguage('en')" class="w-full text-left px-5 py-2.5 text-sm font-semibold hover:bg-slate-50">English</button>
-                <button onclick="window.setLanguage('fr')" class="w-full text-left px-5 py-2.5 text-sm font-semibold hover:bg-slate-50">Français</button>
-                <button onclick="window.setLanguage('ar')" class="w-full text-right px-5 py-2.5 text-sm font-arabic font-bold hover:bg-slate-50">العربية</button>
+                <button onclick="window.setLanguage('en')" class="w-full text-left px-5 py-2.5 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800">English</button>
+                <button onclick="window.setLanguage('fr')" class="w-full text-left px-5 py-2.5 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800">Français</button>
+                <button onclick="window.setLanguage('ar')" class="w-full text-right px-5 py-2.5 text-sm font-arabic font-bold hover:bg-slate-50 dark:hover:bg-slate-800">العربية</button>
             </div>
         </header>
 
-        <div id="app-content" class="flex-1 overflow-y-auto p-4 md:p-10 relative"></div>
+        <div id="app-content" class="flex-1 overflow-y-auto p-4 md:p-10 relative scroll-smooth bg-opacity-30"></div>
 
-        <div class="bg-slate-900 text-white py-1.5 px-6 flex justify-between items-center z-50">
+        <div class="bg-slate-900 text-white py-1.5 px-6 flex justify-between items-center z-50 shrink-0">
             <div class="flex items-center gap-3">
-                <span id="footer-conn-dot" class="w-2 h-2 rounded-full bg-yellow-400"></span>
-                <span id="footer-conn-text" class="text-[9px] font-bold uppercase tracking-widest text-slate-400 tracking-tighter">Authenticated</span>
+                <span id="footer-conn-dot" class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
+                <span id="footer-conn-text" class="text-[9px] font-bold uppercase tracking-widest text-slate-400 tracking-tighter">Verified Session</span>
             </div>
             <div id="footer-user-id" class="text-[9px] font-mono text-slate-500 uppercase tracking-tighter">IDLE</div>
         </div>
     </main>
 
-    <!-- Modals -->
+    <!-- Global Modals -->
     <div id="modal-container" class="fixed inset-0 z-[150] bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
         
-        <!-- Submission Audit -->
-        <div id="submissions-modal-content" class="bg-[var(--card)] rounded-[2.5rem] shadow-2xl max-w-4xl w-full p-10 fade-in hidden flex flex-col max-h-[85vh] border border-[var(--border)]">
+        <!-- Submission Audit Viewer -->
+        <div id="submissions-modal-content" class="bg-[var(--card)] rounded-[2.5rem] shadow-2xl max-w-4xl w-full p-10 fade-in hidden flex flex-col max-h-[85vh] border border-[var(--border)] text-slate-800 dark:text-white">
             <div class="flex justify-between items-center mb-8">
-                <div><h3 class="text-2xl font-black">Submissions Audit</h3><p id="sub-modal-asgn-title" class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1"></p></div>
-                <button onclick="window.closeConfirmModal()" class="w-10 h-10 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-xl"><i class="fa-solid fa-xmark"></i></button>
+                <div><h3 class="text-2xl font-black" id="txt-audit-title">Audit Submissions</h3><p id="sub-modal-asgn-title" class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1"></p></div>
+                <button onclick="window.closeConfirmModal()" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-red-500 transition-all"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <div id="submissions-list-area" class="flex-1 overflow-y-auto space-y-4"></div>
+            <div id="submissions-list-area" class="flex-1 overflow-y-auto space-y-4 pr-2"></div>
         </div>
 
         <!-- Class Editor -->
         <div id="class-mgmt-modal-content" class="bg-[var(--card)] rounded-[2.5rem] shadow-2xl max-w-md w-full p-10 fade-in hidden border border-[var(--border)]">
-            <h3 id="class-modal-title" class="text-2xl font-black mb-6">Session</h3>
-            <form onsubmit="window.handleClassSave(event)" class="space-y-4">
+            <h3 id="class-modal-title" class="text-2xl font-black mb-6 text-slate-800 dark:text-white text-center">Session Settings</h3>
+            <form onsubmit="window.handleClassSave(event)" class="space-y-5">
                 <input type="hidden" id="edit-class-id">
-                <input id="class-name-input" class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl outline-none font-bold" placeholder="Class Name">
-                <div class="grid grid-cols-2 gap-4">
-                    <input id="class-time-input" class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl outline-none font-bold" placeholder="08:30 AM">
-                    <select id="class-type-input" class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl outline-none font-bold"><option value="Cours">Cours</option><option value="TD">TD</option></select>
+                <div>
+                    <label id="lbl-subject" class="text-[10px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">Subject Name</label>
+                    <input id="class-name-input" class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl outline-none font-bold border-2 border-transparent focus:border-blue-400 transition-all text-slate-800 dark:text-white">
                 </div>
-                <button type="submit" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-black shadow-xl">Sync to Hub</button>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label id="lbl-date" class="text-[10px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">Date</label>
+                        <input id="class-date-input" type="date" class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl outline-none font-bold text-slate-800 dark:text-white">
+                    </div>
+                    <div>
+                        <label id="lbl-time" class="text-[10px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">Time</label>
+                        <select id="class-time-input" class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl outline-none font-bold text-slate-800 dark:text-white">
+                            <option value="08:00">08:00 AM</option>
+                            <option value="09:00">09:00 AM</option>
+                            <option value="10:00">10:00 AM</option>
+                            <option value="11:00">11:00 AM</option>
+                            <option value="12:00">12:00 PM</option>
+                            <option value="13:00">01:00 PM</option>
+                            <option value="14:00">02:00 PM</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label id="lbl-type" class="text-[10px] font-bold text-slate-400 uppercase mb-2 block tracking-widest">Format</label>
+                    <select id="class-type-input" class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl outline-none font-bold text-slate-800 dark:text-white">
+                        <option value="Cours">Cours</option>
+                        <option value="TD">TD</option>
+                    </select>
+                </div>
+                <button id="btn-sync-hub" type="submit" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-black shadow-xl uppercase tracking-widest text-xs transition-all hover:bg-blue-700">Sync to Cloud</button>
             </form>
         </div>
 
-        <!-- Confirm Deletion -->
         <div id="delete-modal-content" class="bg-[var(--card)] rounded-[2.5rem] p-10 text-center fade-in hidden border border-[var(--border)]">
-            <h3 class="text-xl font-black mb-10">Confirm Removal?</h3>
-            <div class="flex gap-3"><button onclick="window.closeConfirmModal()" class="flex-1 p-4 rounded-2xl font-bold text-slate-400">Cancel</button><button id="confirm-delete-btn" class="flex-1 bg-red-500 text-white p-4 rounded-2xl font-black">Remove</button></div>
+            <h3 id="txt-del-confirm" class="text-xl font-black mb-10 text-slate-800 dark:text-white">Delete Permanently?</h3>
+            <div class="flex gap-4"><button id="btn-cancel" onclick="window.closeConfirmModal()" class="flex-1 p-4 rounded-2xl font-bold text-slate-400 bg-slate-50 dark:bg-slate-800">Cancel</button><button id="confirm-delete-btn" class="flex-1 bg-red-500 text-white p-4 rounded-2xl font-black shadow-lg">Remove</button></div>
+        </div>
+
+        <div id="generic-modal-content" class="bg-[var(--card)] rounded-[2.5rem] shadow-2xl max-w-2xl w-full p-10 fade-in hidden border border-[var(--border)] relative flex flex-col text-slate-800 dark:text-white">
+             <button onclick="window.closeConfirmModal()" class="absolute top-6 right-6 text-slate-400 hover:text-red-500 transition-all"><i class="fa-solid fa-xmark text-2xl"></i></button>
+             <div id="modal-body-content" class="mt-4"></div>
         </div>
     </div>
 
-    <!-- Login -->
+    <!-- Login Portal -->
     <div id="login-modal" class="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4">
-        <div class="bg-white rounded-[3rem] shadow-2xl max-w-lg w-full p-12 text-center">
+        <div class="bg-white rounded-[3rem] shadow-2xl max-w-lg w-full p-12 text-center border border-white/20">
             <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-3xl mx-auto mb-8 shadow-xl">E</div>
-            <h2 class="text-3xl font-black text-slate-900 mb-2">EduSaaS Portal</h2>
-            <p class="text-slate-400 mb-10 text-sm font-medium">Select your workspace access.</p>
+            <h2 class="text-3xl font-black text-slate-900 mb-2 tracking-tight">EduSaaS Portal</h2>
+            <p id="txt-login-desc" class="text-slate-400 mb-10 text-sm font-medium">Select your role to begin sync.</p>
             <div class="space-y-4">
                 <button onclick="window.login('teacher')" class="w-full p-6 border border-slate-100 rounded-3xl bg-slate-50 hover:bg-blue-50 text-left transition-all flex items-center gap-4 group">
                     <div class="w-12 h-12 bg-blue-600 text-white rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform"><i class="fa-solid fa-user-tie"></i></div>
-                    <div><span class="font-black block text-slate-900 text-lg leading-tight">Faculty</span><span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Management Hub</span></div>
+                    <div><span id="txt-role-teacher" class="font-black block text-slate-900 text-lg leading-tight">Teacher</span><span id="txt-ws-teacher" class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Workspace Access</span></div>
                 </button>
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="window.login('student1')" class="p-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 hover:text-blue-600 transition-all">Y. Brahimi</button>
-                    <button onclick="window.login('student2')" class="p-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 hover:text-blue-600 transition-all">M. Hadjadj</button>
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="window.login('student1')" class="p-5 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 hover:text-blue-600 transition-all shadow-sm font-bold">Y. Brahimi</button>
+                    <button onclick="window.login('student2')" class="p-5 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 hover:text-blue-600 transition-all shadow-sm font-bold">M. Hadjadj</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Toast -->
-    <div id="toast" class="fixed bottom-10 right-10 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl transform translate-y-32 opacity-0 transition-all duration-300 z-[200] flex items-center gap-4"><div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white shrink-0"><i class="fa-solid fa-bolt"></i></div><span id="toast-msg" class="font-bold text-sm tracking-tight">Notification</span></div>
-    <audio id="scan-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, setDoc, getDoc, updateDoc, getDocs, doc, Timestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- 1. DATA ---
+        // --- 1. CONFIG & TRANSLATIONS ---
+        const translations = {
+            en: { 
+                'nav-hub': 'My Hub', 'nav-schedule': 'Schedule', 'nav-assignments': 'Dropbox', 'nav-id': 'My ID', 'nav-work': 'Work', 'nav-handouts': 'Handouts', 'nav-teacher': 'Teacher',
+                'nav-classes': 'My Hub', 'nav-timetable': 'Schedule',
+                'btn-scan': 'MARK PRESENCE', 'btn-new': 'NEW CLASS', 'btn-audit': 'AUDIT', 'btn-sync': 'SYNC TO CLOUD', 'btn-submit': 'SUBMIT WORK',
+                'lbl-workspace': 'Management Hub', 'lbl-full-week': 'Full Week Calendar', 'lbl-handouts': 'Course Handouts', 'lbl-dropbox': 'Submission Dropbox',
+                'lbl-subject': 'Subject Name', 'lbl-date': 'Date', 'lbl-time': 'Start Hour', 'lbl-type': 'Session Type',
+                'lbl-expires': 'Expires in', 'lbl-no-materials': 'No active materials', 'lbl-no-assignments': 'No active assignments',
+                'lbl-rec': 'REC', 'lbl-identity': 'Verification Identity', 'lbl-typing': 'Typing...', 'lbl-msg-placeholder': 'Message...',
+                'lbl-del-confirm': 'Delete Permanently?', 'lbl-cancel': 'Cancel', 'lbl-remove': 'Remove', 'lbl-login-desc': 'Select your role to begin sync.',
+                'lbl-role-teacher': 'Faculty', 'lbl-ws-teacher': 'Management Console', 'lbl-signout': 'Sign Out', 'lbl-theme': 'Theme'
+            },
+            fr: { 
+                'nav-hub': 'Mon Hub', 'nav-schedule': 'Calendrier', 'nav-assignments': 'Dépôt', 'nav-id': 'Mon ID', 'nav-work': 'Travail', 'nav-handouts': 'Supports', 'nav-teacher': 'Enseignant',
+                'nav-classes': 'Mon Hub', 'nav-timetable': 'Calendrier',
+                'btn-scan': 'PRÉSENCE', 'btn-new': 'NOUVEAU', 'btn-audit': 'AUDIT', 'btn-sync': 'SYNCHRONISER', 'btn-submit': 'RENDRE',
+                'lbl-workspace': 'Gestion de Hub', 'lbl-full-week': 'Calendrier Complet', 'lbl-handouts': 'Supports de Cours', 'lbl-dropbox': 'Dépôt de Devoirs',
+                'lbl-subject': 'Nom de Matière', 'lbl-date': 'Date', 'lbl-time': 'Heure', 'lbl-type': 'Type de Session',
+                'lbl-expires': 'Expire dans', 'lbl-no-materials': 'Aucun support actif', 'lbl-no-assignments': 'Aucun devoir actif',
+                'lbl-rec': 'REÇU', 'lbl-identity': 'Identité de Vérification', 'lbl-typing': 'Écrit...', 'lbl-msg-placeholder': 'Message...',
+                'lbl-del-confirm': 'Supprimer définitivement ?', 'lbl-cancel': 'Annuler', 'lbl-remove': 'Supprimer', 'lbl-login-desc': 'Choisissez votre rôle.',
+                'lbl-role-teacher': 'Faculté', 'lbl-ws-teacher': 'Console de Gestion', 'lbl-signout': 'Déconnexion', 'lbl-theme': 'Thème'
+            },
+            ar: { 
+                'nav-hub': 'مركزي', 'nav-schedule': 'الجدول', 'nav-assignments': 'صندوق التسليم', 'nav-id': 'هويتي', 'nav-work': 'مهامي', 'nav-handouts': 'المطبوعات', 'nav-teacher': 'الأستاذ',
+                'nav-classes': 'مركزي', 'nav-timetable': 'الجدول',
+                'btn-scan': 'تسجيل الحضور', 'btn-new': 'إضافة حصة', 'btn-audit': 'تدقيق', 'btn-sync': 'حفظ التغييرات', 'btn-submit': 'تسليم العمل',
+                'lbl-workspace': 'مركز الإدارة', 'lbl-full-week': 'جدول الأسبوع الكامل', 'lbl-handouts': 'مطبوعات الحصص', 'lbl-dropbox': 'تسليم الواجبات',
+                'lbl-subject': 'اسم المادة', 'lbl-date': 'التاريخ', 'lbl-time': 'وقت البدء', 'lbl-type': 'نوع الحصة',
+                'lbl-expires': 'ينتهي خلال', 'lbl-no-materials': 'لا توجد مطبوعات حالياً', 'lbl-no-assignments': 'لا توجد واجبات حالياً',
+                'lbl-rec': 'استلم', 'lbl-identity': 'هوية التحقق', 'lbl-typing': 'يكتب الآن...', 'lbl-msg-placeholder': 'رسالة...',
+                'lbl-del-confirm': 'هل أنت متأكد من الحذف؟', 'lbl-cancel': 'إلغاء', 'lbl-remove': 'حذف', 'lbl-login-desc': 'اختر هويتك للبدء.',
+                'lbl-role-teacher': 'هيئة التدريس', 'lbl-ws-teacher': 'لوحة التحكم', 'lbl-signout': 'تسجيل الخروج', 'lbl-theme': 'المظهر'
+            }
+        };
+
         const staticData = {
             users: {
                 teacher: { name: 'Fatima Zohra', role: 'teacher', id: 'teacher_dz' },
@@ -198,22 +262,13 @@
                 student2: { name: 'Meriem Hadjadj', role: 'student', id: 'student_dz_2' }
             },
             timetable: {
-                days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-                hours: ['08:00', '09:00', '10:00', '11:00', '12:00'],
-                slots: [{ day: 'Monday', time: '08:00', className: 'Cours Math' }, { day: 'Wednesday', time: '11:00', className: 'TD Physics' }]
+                days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                hours: ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00']
             }
         };
 
-        const translations = {
-            en: { 'btn-scan': 'MARK PRESENCE', 'nav-hub': 'Hub', 'nav-schedule': 'Schedule', 'nav-assignments': 'Assignments', 'nav-id': 'Identity', 'nav-work': 'Tasks', 'nav-handouts': 'Handouts', 'nav-teacher': 'Faculty' },
-            fr: { 'btn-scan': 'PRÉSENCE', 'nav-hub': 'Hub', 'nav-schedule': 'Calendrier', 'nav-assignments': 'Devoirs', 'nav-id': 'Identité', 'nav-work': 'Travaux', 'nav-handouts': 'Supports', 'nav-teacher': 'Prof' },
-            ar: { 'btn-scan': 'تسجيل الحضور', 'nav-hub': 'مركزي', 'nav-schedule': 'الجدول', 'nav-assignments': 'الواجبات', 'nav-id': 'هويتي', 'nav-work': 'المهام', 'nav-handouts': 'المحاضرات', 'nav-teacher': 'الأستاذ' }
-        };
-
         const firebaseConfig = { apiKey: "AIzaSyD2aOVfl6bXOpWCL9eaiM85g14WB25aXYg", authDomain: "alpha-26f1e.firebaseapp.com", projectId: "alpha-26f1e", storageBucket: "alpha-26f1e.firebasestorage.app", messagingSenderId: "838970744952", appId: "1:838970744952:web:4b190d95010ecf23e18d8d", measurementId: "G-230TGXB20M" };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
         const APP_ID = 'edusaas-live-demo-v2';
 
         const dbCollections = {
@@ -227,134 +282,334 @@
             submissions: `artifacts/${APP_ID}/public/data/submissions`
         };
 
-        // --- 2. STATE ---
-        let currentUser = null, activeClassId = null, activeChatPartner = null, currentLang = 'en', isDarkMode = false, activeScanner = null, asgnHandoutFile = { name: null, data: null };
-        let allMessages = [], allUsers = [], allAssignments = [], allSubmissions = [];
+        // --- 2. GLOBAL STATE ---
+        let currentUser = null, activeClassId = null, activeChatPartner = null, currentLang = 'en', isDarkMode = false, activeScanner = null;
+        let allUsers = [], allClassList = [], activeMaterialsRegistry = [], firestoreUnsubscribes = [], typingTimeout = null, isProcessingScan = false;
+        let currentTimetableDate = new Date(); 
 
-        // --- 3. UTILITIES ---
-        function getTranslation(key) { return translations[currentLang][key] || key; }
-        function showToast(msg) { const t = document.getElementById('toast'); document.getElementById('toast-msg').innerText = msg; t.classList.remove('translate-y-32', 'opacity-0'); setTimeout(() => t.classList.add('translate-y-32', 'opacity-0'), 3000); }
+        window.isAuthReady = false;
+
+        // --- 3. UTILITY FUNCTIONS ---
+        window.getTranslation = (key) => translations[currentLang][key] || key;
         
+        window.showToast = function(msg) { 
+            const t = document.getElementById('toast'); if(!t) return; 
+            document.getElementById('toast-msg').innerText = msg; 
+            t.classList.remove('translate-y-32', 'opacity-0'); 
+            setTimeout(() => t.classList.add('translate-y-32', 'opacity-0'), 3000); 
+        };
+        
+        window.updateUIHeader = function() {
+            if (!currentUser) return;
+            const initH = document.getElementById('user-initials');
+            if (initH) initH.innerText = currentUser.name.charAt(0);
+        };
+
+        window.updateStaticUI = () => {
+            const keys = ['txt-theme', 'txt-signout', 'txt-audit-title', 'lbl-subject', 'lbl-date', 'lbl-time', 'lbl-type', 'btn-sync-hub', 'txt-del-confirm', 'btn-cancel', 'txt-login-desc', 'txt-role-teacher', 'txt-ws-teacher'];
+            keys.forEach(k => { const el = document.getElementById(k); if(el) el.innerText = window.getTranslation(k.replace('txt-','lbl-').replace('btn-','btn-')); });
+        };
+
         window.toggleDarkMode = () => {
             isDarkMode = !isDarkMode;
-            document.body.classList.toggle('dark', isDarkMode);
-            document.body.classList.toggle('light', !isDarkMode);
+            document.body.classList.toggle('dark', isDarkMode); document.body.classList.toggle('light', !isDarkMode);
             document.getElementById('theme-icon').className = isDarkMode ? "fa-solid fa-sun text-yellow-400" : "fa-solid fa-moon text-blue-600";
         };
 
-        window.logout = () => location.reload();
         window.toggleMobileMenu = () => { 
             const s = document.getElementById('sidebar'), o = document.getElementById('mobile-overlay');
-            s.classList.toggle('-translate-x-full'); o.classList.toggle('hidden');
+            if(!s || !o) return; s.classList.toggle('-translate-x-full'); o.classList.toggle('hidden');
         };
-        window.closeConfirmModal = () => { document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('modal-container').classList.add('hidden'); };
-        window.setLanguage = (l) => { currentLang = l; document.getElementById('lang-dropdown').classList.add('hidden'); renderSidebar(); window.renderPage(currentUser.role === 'teacher' ? 'teacher-classes' : 'student-qr'); };
+
+        window.closeConfirmModal = () => { 
+            document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); 
+            document.getElementById('modal-container').classList.add('hidden'); 
+        };
+
+        window.logout = () => location.reload();
+
+        window.setLanguage = (l) => { 
+            currentLang = l; 
+            document.getElementById('lang-dropdown').classList.add('hidden'); 
+            window.updateStaticUI();
+            window.renderSidebar(); 
+            const currentId = document.getElementById('page-title').dataset.id;
+            if(currentId) window.renderPage(currentId);
+        };
+
         window.toggleLangMenu = () => document.getElementById('lang-dropdown').classList.toggle('hidden');
 
-        // --- 4. DATA OPS ---
-        async function markMessagesRead(cid) {
-            allMessages.filter(m => m.chatId === cid && m.receiverId === currentUser.id && !m.read).forEach(m => {
-                updateDoc(doc(db, dbCollections.messages, m.id), { read: true });
-            });
-        }
+        // --- INTERNAL HELPERS ---
+        const getStartOfWeek = (date) => {
+            const d = new Date(date);
+            const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1); 
+            return new Date(d.setDate(diff));
+        };
 
-        async function handleTeacherScanSuccess(txt) {
+        window.resetSessionMaterials = async () => {
+            if (!currentUser || currentUser.role !== 'teacher') return;
+            try {
+                const snap = await getDocs(collection(db, dbCollections.classes));
+                for (const d of snap.docs) { await updateDoc(doc(db, dbCollections.classes, d.id), { currentFile: null, currentFileData: null }); }
+            } catch (e) {}
+        };
+
+        const handleTeacherScanSuccess = async (txt) => {
+            if(isProcessingScan) return; isProcessingScan = true;
             try {
                 let sData = txt.trim().startsWith('{') ? JSON.parse(txt) : { id: txt, name: "Student #" + txt.substring(0,4) };
                 await addDoc(collection(db, dbCollections.attendance), { studentId: String(sData.id), studentName: sData.name, classId: activeClassId, timestamp: Timestamp.now() });
+                
+                // AUTO-DISPATCH ATTACHED MATERIAL
                 const classDoc = await getDoc(doc(db, dbCollections.classes, activeClassId));
                 if (classDoc.exists() && classDoc.data().currentFile) {
-                    await addDoc(collection(db, dbCollections.materials), { studentId: String(sData.id), fileName: classDoc.data().currentFile, fileData: classDoc.data().currentFileData, timestamp: Timestamp.now() });
+                    await addDoc(collection(db, dbCollections.materials), { 
+                        studentId: String(sData.id), 
+                        fileName: classDoc.data().currentFile, 
+                        fileData: classDoc.data().currentFileData, 
+                        timestamp: Timestamp.now() 
+                    });
                 }
-                showToast(`Verified: ${sData.name}`); document.getElementById('scan-sound').play().catch(()=>{});
-            } catch (e) { showToast("Sync Error"); }
-        }
+                
+                window.showToast(`Verified: ${sData.name}`);
+                document.getElementById('scan-sound').play().catch(()=>{});
+            } catch (e) { window.showToast("Sync Error"); }
+            setTimeout(() => { isProcessingScan = false; }, 2000);
+        };
 
-        // --- 5. RENDER PAGES ---
+        // --- VIRTUAL FILE REGISTRY (FIX FOR CRASHES) ---
+        window.downloadMaterialByIndex = (idx) => {
+            const item = activeMaterialsRegistry[idx];
+            if(!item) return;
+            const a = document.createElement('a');
+            a.href = item.fileData;
+            a.download = item.fileName;
+            a.click();
+        };
+
+        window.requestPreviewByIndex = (idx) => {
+            const item = activeMaterialsRegistry[idx];
+            if(!item) return;
+            const m = document.getElementById('modal-container'), g = document.getElementById('generic-modal-content'), b = document.getElementById('modal-body-content');
+            m.classList.remove('hidden'); g.classList.remove('hidden');
+            b.innerHTML = `<h4 class="font-black text-lg mb-4 uppercase text-center">${item.fileName}</h4>${item.fileData.startsWith('data:image')?`<img src="${item.fileData}" class="w-full rounded-2xl shadow-xl">`:`<div class="p-20 text-center bg-slate-50 dark:bg-slate-800 rounded-2xl font-bold text-slate-400">Document preview unavailable.</div>`}`;
+        };
+
+        // --- NAVIGATION ---
+        window.renderSidebar = function() {
+            const nav = document.getElementById('nav-menu'); if (!nav || !currentUser) return;
+            nav.innerHTML = '';
+            const routes = currentUser.role === 'teacher' ? [
+                { id: 'teacher-classes', label: window.getTranslation('nav-hub'), icon: 'fa-shapes' },
+                { id: 'teacher-timetable', label: window.getTranslation('nav-schedule'), icon: 'fa-calendar-week' },
+                { id: 'teacher-assignments', label: window.getTranslation('nav-assignments'), icon: 'fa-folder-tree' },
+                { id: 'teacher-chat', label: 'Messages', icon: 'fa-comment-dots' }
+            ] : [
+                { id: 'student-qr', label: window.getTranslation('nav-id'), icon: 'fa-user-astronaut' },
+                { id: 'student-timetable', label: window.getTranslation('nav-schedule'), icon: 'fa-calendar-week' },
+                { id: 'student-assignments', label: 'Work', icon: 'fa-cloud-upload-alt' },
+                { id: 'student-materials', label: 'Handouts', icon: 'fa-book-open' },
+                { id: 'teacher-chat', label: 'Teacher', icon: 'fa-comment-dots' }
+            ];
+            routes.forEach((rt) => {
+                const b = document.createElement('button');
+                b.className = `sidebar-item w-full flex items-center gap-4 text-sm transition-all`;
+                b.innerHTML = `<div class="w-5 flex justify-center"><i class="fa-solid ${rt.icon}"></i></div> ${rt.label}`;
+                b.onclick = () => { document.querySelectorAll('.sidebar-item').forEach(x=>x.classList.remove('active')); b.classList.add('active'); window.renderPage(rt.id); };
+                nav.appendChild(b);
+            });
+            document.getElementById('sidebar').classList.remove('hidden');
+            document.getElementById('sidebar').classList.add('flex');
+        };
+
+        window.requestAddClass = () => {
+            document.getElementById('modal-container').classList.remove('hidden');
+            document.getElementById('class-mgmt-modal-content').classList.remove('hidden');
+            document.getElementById('edit-class-id').value = ""; document.getElementById('class-name-input').value = "";
+            document.getElementById('class-date-input').value = new Date().toISOString().split('T')[0];
+            document.getElementById('class-time-input').value = "08:00";
+            document.getElementById('class-type-input').value = "Cours";
+        };
+
+        window.requestEditClass = async (cid) => {
+            const snap = await getDoc(doc(db, dbCollections.classes, cid));
+            if(!snap.exists()) return;
+            document.getElementById('modal-container').classList.remove('hidden');
+            document.getElementById('class-mgmt-modal-content').classList.remove('hidden');
+            document.getElementById('edit-class-id').value = cid;
+            document.getElementById('class-name-input').value = snap.data().name;
+            document.getElementById('class-date-input').value = snap.data().date;
+            document.getElementById('class-time-input').value = snap.data().time || "08:00";
+            document.getElementById('class-type-input').value = snap.data().type || 'Cours';
+        };
+
+        window.handleClassSave = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-class-id').value, name = document.getElementById('class-name-input').value, 
+                  time = document.getElementById('class-time-input').value, type = document.getElementById('class-type-input').value,
+                  dateStr = document.getElementById('class-date-input').value;
+            if(!name || !dateStr) return;
+            const data = { name, time, date: dateStr, type, timestamp: Timestamp.now(), icon: type === 'TD' ? 'fa-vial' : 'fa-chalkboard-user' };
+            if(id) await updateDoc(doc(db, dbCollections.classes, id), data); else await addDoc(collection(db, dbCollections.classes), data);
+            window.closeConfirmModal(); window.showToast("Updated.");
+        };
+
+        window.startScanning = (cid) => { activeClassId = cid; window.renderPage('teacher-scan'); };
+        window.navigateWeek = (offset) => { currentTimetableDate.setDate(currentTimetableDate.getDate() + (offset * 7)); window.renderPage(currentUser.role === 'teacher' ? 'teacher-timetable' : 'student-timetable'); };
+
+        // --- 5. RENDERER ---
         window.renderPage = async (pageId) => {
             if (activeScanner) { try { await activeScanner.stop(); } catch(e) {} activeScanner = null; }
+            firestoreUnsubscribes.forEach(u => u()); firestoreUnsubscribes = [];
             const container = document.getElementById('app-content');
+            if(!container) return;
             container.innerHTML = '';
-            document.getElementById('page-title').innerText = pageId.toUpperCase().replace('-',' ');
+            
+            let navKey = 'nav-' + (pageId.includes('-') ? pageId.split('-')[1] : pageId);
+            if(pageId === 'teacher-classes') navKey = 'nav-hub';
+            if(pageId === 'student-qr') navKey = 'nav-id';
+            
+            document.getElementById('page-title').innerText = window.getTranslation(navKey);
+            document.getElementById('page-title').dataset.id = pageId;
 
-            if (pageId === 'teacher-classes') {
-                container.innerHTML = `<div class="mb-10 flex justify-between items-center"><h2 class="text-2xl font-black">${getTranslation('nav-hub')}</h2><button onclick="window.requestAddClass()" class="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black text-xs">ADD CLASS</button></div><div id="cls-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>`;
-                onSnapshot(collection(db, dbCollections.classes), (snap) => {
-                    const list = document.getElementById('cls-list');
-                    if(!list) return;
-                    list.innerHTML = snap.docs.map(d => `<div class="p-8 card-premium flex flex-col justify-between h-full group relative">
-                        <div class="absolute top-6 right-6 flex gap-2"><button onclick="window.requestEditClass('${d.id}')" class="p-2 text-slate-400 hover:text-blue-600"><i class="fa-solid fa-pen"></i></button><button onclick="window.requestDeleteClass('${d.id}')" class="p-2 text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash"></i></button></div>
-                        <div class="mb-10"><div class="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-2xl flex items-center justify-center text-xl mb-4"><i class="fa-solid ${d.data().icon}"></i></div><h3 class="font-black text-lg">${d.data().name}</h3><span class="text-[10px] font-black bg-blue-600 text-white px-2 py-0.5 rounded-full uppercase">${d.data().type}</span></div>
-                        <div class="flex gap-2"><label class="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center cursor-pointer relative"><i class="fa-solid fa-paperclip"></i><input type="file" class="hidden" onchange="window.uploadFile('${d.id}', this)">${d.data().currentFile?'<div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>':''}</label><button onclick="window.startScanning('${d.id}')" class="flex-1 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase">${getTranslation('btn-scan')}</button></div></div>`).join('');
-                });
+            if(window.innerWidth < 1024) { const sidebar = document.getElementById('sidebar'); if(sidebar && !sidebar.classList.contains('-translate-x-full')) window.toggleMobileMenu(); }
+
+            if(pageId.includes('timetable')) {
+                const r = currentUser.role;
+                const dAnchor = new Date(currentTimetableDate);
+                const weekStart = getStartOfWeek(dAnchor);
+                const weekDates = [];
+                for(let i=0; i<7; i++) {
+                    const wd = new Date(weekStart); wd.setDate(wd.getDate() + i);
+                    weekDates.push({ name: staticData.timetable.days[i], iso: wd.toISOString().split('T')[0], label: wd.toLocaleDateString([], {day:'numeric', month:'short'}) });
+                }
+
+                container.innerHTML = `<div class="mb-8 flex justify-between items-end text-slate-800 dark:text-white">
+                    <div><h2 class="text-3xl font-black">${window.getTranslation('nav-schedule')}</h2><p class="text-slate-500 font-medium mt-1 uppercase text-[10px] tracking-widest tracking-tight">${window.getTranslation('lbl-full-week')}</p></div>
+                    <div class="flex gap-2">
+                        <button onclick="window.navigateWeek(-1)" class="w-10 h-10 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-xl shadow-sm"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button onclick="window.navigateWeek(1)" class="w-10 h-10 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-xl shadow-sm"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="timetable-grid fade-in">
+                    <div class="timetable-header">${window.getTranslation('lbl-time')}</div>
+                    ${weekDates.map(wd => `<div class="timetable-header flex flex-col"><span>${wd.name}</span><span class="text-[8px] opacity-60">${wd.label}</span></div>`).join('')}
+                    ${staticData.timetable.hours.map(h => `<div class="timetable-slot flex items-center justify-center text-[10px] font-black text-slate-400 border-r border-slate-100 dark:border-slate-800">${h}</div>` + weekDates.map(wd => {
+                        const slotClass = allClassList.find(c => c.date === wd.iso && c.time === h);
+                        return `<div class="timetable-slot">${slotClass ? `<div class="timetable-card" onclick="window.renderPage('${r === 'teacher' ? 'teacher-classes' : 'student-materials'}')"><p class="font-black text-blue-800 dark:text-blue-100 leading-tight">${slotClass.name}</p></div>` : ''}</div>`;
+                    }).join('')).join('')}
+                </div>`;
             }
-            else if (pageId.includes('timetable')) {
-                const role = currentUser.role;
-                container.innerHTML = `<div class="mb-10"><h2 class="text-3xl font-black">${getTranslation('nav-schedule')}</h2></div>
-                <div class="timetable-grid">${['Time', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(d => `<div class="timetable-header">${d}</div>`).join('')}
-                ${staticData.timetable.hours.map(h => `<div class="timetable-slot flex items-center justify-center text-[10px] font-black text-slate-400">${h}</div>` + staticData.timetable.days.map(d => {
-                    const slot = staticData.timetable.slots.find(s => s.day === d && s.time === h);
-                    return `<div class="timetable-slot">${slot?`<div class="timetable-card" onclick="window.renderPage('${role === 'teacher'?'teacher-classes':'student-materials'}')"><p class="font-black">${slot.className}</p></div>`:''}</div>`;
-                }).join('')).join('')}</div>`;
+            else if(pageId === 'teacher-classes') {
+                container.innerHTML = `<div class="mb-10 flex justify-between items-center text-slate-800 dark:text-white"><h2 class="text-3xl font-black">${window.getTranslation('lbl-workspace')}</h2><button onclick="window.requestAddClass()" class="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black text-xs shadow-xl uppercase"><i class="fa-solid fa-plus mr-2"></i> ${window.getTranslation('btn-new')}</button></div><div id="cls-list" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>`;
+                const list = document.getElementById('cls-list');
+                const sorted = [...allClassList].sort((a,b) => new Date(a.date) - new Date(b.date));
+                list.innerHTML = sorted.map(cl => `<div class="p-8 card-premium flex flex-col justify-between h-full group relative bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+                    <div class="absolute top-6 right-6 flex gap-2"><button onclick="window.requestEditClass('${cl.id}')" class="p-2 text-slate-400 hover:text-blue-600 transition-all"><i class="fa-solid fa-pen"></i></button><button onclick="window.requestDeleteClass('${cl.id}')" class="p-2 text-slate-400 hover:text-red-500 transition-all"><i class="fa-solid fa-trash"></i></button></div>
+                    <div class="mb-10 text-slate-800 dark:text-white"><h3 class="font-black text-lg">${cl.name}</h3><div class="flex gap-2 items-center mt-1"><span class="text-[9px] bg-blue-600 text-white px-2 py-0.5 rounded-full font-black uppercase">${cl.type}</span><p class="text-[10px] font-bold text-slate-400 uppercase">${cl.date} @ ${cl.time}</p></div></div>
+                    <div class="flex gap-3"><label class="w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center cursor-pointer relative"><i class="fa-solid fa-paperclip text-slate-400"></i><input type="file" class="hidden" onchange="window.uploadFile('${cl.id}', this)">${cl.currentFile?'<div class="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-[var(--card)]"></div>':''}</label><button onclick="window.startScanning('${cl.id}')" class="flex-1 bg-blue-600 text-white p-4 rounded-2xl font-black text-[10px] uppercase shadow-lg">${window.getTranslation('btn-scan')}</button></div></div>`).join('');
             }
-            else if (pageId === 'teacher-assignments') {
-                container.innerHTML = `<div class="mb-10"><h2 class="text-3xl font-black">Dropbox</h2></div>
-                <form onsubmit="window.handleCreateAssignment(event)" class="card-premium p-8 mb-10 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input id="asgn-title" class="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl outline-none font-bold" placeholder="Title">
-                    <input id="asgn-deadline" type="datetime-local" class="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl outline-none font-bold">
-                    <label class="md:col-span-2 p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border-2 border-dashed flex items-center gap-3 font-bold cursor-pointer text-slate-400 text-sm"><i class="fa-solid fa-file-pdf text-blue-600"></i> Attach Handout<input type="file" class="hidden" onchange="window.handleAsgnHandout(this)"></label>
-                    <button class="md:col-span-2 bg-blue-600 text-white p-4 rounded-2xl font-black shadow-xl">PUBLISH TASK</button>
-                </form><div id="asgn-list" class="space-y-4"></div>`;
-                onSnapshot(collection(db, dbCollections.assignments), (snap) => {
-                    const list = document.getElementById('asgn-list'); if(!list) return;
-                    list.innerHTML = snap.docs.sort((a,b) => b.data().timestamp - a.data().timestamp).map(d => `<div class="p-8 card-premium flex justify-between items-center"><div><p class="font-black text-lg uppercase">${d.data().title}</p><p class="text-[10px] font-black text-red-500 uppercase mt-1">Locks: ${new Date(d.data().deadline).toLocaleString()}</p></div><button onclick="window.viewSubmissions('${d.id}', '${d.data().title}')" class="bg-slate-900 text-white px-6 py-4 rounded-2xl font-black text-xs uppercase">Audit</button></div>`).join('');
-                });
-            }
-            else if (pageId.includes('chat')) {
+            else if(pageId.includes('chat')) {
+                const isTeacher = currentUser.role === 'teacher';
                 const students = allUsers.filter(u => u.role === 'student');
-                if (!activeChatPartner && students.length) activeChatPartner = students[0];
+                if(!activeChatPartner && isTeacher && students.length) activeChatPartner = students[0];
+                if(!activeChatPartner && !isTeacher) activeChatPartner = staticData.users.teacher;
                 const isMobile = window.innerWidth < 1024;
-                container.innerHTML = `<div class="flex h-full card-premium overflow-hidden relative"><div id="chat-list" class="${(isMobile && activeChatPartner)?'hidden':'flex'} w-full lg:w-80 border-r border-[var(--border)] flex-col"><div class="p-6 border-b"><h3 class="font-black uppercase tracking-tighter">Contacts</h3></div><div class="flex-1 overflow-y-auto p-4 space-y-2">${students.map(c => `<div onclick="window.switchChat('${c.id}', '${c.name}')" class="p-4 rounded-2xl cursor-pointer ${activeChatPartner?.id === c.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}"><p class="font-bold text-sm">${c.name}</p></div>`).join('')}</div></div><div class="flex-1 flex flex-col"><div class="p-6 border-b flex items-center gap-4"><div><p class="font-black">${activeChatPartner?.name || 'Open'}</p><p id="chat-typing" class="text-[10px] text-blue-500 font-bold uppercase typing-pulse hidden">Typing...</p></div></div><div id="msg-stream" class="flex-1 p-6 overflow-y-auto space-y-4 bg-slate-500/5"></div><form onsubmit="window.handleSendMessage(event)" class="p-4 border-t flex gap-3"><input id="chat-input" placeholder="Message..." class="flex-1 p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl outline-none font-bold" oninput="window.handleTyping()"><button class="bg-blue-600 text-white w-14 h-14 rounded-2xl shadow-lg"><i class="fa-solid fa-paper-plane"></i></button></form></div></div>`;
+                container.innerHTML = `<div class="flex h-full card-premium overflow-hidden bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800"><div id="chat-list" class="${(isMobile && activeChatPartner)?'hidden':'flex'} w-full lg:w-80 border-r border-slate-100 dark:border-slate-800 flex-col"><div class="p-6 border-b border-slate-100 dark:border-slate-800 font-black uppercase text-xs tracking-tighter text-slate-800 dark:text-white">${window.getTranslation('nav-messages')}</div><div class="overflow-y-auto flex-1 p-4 space-y-2 text-slate-800 dark:text-white">${(isTeacher ? students : [staticData.users.teacher]).map(c => `<div onclick="window.switchChat('${c.id}', '${c.name}')" class="p-4 rounded-2xl cursor-pointer ${activeChatPartner?.id === c.id ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 font-bold' : ''}"><p class="text-sm">${c.name}</p></div>`).join('')}</div></div><div class="flex-1 flex flex-col"><div class="p-6 border-b border-slate-100 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900 z-10 text-slate-800 dark:text-white"><h4 class="font-black truncate">${activeChatPartner?.name || 'Secure Hub'}</h4><p id="chat-typing" class="text-[9px] font-bold text-blue-500 uppercase typing-pulse hidden">${window.getTranslation('lbl-typing')}</p></div><div id="msg-stream" class="flex-1 p-6 overflow-y-auto space-y-4 bg-slate-500/5"></div><form onsubmit="window.handleSendMessage(event)" class="p-4 border-t border-slate-100 dark:border-slate-800 flex gap-3"><input type="text" id="chat-input" placeholder="${window.getTranslation('lbl-msg-placeholder')}" class="flex-1 p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl outline-none font-bold text-slate-800 dark:text-white" oninput="window.handleTyping()"><button type="submit" class="bg-blue-600 text-white w-14 h-14 rounded-2xl shadow-xl active:scale-90"><i class="fa-solid fa-paper-plane"></i></button></form></div></div>`;
                 if(activeChatPartner) {
                     const cid = [currentUser.id, activeChatPartner.id].sort().join('_');
                     onSnapshot(collection(db, dbCollections.messages), (snap) => {
                         const msgs = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(m => m.chatId === cid).sort((a,b) => a.timestamp - b.timestamp);
                         const div = document.getElementById('msg-stream'); if(!div) return;
-                        div.innerHTML = msgs.map(m => `<div class="flex w-full ${m.senderId === currentUser.id?'justify-end':'justify-start'}"><div class="msg-bubble ${m.senderId === currentUser.id?'msg-sent':'msg-received'}">${m.text}<p class="text-[8px] mt-1 opacity-60">${new Date(m.timestamp?.seconds*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ${m.senderId === currentUser.id?`<i class="fa-solid fa-trash ml-2 cursor-pointer text-red-300" onclick="window.requestDeleteMessage('${m.id}')"></i>`:''}</p></div></div>`).join('');
+                        div.innerHTML = msgs.map(m => `<div class="flex w-full ${m.senderId === currentUser.id ? 'justify-end' : 'justify-start'} mb-2 group"><div class="msg-bubble ${m.senderId === currentUser.id ? 'msg-sent' : 'msg-received bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-white'}">${m.text}<div class="text-[8px] opacity-60 text-right mt-1 uppercase">${new Date(m.timestamp?.seconds*1000).toLocaleTimeString()}</div></div></div>`).join('');
                         div.scrollTop = div.scrollHeight;
                     });
-                    onSnapshot(doc(db, dbCollections.presence, activeChatPartner.id), (d) => { const el = document.getElementById('chat-typing'); if(el) d.data()?.isTyping && d.data()?.chatId === cid ? el.classList.remove('hidden') : el.classList.add('hidden'); });
-                    markMessagesRead(cid);
                 }
             }
-            else if (pageId === 'teacher-scan') {
-                container.innerHTML = `<div class="max-w-md mx-auto"><div class="card-premium p-8 text-center relative overflow-hidden"><button onclick="window.renderPage('teacher-classes')" class="mb-6 font-black text-xs text-slate-400 uppercase tracking-widest block">← Back</button><div id="reader" class="rounded-[2rem] overflow-hidden bg-black aspect-square mb-6"></div><p class="font-black text-slate-400 uppercase text-xs tracking-widest">Scanner Active</p></div></div>`;
-                setTimeout(() => { activeScanner = new Html5Qrcode("reader"); activeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => handleTeacherScanSuccess(txt)); }, 500);
+            else if(pageId.includes('assignments')) {
+                const isT = currentUser.role === 'teacher';
+                if(isT) {
+                    container.innerHTML = `<div class="mb-10"><h2 class="text-3xl font-black text-slate-800 dark:text-white">${window.getTranslation('lbl-dropbox')}</h2></div><form onsubmit="window.handleCreateAssignment(event)" class="card-premium p-8 mb-10 grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-800 dark:text-white"><input id="asgn-title" class="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl outline-none font-bold" placeholder="${window.getTranslation('lbl-subject')}"><input id="asgn-deadline" type="datetime-local" class="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl outline-none font-bold"><button type="submit" class="md:col-span-2 bg-blue-600 text-white p-4 rounded-2xl font-black shadow-xl uppercase text-xs">${window.getTranslation('btn-sync')}</button></form><div id="asgn-list" class="space-y-4"></div>`;
+                    onSnapshot(collection(db, dbCollections.assignments), (snap) => {
+                        const list = document.getElementById('asgn-list'); if(!list) return;
+                        const items = snap.docs.map(d => ({id:d.id, ...d.data()}));
+                        if(items.length === 0) { list.innerHTML = `<p class="p-20 text-center opacity-40 font-bold uppercase text-xs">${window.getTranslation('lbl-no-assignments')}</p>`; return; }
+                        list.innerHTML = items.sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0)).map(d => `<div class="p-8 card-premium flex justify-between items-center bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-white"><div><p class="font-black text-lg uppercase">${d.title}</p><p class="text-[10px] text-red-500 font-bold">Lock: ${new Date(d.deadline).toLocaleString()}</p></div><button onclick="window.viewSubmissions('${d.id}', '${d.title}')" class="bg-slate-900 text-white px-6 py-4 rounded-2xl font-black text-xs uppercase">${window.getTranslation('btn-audit')}</button></div>`).join('');
+                    });
+                } else {
+                    container.innerHTML = `<div class="mb-10"><h2 class="text-3xl font-black text-slate-800 dark:text-white">${window.getTranslation('nav-work')}</h2></div><div id="student-asgn-list" class="space-y-4"></div>`;
+                    onSnapshot(collection(db, dbCollections.assignments), (snap) => {
+                        const list = document.getElementById('student-asgn-list'); if(!list) return;
+                        if(snap.empty) { list.innerHTML = `<p class="p-20 text-center opacity-40 font-bold uppercase text-xs">${window.getTranslation('lbl-no-assignments')}</p>`; return; }
+                        list.innerHTML = snap.docs.map(d => {
+                            const data = d.data();
+                            return `<div class="p-8 card-premium flex flex-col md:flex-row justify-between items-center gap-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-white"><div class="flex items-center gap-6"><div class="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-2xl flex items-center justify-center text-2xl"><i class="fa-solid fa-cloud-upload-alt"></i></div><div><p class="font-black text-lg uppercase">${data.title}</p><p class="text-[10px] font-black text-red-500 mt-1">Lock: ${new Date(data.deadline).toLocaleString()}</p></div></div><label class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase cursor-pointer">${window.getTranslation('btn-submit')}<input type="file" class="hidden" onchange="window.uploadSubmission('${d.id}', this)"></label></div>`;
+                        }).join('');
+                    });
+                }
             }
-            else if (pageId === 'student-qr') {
-                container.innerHTML = `<div class="h-full flex items-center justify-center"><div class="card-premium p-16 text-center max-w-sm w-full"><div class="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-xl font-black mx-auto mb-8 shadow-xl">${currentUser.name.charAt(0)}</div><h2 class="text-2xl font-black mb-10">${currentUser.name}</h2><div id="sqr" class="bg-white p-4 rounded-3xl mb-10"></div><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verify Attendance</p></div></div>`;
-                setTimeout(() => new QRCode(document.getElementById("sqr"), { text: JSON.stringify({ id: currentUser.id, name: currentUser.name }), width: 220, height: 220, colorDark: "#020617" }), 200);
-            }
-            else if (pageId === 'student-materials') {
-                container.innerHTML = `<div class="mb-10 flex justify-between items-center"><h2 class="text-2xl font-black">${getTranslation('nav-handouts')}</h2><div class="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase">Identity Linked</div></div><div id="mat-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>`;
+            else if(pageId === 'student-materials') {
+                container.innerHTML = `<div class="mb-10 flex justify-between items-center"><h2 class="text-3xl font-black text-slate-800 dark:text-white">${window.getTranslation('lbl-handouts')}</h2></div><div id="mat-list" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>`;
                 onSnapshot(collection(db, dbCollections.materials), (snap) => {
                     const list = document.getElementById('mat-list'); if(!list) return;
-                    list.innerHTML = snap.docs.map(d=>d.data()).filter(m => m.studentId === currentUser.id).map(m => `<div class="p-6 card-premium flex justify-between items-center"><div class="flex items-center gap-5"><div class="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl flex items-center justify-center text-xl"><i class="fa-solid fa-file-pdf"></i></div><div><p class="font-black text-sm uppercase">${m.fileName}</p><p class="text-[9px] font-black text-emerald-600 uppercase mt-1">Linked at ${new Date(m.timestamp?.seconds*1000).toLocaleTimeString()}</p></div></div><button onclick="window.downloadFile('${m.fileName}','${m.fileData}')" class="p-3 text-blue-600"><i class="fa-solid fa-download"></i></button></div>`).join('');
+                    const now = Date.now(), oneDayMs = 24 * 60 * 60 * 1000;
+                    const items = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(m => m.studentId === currentUser.id && now < ((m.timestamp?.seconds * 1000) || now) + oneDayMs);
+                    activeMaterialsRegistry = items; // Store globally for download lookup
+                    
+                    if(items.length === 0) { list.innerHTML = `<div class="col-span-2 p-20 text-center opacity-40 font-bold uppercase text-xs">${window.getTranslation('lbl-no-materials')}</div>`; return; }
+                    list.innerHTML = items.map((m, idx) => {
+                        const expDate = (m.timestamp?.seconds * 1000) + oneDayMs;
+                        const hoursLeft = Math.max(0, Math.floor((expDate - now) / (1000 * 60 * 60)));
+                        return `<div class="p-6 card-premium flex justify-between items-center bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-white"><div class="flex items-center gap-5"><div class="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl flex justify-center items-center text-xl"><i class="fa-solid fa-file-pdf"></i></div><div><p class="font-black text-sm uppercase leading-tight">${m.fileName}</p><p class="text-[9px] text-red-500 font-black mt-1 uppercase">${window.getTranslation('lbl-expires')} ${hoursLeft}h</p></div></div><div class="flex gap-2"><button onclick="window.requestPreviewByIndex(${idx})" class="p-3 text-slate-400 hover:text-blue-600"><i class="fa-solid fa-eye text-lg"></i></button><button onclick="window.downloadMaterialByIndex(${idx})" class="p-3 text-blue-600"><i class="fa-solid fa-download text-lg"></i></button></div></div>`;
+                    }).join('');
                 });
+            }
+            else if(pageId === 'student-qr') {
+                container.innerHTML = `<div class="h-full flex items-center justify-center p-4"><div class="bg-white dark:bg-slate-900 p-12 md:p-16 rounded-[4rem] shadow-2xl text-center border border-slate-100 dark:border-slate-800 max-sm:w-full"><div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-2xl font-bold text-white mx-auto mb-8 shadow-xl">E</div><h2 class="font-black text-2xl mb-12 text-slate-800 dark:text-white">${currentUser.name}</h2><div id="sqr" class="bg-white p-4 rounded-3xl mb-12 shadow-inner border border-slate-50"></div><p class="text-[10px] text-blue-600 font-bold uppercase tracking-[0.2em]">${window.getTranslation('lbl-identity')}</p></div></div>`;
+                setTimeout(() => { new QRCode(document.getElementById("sqr"), { text: JSON.stringify({ id: currentUser.id, name: currentUser.name }), width: 220, height: 220, colorDark: "#020617" }); }, 200);
+            }
+            else if(pageId === 'teacher-scan') {
+                container.innerHTML = `<div class="max-w-md mx-auto fade-in"><div class="card-premium p-8 text-center bg-white dark:bg-slate-900 relative overflow-hidden"><button onclick="window.renderPage('teacher-classes')" class="mb-6 font-black text-xs text-slate-400 uppercase tracking-widest block text-slate-800 dark:text-white">← HUB</button><div id="reader" class="rounded-[2.5rem] overflow-hidden bg-black aspect-square mb-6 border-8 border-slate-50 dark:border-slate-800"></div><p class="font-black text-slate-400 uppercase text-xs">${window.getTranslation('btn-scan')}</p></div></div>`;
+                setTimeout(() => { activeScanner = new Html5Qrcode("reader"); activeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => handleTeacherScanSuccess(txt)); }, 500);
             }
         };
 
-        // --- 6. ACTIONS ---
+        // --- 6. INITIALIZATION ---
         window.login = async (k) => {
-            const user = staticData.users[k];
-            currentUser = { ...user };
+            const u = staticData.users[k];
+            currentUser = { ...u };
             await signInAnonymously(auth);
             window.isAuthReady = true;
-            await setDoc(doc(db, dbCollections.users, user.id), { name: user.name, role: user.role, lastSeen: Timestamp.now() }, { merge: true });
-            if (currentUser.role === 'teacher') await resetSessionMaterials();
+            await setDoc(doc(db, dbCollections.users, u.id), { name: u.name, role: u.role, lastSeen: Timestamp.now() }, { merge: true });
+            if (currentUser.role === 'teacher') await window.resetSessionMaterials();
             document.getElementById('login-modal').classList.add('hidden');
-            updateUIHeader(); renderSidebar(); setupGlobalNotifications();
+            window.updateUIHeader(); 
+            window.updateStaticUI();
+            window.renderSidebar(); 
+            setupGlobalNotifications();
             window.renderPage(currentUser.role === 'teacher' ? 'teacher-classes' : 'student-qr');
+        };
+
+        window.handleSendMessage = async (e) => {
+            e.preventDefault(); const inp = document.getElementById('chat-input'), txt = inp.value.trim(); if(!txt) return;
+            const cid = [currentUser.id, activeChatPartner.id].sort().join('_');
+            await addDoc(collection(db, dbCollections.messages), { chatId: cid, senderId: currentUser.id, receiverId: activeChatPartner.id, text: txt, timestamp: Timestamp.now(), read: false });
+            inp.value = '';
+        };
+
+        window.handleTyping = async () => {
+            if(!activeChatPartner) return;
+            const cid = [currentUser.id, activeChatPartner.id].sort().join('_');
+            await setDoc(doc(db, dbCollections.presence, currentUser.id), { chatId: cid, isTyping: true }, { merge: true });
+            if(typingTimeout) clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => setDoc(doc(db, dbCollections.presence, currentUser.id), { isTyping: false }, { merge: true }), 2500);
+        };
+
+        window.handleCreateAssignment = async (e) => {
+            e.preventDefault(); const title = document.getElementById('asgn-title').value, dead = document.getElementById('asgn-deadline').value;
+            if(!title || !dead) return;
+            await addDoc(collection(db, dbCollections.assignments), { title, deadline: dead, timestamp: Timestamp.now() });
+            window.showToast("Published.");
         };
 
         window.viewSubmissions = async (asgnId, title) => {
@@ -362,65 +617,36 @@
             m.classList.remove('hidden'); sc.classList.remove('hidden');
             document.getElementById('sub-modal-asgn-title').innerText = title;
             const snap = await getDocs(collection(db, dbCollections.submissions));
-            const list = document.getElementById('submissions-list-area');
             const data = snap.docs.map(d => ({id: d.id, ...d.data()})).filter(s => s.assignmentId === asgnId);
-            list.innerHTML = data.length ? data.map(s => `<div class="p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4"><div><p class="font-black uppercase text-sm">${s.studentName}</p><p class="text-[9px] text-blue-600 font-bold mt-1 uppercase">RECEIVED: ${new Date(s.timestamp?.seconds*1000).toLocaleString()}</p></div><div class="flex items-center gap-2"><input type="text" placeholder="Mark" value="${s.grade||''}" class="w-16 p-2 rounded-lg text-center font-bold dark:bg-slate-900 border" onblur="window.saveGrade('${s.id}', this.value)"><button onclick="window.downloadFile('${s.fileName}','${s.fileData}')" class="p-3 bg-blue-600 text-white rounded-lg"><i class="fa-solid fa-download"></i></button></div></div>`).join('') : '<div class="p-10 text-center opacity-40 font-bold uppercase text-xs">No entries received</div>';
+            document.getElementById('submissions-list-area').innerHTML = data.length ? data.map(s => `<div class="p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl flex justify-between items-center border border-[var(--border)]"><div><p class="font-black uppercase text-sm text-slate-800 dark:text-white">${s.studentName}</p><p class="text-[9px] text-blue-600 font-bold uppercase mt-1">${window.getTranslation('lbl-rec')}: ${new Date(s.timestamp?.seconds*1000).toLocaleString()}</p></div><div class="flex items-center gap-2"><input type="text" placeholder="Mark" value="${s.grade||''}" class="w-16 p-2 rounded-lg text-center font-bold bg-white dark:bg-slate-900 border text-slate-800 dark:text-white" onblur="window.saveGrade('${s.id}', this.value)"><button onclick="window.downloadFileByIndexRegistry('${s.fileName}','${s.fileData}')" class="p-3 bg-blue-600 text-white rounded-lg shadow-lg"><i class="fa-solid fa-download"></i></button></div></div>`).join('') : `<p class="p-10 text-center opacity-40 font-bold uppercase text-xs">${window.getTranslation('lbl-no-assignments')}</p>`;
         };
+
+        window.downloadFileByIndexRegistry = (name, data) => { const a = document.createElement('a'); a.href = data; a.download = name; a.click(); };
 
         window.uploadSubmission = async (asgnId, input) => {
-            const file = input.files[0]; if(!file) return;
-            const reader = new FileReader(); reader.onload = async (e) => {
-                await setDoc(doc(db, dbCollections.submissions, `${asgnId}_${currentUser.id}`), { assignmentId: asgnId, studentId: currentUser.id, studentName: currentUser.name, fileName: file.name, fileData: e.target.result, timestamp: Timestamp.now() });
-                showToast("Work Submitted.");
-            }; reader.readAsDataURL(file);
+            const f = input.files[0]; if(!f) return;
+            const r = new FileReader(); r.onload = async (e) => {
+                await setDoc(doc(db, dbCollections.submissions, `${asgnId}_${currentUser.id}`), { assignmentId: asgnId, studentId: currentUser.id, studentName: currentUser.name, fileName: f.name, fileData: e.target.result, timestamp: Timestamp.now() });
+                window.showToast("Uploaded.");
+            }; r.readAsDataURL(f);
         };
 
-        window.saveGrade = async (id, grade) => { await updateDoc(doc(db, dbCollections.submissions, id), { grade }); showToast("Grade Saved."); };
-        window.uploadFile = async (cid, input) => {
-            const file = input.files[0]; if(!file) return;
-            const reader = new FileReader(); reader.onload = async (e) => { await updateDoc(doc(db, dbCollections.classes, cid), { currentFile: file.name, currentFileData: e.target.result }); showToast("Hub Ready."); };
-            reader.readAsDataURL(file);
-        };
-        window.handleTyping = async () => {
-            const cid = [currentUser.id, activeChatPartner.id].sort().join('_');
-            await setDoc(doc(db, dbCollections.presence, currentUser.id), { chatId: cid, isTyping: true }, { merge: true });
-            if(typingTimeout) clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => setDoc(doc(db, dbCollections.presence, currentUser.id), { isTyping: false }, { merge: true }), 2500);
-        };
-        window.handleSendMessage = async (e) => {
-            e.preventDefault(); const inp = document.getElementById('chat-input'), txt = inp.value.trim(); if(!txt) return;
-            const cid = [currentUser.id, activeChatPartner.id].sort().join('_');
-            await addDoc(collection(db, dbCollections.messages), { chatId: cid, senderId: currentUser.id, receiverId: activeChatPartner.id, text: txt, timestamp: Timestamp.now(), read: false });
-            inp.value = '';
-        };
-        window.requestDeleteMessage = (id) => {
-            const m = document.getElementById('modal-container'), d = document.getElementById('delete-modal-content'), b = document.getElementById('confirm-delete-btn');
-            m.classList.remove('hidden'); d.classList.remove('hidden');
-            b.onclick = async () => { await deleteDoc(doc(db, dbCollections.messages, id)); window.closeConfirmModal(); };
-        };
-        window.downloadFile = (name, data) => { const a = document.createElement('a'); a.href = data; a.download = name; a.click(); };
-        window.handleAsgnHandout = (input) => { const f = input.files[0]; if(!f) return; const r = new FileReader(); r.onload = (e) => { asgnHandoutFile = { name: f.name, data: e.target.result }; showToast("Attached."); }; r.readAsDataURL(f); };
-        window.handleCreateAssignment = async (e) => {
-            e.preventDefault(); const title = document.getElementById('asgn-title').value, dead = document.getElementById('asgn-deadline').value;
-            if(!title || !dead) return;
-            await addDoc(collection(db, dbCollections.assignments), { title, deadline: dead, handoutName: asgnHandoutFile.name, handoutData: asgnHandoutFile.data, timestamp: Timestamp.now() });
-            showToast("Published."); window.renderPage('teacher-assignments');
-        };
+        window.saveGrade = async (id, grade) => { await updateDoc(doc(db, dbCollections.submissions, id), { grade }); window.showToast("Graded."); };
+        window.switchChat = (id, name) => { activeChatPartner = { id, name }; window.renderPage('teacher-chat'); };
+        window.uploadFile = async (cid, input) => { const f = input.files[0]; if(!f) return; const r = new FileReader(); r.onload = async (e) => { await updateDoc(doc(db, dbCollections.classes, cid), { currentFile: f.name, currentFileData: e.target.result }); window.showToast("Ready."); }; r.readAsDataURL(f); };
 
         function setupGlobalNotifications() {
-            onSnapshot(collection(db, dbCollections.messages), (snap) => {
-                const newMsgs = snap.docChanges().filter(c => c.type === 'added').map(c => c.doc.data());
-                newMsgs.forEach(m => { if(m.receiverId === currentUser.id && !m.read) showToast("New message received"); });
-            });
             onSnapshot(collection(db, dbCollections.users), (snap) => { allUsers = snap.docs.map(d=>({id:d.id, ...d.data()})); });
+            onSnapshot(collection(db, dbCollections.classes), (snap) => { 
+                allClassList = snap.docs.map(d=>({id:d.id, ...d.data()})); 
+                if(document.getElementById('page-title').dataset.id?.includes('timetable')) {
+                    window.renderPage(currentUser.role === 'teacher' ? 'teacher-timetable' : 'student-timetable');
+                }
+            });
         }
 
         (async () => {
-            try {
-                await signInAnonymously(auth);
-                window.isAuthReady = true;
-                document.getElementById('footer-conn-dot').classList.add('bg-emerald-500');
-            } catch (e) { showToast("Cloud Offline"); }
+            try { await signInAnonymously(auth); window.isAuthReady = true; } catch (e) { window.showToast("Engine Offline."); }
         })();
 
     </script>
