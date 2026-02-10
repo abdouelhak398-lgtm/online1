@@ -9,155 +9,313 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     
     <style>
-        :root { --brand: #2563eb; --brand-light: #eff6ff; --success: #166534; --success-bg: #dcfce7; }
-        body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; color: #1e293b; -webkit-tap-highlight-color: transparent; }
+        :root { 
+            --brand: #2563eb; 
+            --brand-dark: #1e40af;
+            --brand-light: #eff6ff; 
+            --success: #059669; 
+            --bg-light: #f8fafc;
+            --card-light: #ffffff;
+            --border-light: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+        
+        /* Dark Mode Override Variables */
+        .dark { 
+            --bg-light: #020617; 
+            --card-light: #0f172a; 
+            --text-main: #f8fafc; 
+            --border-light: #1e293b; 
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--bg-light); 
+            color: var(--text-main); 
+            -webkit-tap-highlight-color: transparent; 
+            transition: background 0.4s ease, color 0.4s ease;
+        }
         .font-arabic { font-family: 'Tajawal', sans-serif; }
         
-        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.4); }
-        .card-premium { background: white; border: 1px solid #f1f5f9; box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04); border-radius: 2rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .card-premium:hover { transform: translateY(-4px); box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.08); }
+        /* Professional Glassmorphism */
+        .glass { 
+            background: rgba(255, 255, 255, 0.7); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px); 
+            border-bottom: 1px solid var(--border-light); 
+        }
+        .dark .glass { background: rgba(15, 23, 42, 0.8); }
+
+        /* Premium Cards */
+        .card-premium { 
+            background: var(--card-light); 
+            border: 1px solid var(--border-light); 
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+            border-radius: 1.5rem; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .card-premium:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            border-color: var(--brand);
+        }
         
-        .sidebar-item { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 14px; margin-bottom: 6px; border-left: 4px solid transparent; }
-        .sidebar-item:hover { background-color: #f1f5f9; color: var(--brand); padding-left: 1.5rem; }
-        .sidebar-item.active { background-color: var(--brand-light); color: var(--brand); border-left-color: var(--brand); font-weight: 700; }
+        /* Sidebar Polish */
+        .sidebar-item { 
+            transition: all 0.2s ease; 
+            border-radius: 12px; 
+            margin: 4px 12px; 
+            padding: 12px 16px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .sidebar-item:hover { 
+            background-color: var(--brand-light); 
+            color: var(--brand); 
+        }
+        .sidebar-item.active { 
+            background-color: var(--brand); 
+            color: white; 
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        /* Message Bubbles */
+        .msg-bubble { 
+            max-width: 80%; 
+            border-radius: 1.25rem; 
+            padding: 12px 20px; 
+            font-size: 0.95rem; 
+            line-height: 1.6;
+        }
+        .msg-sent { 
+            background: linear-gradient(135deg, #3b82f6, #2563eb); 
+            color: white; 
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+        }
+        .msg-received { 
+            background: var(--card-light); 
+            border: 1px solid var(--border-light); 
+            color: var(--text-main);
+            border-bottom-left-radius: 4px; 
+        }
         
-        .msg-bubble { max-width: 85%; border-radius: 1.2rem; padding: 12px 18px; position: relative; font-size: 0.95rem; line-height: 1.5; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
-        .msg-sent { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border-bottom-right-radius: 4px; }
-        .msg-received { background: white; border: 1px solid #f1f5f9; border-bottom-left-radius: 4px; color: #334155; }
-        .msg-sent:hover .delete-btn { opacity: 1; }
         .delete-btn { opacity: 0; transition: opacity 0.2s; cursor: pointer; }
+        .group:hover .delete-btn { opacity: 1; }
         
-        .date-divider { position: relative; text-align: center; margin: 24px 0; }
-        .date-divider::before { content: ''; position: absolute; left: 0; top: 50%; width: 100%; height: 1px; background: #f1f5f9; z-index: 1; }
-        .date-divider span { position: relative; z-index: 2; background: #f8fafc; padding: 0 12px; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; }
+        /* Timetable Style */
+        .timetable-grid { 
+            display: grid; 
+            grid-template-columns: 70px repeat(5, 1fr); 
+            gap: 1px; 
+            background: var(--border-light); 
+            border-radius: 1.25rem; 
+            overflow: hidden; 
+            border: 1px solid var(--border-light); 
+        }
+        .timetable-header { 
+            background: #f1f5f9; 
+            padding: 15px; 
+            font-size: 10px; 
+            font-weight: 800; 
+            color: var(--text-muted); 
+            text-align: center; 
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .dark .timetable-header { background: #1e293b; }
+        .timetable-slot { background: var(--card-light); min-height: 100px; padding: 10px; }
+        .timetable-card { 
+            background: var(--brand-light); 
+            border-left: 3px solid var(--brand); 
+            border-radius: 8px; 
+            padding: 10px; 
+            font-size: 11px; 
+            height: 100%; 
+            transition: all 0.2s;
+        }
+        .dark .timetable-card { background: rgba(37, 99, 235, 0.1); color: white; border-left-color: #60a5fa; }
+        .timetable-card:hover { transform: scale(1.02); }
 
-        @keyframes typing-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.98); } }
-        .typing-status { animation: typing-pulse 1.2s infinite ease-in-out; }
+        /* Animation */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
 
-        .timetable-grid { display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 1px; background: #e2e8f0; border-radius: 1.5rem; overflow: hidden; border: 1px solid #e2e8f0; }
-        .timetable-header { background: #f8fafc; padding: 12px; font-size: 11px; font-weight: 800; color: #64748b; text-align: center; text-transform: uppercase; }
-        .timetable-slot { background: white; min-height: 90px; padding: 8px; }
-        .timetable-time { background: #f8fafc; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #94a3b8; }
-        .timetable-card { background: var(--brand-light); border-left: 4px solid var(--brand); border-radius: 10px; padding: 10px; font-size: 11px; height: 100%; cursor: pointer; transition: all 0.2s; }
-        .timetable-card:hover { transform: scale(1.03); box-shadow: 0 4px 15px rgba(37, 99, 235, 0.15); }
-
-        .scan-flash { animation: flash-green 0.6s ease-out; }
-        @keyframes flash-green { 0% { background-color: rgba(34, 197, 94, 0.5); } 100% { background-color: transparent; } }
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
     </style>
 </head>
-<body class="h-screen flex overflow-hidden">
+<body class="h-screen flex overflow-hidden light">
 
-    <!-- Mobile Navigation Drawer Overlay -->
-    <div id="mobile-overlay" class="hidden fixed inset-0 bg-slate-900/60 z-[60] backdrop-blur-sm opacity-0 transition-opacity duration-300" onclick="window.toggleMobileMenu()"></div>
+    <!-- Backdrop Overlay -->
+    <div id="mobile-overlay" class="hidden fixed inset-0 bg-slate-900/40 z-[60] backdrop-blur-sm opacity-0 transition-opacity duration-300" onclick="window.toggleMobileMenu()"></div>
     
     <!-- Sidebar -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-white z-[70] shadow-2xl transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out hidden md:flex flex-col h-full border-r border-slate-100">
-        <div class="p-8 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">E</div>
-                <h1 class="text-2xl font-bold text-slate-800 tracking-tight leading-none">EduSaaS</h1>
-            </div>
-            <button onclick="window.toggleMobileMenu()" class="lg:hidden text-slate-400 p-2"><i class="fa-solid fa-xmark text-xl"></i></button>
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-[var(--card-light)] z-[70] transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out hidden md:flex flex-col h-full border-r border-[var(--border-light)]">
+        <div class="p-8 flex items-center gap-4">
+            <div class="w-11 h-11 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">E</div>
+            <h1 class="text-2xl font-extrabold tracking-tight text-slate-800 dark:text-white">EduSaaS</h1>
         </div>
-        <div class="mx-6 p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-6">
-            <p class="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-widest leading-none">Status</p>
-            <div id="school-name-display" class="font-bold text-sm text-slate-800 truncate text-blue-600 tracking-tight">Active Session</div>
+        
+        <div class="px-6 mb-8">
+            <button onclick="window.toggleDarkMode()" class="w-full p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex items-center justify-between group transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 flex items-center justify-center shadow-sm">
+                        <i id="theme-icon" class="fa-solid fa-moon text-blue-600"></i>
+                    </div>
+                    <span class="text-xs font-bold uppercase tracking-widest text-slate-500">Theme</span>
+                </div>
+                <div class="w-10 h-5 bg-slate-200 dark:bg-blue-600 rounded-full relative">
+                    <div class="absolute top-1 left-1 dark:left-6 w-3 h-3 bg-white rounded-full transition-all"></div>
+                </div>
+            </button>
         </div>
-        <nav id="nav-menu" class="flex-1 overflow-y-auto px-4 space-y-1"></nav>
-        <div class="p-6 border-t border-slate-50">
-            <button onclick="window.logout()" class="flex items-center gap-3 w-full px-4 py-3.5 text-sm font-bold text-red-500 bg-red-50/50 hover:bg-red-50 rounded-xl transition-colors"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</button>
+
+        <nav id="nav-menu" class="flex-1 overflow-y-auto space-y-1"></nav>
+
+        <div class="p-6 mt-auto">
+            <button onclick="window.logout()" class="flex items-center gap-3 w-full px-5 py-4 text-sm font-bold text-red-500 hover:bg-red-50 rounded-2xl transition-colors">
+                <i class="fa-solid fa-power-off"></i> Sign Out
+            </button>
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col h-full relative overflow-hidden bg-slate-50/50 lg:ml-72">
-        <!-- Header -->
-        <header class="bg-white/80 backdrop-blur-xl border-b border-slate-200 h-16 md:h-20 flex items-center justify-between px-4 md:px-8 shrink-0 z-40 sticky top-0">
-            <div class="flex items-center gap-4">
-                <button onclick="window.toggleMobileMenu()" class="lg:hidden text-slate-500 p-2 hover:bg-slate-100 rounded-xl transition-all"><i class="fa-solid fa-bars-staggered text-xl"></i></button>
-                <div class="flex flex-col">
-                    <h2 id="page-title" class="text-lg md:text-xl font-bold text-slate-800 leading-tight">Dashboard</h2>
-                    <div class="flex items-center gap-1.5 mt-0.5"><span id="conn-dot" class="w-1.5 h-1.5 rounded-full bg-red-400"></span><span id="conn-text" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Initialising...</span></div>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-3 md:gap-5">
-                <button onclick="window.toggleNotifications()" class="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all relative">
-                    <i class="fa-regular fa-bell text-xl"></i>
-                    <span id="notif-badge" class="absolute top-2 right-2 w-4 h-4 bg-blue-600 text-white text-[9px] font-bold flex items-center justify-center rounded-full border-2 border-white hidden">0</span>
+    <main class="flex-1 flex flex-col h-full relative overflow-hidden lg:ml-72">
+        <!-- Modern Header -->
+        <header class="glass h-16 md:h-20 flex items-center justify-between px-4 md:px-10 shrink-0 z-40 sticky top-0">
+            <div class="flex items-center gap-6">
+                <button onclick="window.toggleMobileMenu()" class="lg:hidden w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-xl transition-all">
+                    <i class="fa-solid fa-bars-staggered"></i>
                 </button>
-                <div id="notification-dropdown" class="hidden absolute right-16 md:right-24 top-16 w-80 bg-white rounded-[1.8rem] shadow-2xl border border-slate-100 z-50 overflow-hidden">
-                    <div class="p-5 border-b border-slate-50 flex justify-between items-center bg-slate-50/50"><h3 class="font-bold text-sm text-slate-800">Notifications</h3><button onclick="window.clearNotifications()" class="text-[10px] font-bold text-blue-600">CLEAR ALL</button></div>
-                    <div id="notification-list" class="max-h-80 overflow-y-auto py-2"></div>
+                <div class="flex flex-col">
+                    <h2 id="page-title" class="text-lg md:text-xl font-bold tracking-tight text-slate-800 dark:text-white">Workspace</h2>
+                    <div class="flex items-center gap-2 mt-0.5">
+                        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span id="conn-text" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active System</span>
+                    </div>
                 </div>
-                <button onclick="window.toggleLangMenu()" class="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><i class="fa-solid fa-globe text-xl"></i></button>
-                <div class="h-8 w-px bg-slate-200 hidden sm:block"></div>
-                <div class="w-10 h-10 rounded-full bg-blue-600 shadow-lg flex items-center justify-center text-white font-bold text-lg" id="user-initials">?</div>
             </div>
 
-            <div id="lang-dropdown" class="hidden absolute right-16 top-16 w-32 bg-white rounded-xl shadow-2xl border border-slate-100 py-1 z-50">
-                <button onclick="window.setLanguage('en')" class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50 font-bold">English</button>
-                <button onclick="window.setLanguage('ar')" class="block w-full text-right px-4 py-2 text-sm hover:bg-slate-50 font-arabic font-bold">العربية</button>
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <button onclick="window.toggleNotifications()" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all relative">
+                        <i class="fa-regular fa-bell text-xl"></i>
+                        <span id="notif-badge" class="absolute top-2 right-2 w-4 h-4 bg-red-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full border-2 border-white hidden">0</span>
+                    </button>
+                    <div id="notification-dropdown" class="hidden absolute right-0 mt-4 w-80 bg-[var(--card-light)] rounded-3xl shadow-2xl border border-[var(--border-light)] z-50 overflow-hidden">
+                        <div class="p-5 border-b border-[var(--border-light)] flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
+                            <h3 class="font-bold text-sm">Inbox</h3>
+                            <button onclick="window.clearNotifications()" class="text-[10px] font-bold text-blue-600 uppercase">Clear</button>
+                        </div>
+                        <div id="notification-list" class="max-h-80 overflow-y-auto py-2"></div>
+                    </div>
+                </div>
+                
+                <div class="h-8 w-px bg-[var(--border-light)]"></div>
+                
+                <button onclick="window.toggleLangMenu()" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:bg-slate-50 rounded-xl transition-all">
+                    <i class="fa-solid fa-globe"></i>
+                </button>
+                
+                <div class="w-10 h-10 rounded-2xl bg-slate-800 flex items-center justify-center text-white font-bold text-lg shadow-sm" id="user-initials">?</div>
+            </div>
+
+            <div id="lang-dropdown" class="hidden absolute right-16 top-16 w-36 bg-[var(--card-light)] rounded-2xl shadow-2xl border border-[var(--border-light)] py-2 z-50">
+                <button onclick="window.setLanguage('en')" class="w-full text-left px-5 py-2.5 text-sm font-semibold hover:bg-slate-50">English</button>
+                <button onclick="window.setLanguage('fr')" class="w-full text-left px-5 py-2.5 text-sm font-semibold hover:bg-slate-50">Français</button>
+                <button onclick="window.setLanguage('ar')" class="w-full text-right px-5 py-2.5 text-sm font-arabic font-bold hover:bg-slate-50">العربية</button>
             </div>
         </header>
 
-        <div id="app-content" class="flex-1 overflow-y-auto p-4 md:p-8 relative scroll-smooth bg-white/30"></div>
+        <!-- Dynamic Content -->
+        <div id="app-content" class="flex-1 overflow-y-auto p-4 md:p-10 relative scroll-smooth"></div>
 
-        <div class="bg-slate-900 text-white text-[10px] py-1.5 px-4 flex justify-between items-center z-50">
-            <div class="flex items-center gap-2"><span id="footer-conn-dot" class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span><span id="footer-conn-text" class="text-yellow-400 uppercase font-bold tracking-widest">Establishing Cloud Engine...</span></div>
-            <div id="footer-user-id" class="text-slate-500 font-mono tracking-tighter uppercase">IDLE</div>
+        <!-- System Status Footer -->
+        <div class="bg-slate-900 text-white py-2 px-6 flex justify-between items-center z-50">
+            <div class="flex items-center gap-3">
+                <span id="footer-conn-dot" class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
+                <span id="footer-conn-text" class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Cloud Link Established</span>
+            </div>
+            <div id="footer-user-id" class="text-[9px] font-mono text-slate-500 uppercase">IDLE</div>
         </div>
     </main>
 
-    <!-- Modal confirmation -->
-    <div id="modal-container" class="fixed inset-0 z-[150] bg-slate-900/60 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div id="delete-modal-content" class="bg-white rounded-[2.5rem] shadow-2xl max-w-sm w-full p-10 text-center fade-in hidden">
+    <!-- Global Modals -->
+    <div id="modal-container" class="fixed inset-0 z-[150] bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        
+        <!-- Preview -->
+        <div id="generic-modal-content" class="bg-[var(--card-light)] rounded-[2.5rem] shadow-2xl max-w-2xl w-full p-8 fade-in hidden flex flex-col relative border border-[var(--border-light)]">
+             <button onclick="window.closeConfirmModal()" class="absolute top-6 right-6 w-10 h-10 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><i class="fa-solid fa-xmark text-xl"></i></button>
+             <div id="modal-body-content" class="mt-4"></div>
+        </div>
+
+        <!-- Deletion -->
+        <div id="delete-modal-content" class="bg-[var(--card-light)] rounded-[2.5rem] shadow-2xl max-w-sm w-full p-10 text-center fade-in hidden border border-[var(--border-light)]">
             <div class="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-6"><i class="fa-solid fa-trash-can"></i></div>
-            <h3 class="text-xl font-black text-slate-800 mb-2">Confirm Removal</h3>
-            <p class="text-slate-400 text-sm mb-10 leading-relaxed font-medium">This will remove the message for both parties.</p>
+            <h3 class="text-xl font-black mb-2">Delete Permanently?</h3>
+            <p class="text-slate-400 text-sm mb-10 leading-relaxed font-medium">This action will sync across all connected accounts.</p>
             <div class="flex flex-col gap-2">
-                <button id="confirm-delete-btn" class="w-full p-4 rounded-2xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-xl shadow-red-200 transition-all">Yes, Delete</button>
-                <button onclick="window.closeConfirmModal()" class="w-full p-4 rounded-2xl font-bold text-slate-400 hover:text-slate-600 transition-all">Cancel</button>
+                <button id="confirm-delete-btn" class="w-full p-4 rounded-2xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-xl shadow-red-100 transition-all">Yes, Delete</button>
+                <button onclick="window.closeConfirmModal()" class="w-full p-4 rounded-2xl font-bold text-slate-400 hover:bg-slate-50 transition-all">Cancel</button>
             </div>
         </div>
         
-        <div id="submissions-modal-content" class="bg-white rounded-[2.5rem] shadow-2xl max-w-3xl w-full p-10 fade-in hidden flex flex-col max-h-[85vh]">
+        <!-- Submission Audit -->
+        <div id="submissions-modal-content" class="bg-[var(--card-light)] rounded-[2.5rem] shadow-2xl max-w-4xl w-full p-10 fade-in hidden flex flex-col max-h-[85vh] border border-[var(--border-light)]">
             <div class="flex justify-between items-center mb-8">
-                <div>
-                    <h3 class="text-2xl font-black text-slate-800">Dropbox Monitor</h3>
-                    <p id="sub-modal-asgn-title" class="text-slate-400 text-sm font-bold uppercase tracking-widest"></p>
+                <div><h3 class="text-2xl font-black">Submission Audit</h3><p id="sub-modal-asgn-title" class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1"></p></div>
+                <button onclick="window.closeConfirmModal()" class="w-12 h-12 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-xl transition-all"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="submissions-list-area" class="flex-1 overflow-y-auto space-y-4 pr-2"></div>
+        </div>
+
+        <!-- Class Editor -->
+        <div id="class-mgmt-modal-content" class="bg-[var(--card-light)] rounded-[2.5rem] shadow-2xl max-w-md w-full p-10 fade-in hidden border border-[var(--border-light)]">
+            <h3 id="class-modal-title" class="text-2xl font-black mb-6">Class Settings</h3>
+            <form onsubmit="window.handleClassSave(event)" class="space-y-4">
+                <input type="hidden" id="edit-class-id">
+                <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Subject Name</label><input id="class-name-input" class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl outline-none font-bold focus:border-blue-400 border-2 border-transparent transition-all"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Time</label><input id="class-time-input" class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl outline-none font-bold" placeholder="08:30 AM"></div>
+                    <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Type</label><select id="class-type-input" class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl outline-none font-bold"><option value="Cours">Cours</option><option value="TD">TD</option></select></div>
                 </div>
-                <button onclick="window.closeConfirmModal()" class="w-12 h-12 bg-slate-50 text-slate-400 rounded-xl hover:bg-red-50 hover:text-red-500 transition-all"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            <div id="submissions-list-area" class="flex-1 overflow-y-auto space-y-3 pr-2">
-                <!-- Submissions inject here -->
-            </div>
+                <div class="pt-4 flex gap-3"><button type="button" onclick="window.closeConfirmModal()" class="flex-1 p-4 rounded-2xl font-bold text-slate-400">Cancel</button><button type="submit" class="flex-1 bg-blue-600 text-white p-4 rounded-2xl font-black shadow-xl">Update</button></div>
+            </form>
         </div>
     </div>
 
-    <!-- Login UI -->
+    <!-- Login Portal -->
     <div id="login-modal" class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-xl flex items-center justify-center p-4">
-        <div class="bg-white rounded-[2.5rem] shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col md:flex-row border border-white/40">
-            <div class="md:w-5/12 bg-blue-600 p-10 md:p-14 text-white flex flex-col justify-center relative overflow-hidden shrink-0">
+        <div class="bg-white rounded-[3rem] shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col md:flex-row border border-white/20">
+            <div class="md:w-5/12 bg-blue-600 p-12 text-white flex flex-col justify-center relative shrink-0">
                 <div class="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-                <div class="relative z-10"><div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl font-bold mb-8 shadow-xl">E</div><h1 class="text-4xl font-bold mb-4 tracking-tighter">EduSaaS</h1><p class="text-blue-100 text-lg opacity-80 font-light">Digital Intelligence for Educational Hubs.</p></div>
+                <div class="relative z-10">
+                    <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl font-bold mb-8 shadow-xl">E</div>
+                    <h1 class="text-4xl font-black mb-4 tracking-tighter">EduSaaS</h1>
+                    <p class="text-blue-100 text-lg font-medium opacity-80 leading-relaxed">The unified intelligence engine for modern schools.</p>
+                </div>
             </div>
-            <div class="md:w-7/12 p-10 md:p-14 bg-white overflow-y-auto max-h-[90vh]">
-                <h2 class="text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Access Portal</h2>
-                <div class="grid grid-cols-1 gap-4 mt-8">
-                    <button onclick="window.login('teacher')" class="p-6 border border-slate-100 rounded-3xl hover:border-blue-500 hover:bg-blue-50/50 text-left transition-all flex items-center gap-5 group shadow-sm">
-                        <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform"><i class="fa-solid fa-chalkboard-teacher"></i></div>
-                        <div><span class="font-extrabold block text-slate-800 text-lg">Teacher</span><span class="text-xs text-slate-400 font-bold uppercase tracking-widest leading-none">Console</span></div>
+            <div class="md:w-7/12 p-12 bg-white overflow-y-auto max-h-[90vh]">
+                <h2 class="text-2xl font-extrabold text-slate-800 mb-2">Access Hub</h2>
+                <p class="text-slate-400 text-sm mb-10">Sign in to your specific role workspace.</p>
+                <div class="grid grid-cols-1 gap-4">
+                    <button onclick="window.login('teacher')" class="p-6 border border-slate-100 rounded-3xl hover:border-blue-500 hover:bg-blue-50 text-left transition-all flex items-center gap-6 group shadow-sm">
+                        <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform"><i class="fa-solid fa-chalkboard-teacher"></i></div>
+                        <div><span class="font-bold block text-slate-800 text-lg">Teacher</span><span class="text-xs text-slate-400 font-bold uppercase tracking-widest">Workspace</span></div>
                     </button>
-                    <div class="p-6 border border-slate-100 rounded-3xl bg-slate-50/30">
-                        <span class="font-bold text-slate-400 block mb-4 uppercase text-[10px] tracking-[0.25em]">Students</span>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <button onclick="window.login('student1')" class="bg-white p-4 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:text-blue-600 transition-all hover:-translate-y-1">Y. Brahimi</button>
-                            <button onclick="window.login('student2')" class="bg-white p-4 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:text-blue-600 transition-all hover:-translate-y-1">M. Hadjadj</button>
+                    <div class="p-8 bg-slate-50/50 rounded-3xl border border-slate-100 mt-2">
+                        <span class="font-bold text-slate-400 block mb-5 uppercase text-[10px] tracking-[0.25em]">Students</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <button onclick="window.login('student1')" class="bg-white p-4 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 hover:text-blue-600 shadow-sm transition-all hover:-translate-y-1">Y. Brahimi</button>
+                            <button onclick="window.login('student2')" class="bg-white p-4 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 hover:text-blue-600 shadow-sm transition-all hover:-translate-y-1">M. Hadjadj</button>
                         </div>
                     </div>
                 </div>
@@ -165,7 +323,8 @@
         </div>
     </div>
 
-    <!-- Audio feedback -->
+    <!-- Feedback Asset -->
+    <div id="toast" class="fixed bottom-10 right-10 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl transform translate-y-32 opacity-0 transition-all duration-300 z-[200] flex items-center gap-4"><div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white shrink-0"><i class="fa-solid fa-bolt"></i></div><span id="toast-msg" class="font-bold text-sm tracking-tight">Sync Notification</span></div>
     <audio id="scan-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
     <script type="module">
@@ -173,27 +332,24 @@
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, setDoc, getDoc, updateDoc, getDocs, doc, Timestamp, where, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- 1. CONFIG & STATIC DATA ---
+        // --- 1. CONFIG & DATA ---
         const staticData = {
             users: {
                 teacher: { name: 'Fatima Zohra', role: 'teacher', id: 'teacher_dz' },
                 student1: { name: 'Yacine Brahimi', role: 'student', id: 'student_dz_1' },
                 student2: { name: 'Meriem Hadjadj', role: 'student', id: 'student_dz_2' }
             },
-            classes: [
-                { id: 'c1', name: 'Advanced Mathematics', time: '08:30 AM', icon: 'fa-calculator' }, 
-                { id: 'c2', name: 'Science & Physics', time: '10:45 AM', icon: 'fa-atom' }
-            ],
-            students: [{ id: 'student_dz_1', name: 'Yacine Brahimi' }, { id: 'student_dz_2', name: 'Meriem Hadjadj' }],
             timetable: {
                 days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
                 hours: ['08:00', '09:00', '10:00', '11:00', '12:00'],
-                slots: [
-                    { day: 'Monday', time: '08:00', classId: 'c1', className: 'Adv Math' },
-                    { day: 'Wednesday', time: '11:00', classId: 'c2', className: 'Physics' },
-                    { day: 'Friday', time: '09:00', classId: 'c1', className: 'Adv Math' }
-                ]
+                slots: [{ day: 'Monday', time: '08:00', className: 'Cours Math' }, { day: 'Wednesday', time: '11:00', className: 'TD Physics' }]
             }
+        };
+
+        const translations = {
+            en: { 'lbl-contacts': 'Contacts', 'lbl-type-msg': 'Message...', 'lbl-back': 'Back', 'btn-scan': 'MARK PRESENCE', 'nav-hub': 'Hub', 'nav-schedule': 'Schedule', 'nav-assignments': 'Dropbox', 'nav-attendance': 'Audit', 'nav-messages': 'Messages', 'nav-id': 'ID Identity', 'nav-work': 'Tasks', 'nav-handouts': 'Resources', 'nav-teacher': 'Faculty' },
+            fr: { 'lbl-contacts': 'Contacts', 'lbl-type-msg': 'Message...', 'lbl-back': 'Retour', 'btn-scan': 'PRÉSENCE', 'nav-hub': 'Hub', 'nav-schedule': 'Calendrier', 'nav-assignments': 'Devoirs', 'nav-attendance': 'Audit', 'nav-messages': 'Messages', 'nav-id': 'Identité', 'nav-work': 'Travaux', 'nav-handouts': 'Supports', 'nav-teacher': 'Faculté' },
+            ar: { 'lbl-contacts': 'جهات الاتصال', 'lbl-type-msg': 'رسالة...', 'lbl-back': 'رجوع', 'btn-scan': 'تسجيل الحضور', 'nav-hub': 'مركزي', 'nav-schedule': 'الجدول', 'nav-assignments': 'الواجبات', 'nav-attendance': 'الحضور', 'nav-messages': 'الرسائل', 'nav-id': 'هويتي', 'nav-work': 'المهام', 'nav-handouts': 'المحاضرات', 'nav-teacher': 'الأستاذ' }
         };
 
         const firebaseConfig = {
@@ -223,75 +379,53 @@
         };
 
         // --- 2. GLOBAL STATE ---
-        let currentUser = null;
-        let activeClassId = null;
-        let activeScanner = null;
-        let activeChatPartner = null;
-        let currentCalendarDate = new Date();
-        let currentCalendarEvents = {};
-        let currentSelectedDate = null;
-        let activeSessionFile = null;
-        let isProcessingScan = false;
-        let currentLang = 'en';
-        let notificationStore = [];
-        let firestoreUnsubscribes = [];
-        let globalUnsubscribe = null;
-        let typingTimeout = null;
-        let asgnHandoutFile = { name: null, data: null };
+        let currentUser = null, activeClassId = null, activeScanner = null, activeChatPartner = null, currentLang = 'en', notificationStore = [], firestoreUnsubscribes = [], typingTimeout = null, asgnHandoutFile = { name: null, data: null }, isProcessingScan = false, isDarkMode = false, activeSessionFile = null;
 
         window.isAuthReady = false;
 
-        // --- 3. UTILITY FUNCTIONS (Hoisted) ---
-
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            if(!t) return;
-            document.getElementById('toast-msg').innerText = msg;
-            t.classList.remove('translate-y-32', 'opacity-0');
-            setTimeout(() => t.classList.add('translate-y-32', 'opacity-0'), 3000);
-        }
-
+        // --- 3. CORE UTILITIES ---
+        function getTranslation(key) { return translations[currentLang][key] || key; }
+        function showToast(msg) { const t = document.getElementById('toast'); if(t) { document.getElementById('toast-msg').innerText = msg; t.classList.remove('translate-y-32', 'opacity-0'); setTimeout(() => t.classList.add('translate-y-32', 'opacity-0'), 3000); } }
+        
         function updateUIHeader() {
             if (!currentUser) return;
-            const nameH = document.getElementById('user-name-header'), roleH = document.getElementById('user-role-label'), initH = document.getElementById('user-initials');
-            if (nameH) nameH.innerText = currentUser.name;
-            if (roleH) roleH.innerText = currentUser.role.toUpperCase();
+            const initH = document.getElementById('user-initials'), footH = document.getElementById('footer-user-id');
             if (initH) initH.innerText = currentUser.name.charAt(0);
-            const footerId = document.getElementById('footer-user-id');
-            if (footerId) footerId.innerText = `SESSION: ${currentUser.id}`;
+            if (footH) footH.innerText = `LINKED: ${currentUser.id}`;
         }
 
         function renderSidebar() {
-            const nav = document.getElementById('nav-menu');
+            const nav = document.getElementById('nav-menu'), sidebar = document.getElementById('sidebar');
             if (!nav || !currentUser) return;
             nav.innerHTML = '';
             const routes = currentUser.role === 'teacher' ? [
-                { id: 'teacher-classes', label: 'My Hub', icon: 'fa-chalkboard-teacher' },
-                { id: 'teacher-timetable', label: 'Schedule', icon: 'fa-calendar-day' },
-                { id: 'teacher-assignments', label: 'Assignments', icon: 'fa-box-archive' },
-                { id: 'teacher-chat', label: 'Messaging', icon: 'fa-comments' }
+                { id: 'teacher-classes', label: getTranslation('nav-hub'), icon: 'fa-shapes' },
+                { id: 'teacher-timetable', label: getTranslation('nav-schedule'), icon: 'fa-calendar-week' },
+                { id: 'teacher-assignments', label: getTranslation('nav-assignments'), icon: 'fa-folder-tree' },
+                { id: 'teacher-chat', label: getTranslation('nav-messages'), icon: 'fa-paper-plane' }
             ] : [
-                { id: 'student-qr', label: 'My ID', icon: 'fa-id-card' },
-                { id: 'student-timetable', label: 'Schedule', icon: 'fa-calendar-day' },
-                { id: 'student-assignments', label: 'Dropbox', icon: 'fa-cloud-arrow-up' },
-                { id: 'student-materials', label: 'Handouts', icon: 'fa-folder-open' },
-                { id: 'teacher-chat', label: 'Teacher', icon: 'fa-comments' }
+                { id: 'student-qr', label: getTranslation('nav-id'), icon: 'fa-user-astronaut' },
+                { id: 'student-timetable', label: getTranslation('nav-schedule'), icon: 'fa-calendar-week' },
+                { id: 'student-assignments', label: getTranslation('nav-work'), icon: 'fa-cloud-arrow-up' },
+                { id: 'student-materials', label: getTranslation('nav-handouts'), icon: 'fa-book-open' },
+                { id: 'teacher-chat', label: getTranslation('nav-teacher'), icon: 'fa-comment-dots' }
             ];
             routes.forEach((rt) => {
                 const b = document.createElement('button');
-                b.className = `sidebar-item w-full flex items-center gap-3 px-5 py-4 text-sm font-bold text-slate-500 transition-all`;
-                b.innerHTML = `<div class="w-8 flex justify-center"><i class="fa-solid ${rt.icon} text-lg"></i></div> ${rt.label}`;
+                b.className = `sidebar-item w-full flex items-center gap-4 text-sm transition-all`;
+                b.innerHTML = `<div class="w-5 flex justify-center"><i class="fa-solid ${rt.icon}"></i></div> ${rt.label}`;
                 b.onclick = () => { document.querySelectorAll('.sidebar-item').forEach(x=>x.classList.remove('active')); b.classList.add('active'); window.renderPage(rt.id); };
                 nav.appendChild(b);
             });
-            document.getElementById('sidebar').classList.replace('hidden', 'flex');
+            sidebar.classList.remove('hidden'); sidebar.classList.add('flex');
         }
 
         async function resetSessionMaterials() {
             if (currentUser.role !== 'teacher') return;
-            for (const cl of staticData.classes) {
-                try { await updateDoc(doc(dbFirestore, dbCollections.classes, cl.id), { currentFile: null, currentFileData: null }); } catch (e) {}
-            }
+            try {
+                const snap = await getDocs(query(collection(dbFirestore, dbCollections.classes)));
+                for (const d of snap.docs) { await updateDoc(doc(dbFirestore, dbCollections.classes, d.id), { currentFile: null, currentFileData: null }); }
+            } catch (e) {}
         }
 
         async function markMessagesRead(senderId) {
@@ -300,131 +434,45 @@
             snap.forEach(d => updateDoc(doc(dbFirestore, dbCollections.messages, d.id), { read: true }));
         }
 
-        // --- 4. REBUILT QR LINKING ---
-        async function handleTeacherScanSuccess(txt) {
-            try {
-                let sData = txt.trim().startsWith('{') ? JSON.parse(txt) : { id: txt, name: "Student #" + txt.substring(0,4) };
-                if (!sData.id) throw new Error("ID_MISSING");
-
-                await addDoc(collection(dbFirestore, dbCollections.attendance), {
-                    studentId: String(sData.id), studentName: sData.name || "Student", classId: activeClassId || "generic", timestamp: Timestamp.now()
-                });
-
-                if (activeSessionFile) {
-                    const clsSnap = await getDoc(doc(dbFirestore, dbCollections.classes, activeClassId));
-                    await addDoc(collection(dbFirestore, dbCollections.materials), {
-                        studentId: String(sData.id), fileName: activeSessionFile, fileData: clsSnap.data()?.currentFileData, 
-                        timestamp: Timestamp.now(), className: staticData.classes.find(c=>c.id===activeClassId)?.name || "Session"
-                    });
-                }
-                showToast(`Verified: ${sData.name}`);
-                document.getElementById('scan-sound').play().catch(()=>{});
-            } catch (e) { showToast("LINK ERROR"); }
-        }
-
-        // --- 5. EXPORTED GLOBALS ---
+        // --- 4. EXPORTED GLOBALS ---
+        window.toggleDarkMode = () => {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark', isDarkMode); document.body.classList.toggle('light', !isDarkMode);
+            document.getElementById('theme-icon').className = isDarkMode ? "fa-solid fa-sun text-yellow-400" : "fa-solid fa-moon text-blue-600";
+        };
 
         window.login = async (roleKey) => {
-            if (!window.isAuthReady) { showToast("Syncing with cloud..."); await new Promise(r => setTimeout(r, 1500)); }
+            if (!window.isAuthReady) { showToast("Establishing link..."); await new Promise(r => setTimeout(r, 1000)); }
             const defUser = staticData.users[roleKey];
             if (!defUser) return;
-            const userRef = doc(dbFirestore, dbCollections.users, defUser.id);
-            try {
-                const snap = await getDoc(userRef);
-                currentUser = snap.exists() ? { ...defUser, ...snap.data() } : { ...defUser };
-                if(!snap.exists()) await setDoc(userRef, { name: defUser.name, role: defUser.role });
-                if (currentUser.role === 'teacher') await resetSessionMaterials();
-                
-                document.getElementById('login-modal').classList.add('hidden');
-                updateUIHeader(); renderSidebar(); setupGlobalNotifications();
-                
-                const startPage = currentUser.role === 'student' ? 'student-qr' : 'teacher-classes';
-                requestAnimationFrame(() => window.renderPage(startPage));
-
-                const footDot = document.getElementById('footer-conn-dot');
-                if(footDot) footDot.className = "w-2 h-2 rounded-full bg-green-500 shadow-lg";
-                if(document.getElementById('footer-conn-text')) document.getElementById('footer-conn-text').innerText = "Encrypted Engine Verified";
-            } catch(e) { showToast("Sync Lost."); }
+            currentUser = { ...defUser };
+            if (currentUser.role === 'teacher') await resetSessionMaterials();
+            document.getElementById('login-modal').classList.add('hidden');
+            updateUIHeader(); renderSidebar(); setupGlobalNotifications();
+            window.renderPage(currentUser.role === 'student' ? 'student-qr' : 'teacher-classes');
+            
+            const footDot = document.getElementById('footer-conn-dot');
+            if(footDot) footDot.className = "w-2 h-2 rounded-full bg-blue-500 shadow-lg";
+            if(document.getElementById('footer-conn-text')) document.getElementById('footer-conn-text').innerText = "Sync Active";
         };
 
         window.logout = () => location.reload();
         window.toggleMobileMenu = () => { 
-            const s = document.getElementById('sidebar'); const o = document.getElementById('mobile-overlay');
+            const s = document.getElementById('sidebar'), o = document.getElementById('mobile-overlay');
             if (s.classList.contains('-translate-x-full')) { s.classList.remove('-translate-x-full'); o.classList.remove('hidden'); setTimeout(() => o.style.opacity = '1', 10); }
             else { s.classList.add('-translate-x-full'); o.style.opacity = '0'; setTimeout(() => o.classList.add('hidden'), 300); }
         };
+        window.closeConfirmModal = () => { document.getElementById('modal-container').classList.add('hidden'); document.getElementById('delete-modal-content').classList.add('hidden'); document.getElementById('submissions-modal-content').classList.add('hidden'); document.getElementById('class-mgmt-modal-content').classList.add('hidden'); document.getElementById('generic-modal-content').classList.add('hidden'); };
+        window.setLanguage = (l) => { currentLang = l; document.getElementById('lang-dropdown').classList.add('hidden'); renderSidebar(); window.renderPage(currentUser.role === 'teacher' ? 'teacher-classes' : 'student-qr'); };
         window.toggleLangMenu = () => document.getElementById('lang-dropdown').classList.toggle('hidden');
-        window.toggleNotifications = () => document.getElementById('notification-dropdown').classList.toggle('hidden');
-        window.clearNotifications = () => { notificationStore = []; updateNotificationBadge(); };
-        window.updateNotificationBadge = () => { const b = document.getElementById('notif-badge'); if(b) { b.innerText = notificationStore.length; notificationStore.length ? b.classList.remove('hidden') : b.classList.add('hidden'); } };
-        window.setLanguage = (l) => { currentLang = l; document.getElementById('lang-dropdown').classList.add('hidden'); renderSidebar(); };
 
-        window.handleTyping = async () => {
-            if(!activeChatPartner) return;
-            const ref = doc(dbFirestore, dbCollections.presence, currentUser.id);
-            await setDoc(ref, { chatId: [String(currentUser.id), String(activeChatPartner.id)].sort().join('_'), isTyping: true, lastUpdate: Timestamp.now() }, { merge: true });
-            if(typingTimeout) clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(async () => { await setDoc(ref, { isTyping: false }, { merge: true }); }, 2500);
-        };
-
-        window.requestDeleteMessage = (msgId) => {
-            const m = document.getElementById('modal-container'), d = document.getElementById('delete-modal-content'), b = document.getElementById('confirm-delete-btn');
-            m.classList.remove('hidden'); d.classList.remove('hidden');
-            b.onclick = async () => { try { await deleteDoc(doc(dbFirestore, dbCollections.messages, msgId)); m.classList.add('hidden'); d.classList.add('hidden'); showToast("Removed."); } catch (e) {} };
-        };
-        window.closeConfirmModal = () => { document.getElementById('modal-container').classList.add('hidden'); document.getElementById('delete-modal-content').classList.add('hidden'); document.getElementById('submissions-modal-content').classList.add('hidden'); };
-
-        // ASSIGNMENTS LOGIC
-        window.handleAsgnHandout = (input) => {
-            const file = input.files[0]; if(!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => { asgnHandoutFile = { name: file.name, data: e.target.result }; showToast("Asset Ready."); };
-            reader.readAsDataURL(file);
-        };
-
-        window.handleCreateAssignment = async (e) => {
+        window.handleClassSave = async (e) => {
             e.preventDefault();
-            const title = document.getElementById('asgn-title').value, dead = document.getElementById('asgn-deadline').value;
-            if(!title || !dead) return;
-            await addDoc(collection(dbFirestore, dbCollections.assignments), { 
-                title, deadline: dead, creatorId: currentUser.id, handoutName: asgnHandoutFile.name, handoutData: asgnHandoutFile.data, timestamp: Timestamp.now() 
-            });
-            asgnHandoutFile = { name: null, data: null };
-            showToast("Published."); window.renderPage('teacher-assignments');
-        };
-
-        window.viewSubmissions = async (asgnId, asgnTitle) => {
-            const m = document.getElementById('modal-container'), sc = document.getElementById('submissions-modal-content'), list = document.getElementById('submissions-list-area'), title = document.getElementById('sub-modal-asgn-title');
-            m.classList.remove('hidden'); sc.classList.remove('hidden');
-            title.innerText = asgnTitle;
-            list.innerHTML = `<div class="p-10 text-center opacity-30">Fetching submissions...</div>`;
-            
-            const q = query(collection(dbFirestore, dbCollections.submissions), where('assignmentId', '==', asgnId));
-            const snap = await getDocs(q);
-            
-            if(snap.empty) { list.innerHTML = `<div class="p-10 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">No work received yet</div>`; return; }
-            
-            list.innerHTML = snap.docs.map(d => {
-                const sub = d.data();
-                const dte = sub.timestamp ? new Date(sub.timestamp.seconds * 1000) : new Date();
-                return `<div class="p-6 bg-slate-50 border border-slate-100 rounded-[1.5rem] flex justify-between items-center hover:bg-white transition-all">
-                    <div>
-                        <p class="font-black text-slate-800">${sub.studentName}</p>
-                        <p class="text-[10px] text-blue-600 font-bold uppercase tracking-widest mt-0.5">Received: ${dte.toLocaleString()}</p>
-                    </div>
-                    <button onclick="window.downloadFile('${sub.fileName}', '${sub.fileData}')" class="w-12 h-12 bg-white text-blue-600 rounded-xl shadow-sm border border-slate-100"><i class="fa-solid fa-download"></i></button>
-                </div>`;
-            }).join('');
-        };
-
-        window.uploadSubmission = async (asgnId, input) => {
-            const file = input.files[0]; if(!file) return;
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const subRef = doc(dbFirestore, dbCollections.submissions, `${asgnId}_${currentUser.id}`);
-                await setDoc(subRef, { assignmentId: asgnId, studentId: currentUser.id, studentName: currentUser.name, fileName: file.name, fileData: e.target.result, timestamp: Timestamp.now() });
-                showToast("Work Submitted Successfully.");
-            }; reader.readAsDataURL(file);
+            const id = document.getElementById('edit-class-id').value, name = document.getElementById('class-name-input').value, time = document.getElementById('class-time-input').value, type = document.getElementById('class-type-input').value;
+            const data = { name, time, type, timestamp: Timestamp.now(), icon: type === 'TD' ? 'fa-vial' : 'fa-chalkboard-user' };
+            if(id) await updateDoc(doc(dbFirestore, dbCollections.classes, id), data);
+            else await addDoc(collection(dbFirestore, dbCollections.classes), data);
+            window.closeConfirmModal(); showToast("Cloud Hub Synced.");
         };
 
         window.renderPage = async (pageId) => {
@@ -436,69 +484,66 @@
             document.getElementById('page-title').innerText = pageId.toUpperCase().replace('-',' ');
             if(window.innerWidth < 1024) { const sidebar = document.getElementById('sidebar'); if(sidebar && !sidebar.classList.contains('-translate-x-full')) window.toggleMobileMenu(); }
 
-            if(pageId === 'teacher-classes') {
-                container.innerHTML = `<div class="mb-10"><h2 class="text-3xl font-extrabold text-slate-800 tracking-tight leading-none">Class Hub</h2></div><div id="cls-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>`;
-                onSnapshot(collection(dbFirestore, dbCollections.classes), (snap) => {
-                    const liveData = {}; snap.forEach(d => liveData[d.id] = d.data());
-                    const list = document.getElementById('cls-list');
-                    if(list) list.innerHTML = staticData.classes.map(cl => `
-                        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 card-premium flex flex-col justify-between h-full group overflow-hidden">
-                            <div class="flex items-center gap-5 mb-10"><div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-[1.4rem] flex items-center justify-center text-2xl group-hover:scale-110 transition-transform"><i class="fa-solid ${cl.icon}"></i></div><div><h3 class="font-extrabold text-slate-800 text-lg">${cl.name}</h3><p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">${cl.time}</p></div></div>
-                            <div class="flex gap-3"><label class="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center cursor-pointer hover:bg-blue-50 relative transition-all"><i class="fa-solid fa-paperclip text-slate-400"></i><input type="file" class="hidden" onchange="window.uploadFile('${cl.id}', this)">${liveData[cl.id]?.currentFile ? '<div class="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>' : ''}</label><button onclick="window.startScanning('${cl.id}')" class="flex-1 bg-blue-600 text-white p-4 rounded-2xl text-xs font-black shadow-xl hover:bg-blue-700 transition-all uppercase tracking-widest leading-none">START LINKING</button></div>
-                        </div>`).join('');
-                });
-            } 
-            else if(pageId === 'teacher-assignments') {
-                container.innerHTML = `<div class="mb-10"><h2 class="text-3xl font-extrabold text-slate-800 tracking-tight leading-none">Assignments</h2></div>
-                    <form onsubmit="window.handleCreateAssignment(event)" class="bg-white p-8 rounded-[2.5rem] border mb-10 grid grid-cols-1 md:grid-cols-2 gap-4 items-end shadow-sm">
-                        <input id="asgn-title" class="bg-slate-50 p-4 rounded-2xl outline-none font-bold" placeholder="Task Title">
-                        <input id="asgn-deadline" type="datetime-local" class="bg-slate-50 p-4 rounded-2xl outline-none font-bold">
-                        <div class="md:col-span-2"><label class="w-full bg-slate-50 p-4 rounded-2xl flex items-center gap-3 border-2 border-dashed border-slate-200 cursor-pointer hover:border-blue-300 transition-all"><i class="fa-solid fa-paperclip text-blue-600"></i><span class="text-sm font-bold text-slate-400">Add Task Handout</span><input type="file" class="hidden" onchange="window.handleAsgnHandout(this)"></label></div>
-                        <button type="submit" class="md:col-span-2 bg-blue-600 text-white p-4 rounded-2xl font-black shadow-xl">PUBLISH TASK</button>
-                    </form><div id="asgn-list" class="space-y-4"></div>`;
-                onSnapshot(query(collection(dbFirestore, dbCollections.assignments), orderBy('timestamp', 'desc')), (snap) => {
-                    const list = document.getElementById('asgn-list');
-                    if(list) list.innerHTML = snap.docs.map(d => `<div class="p-8 bg-white border border-slate-100 rounded-[2.5rem] card-premium flex justify-between items-center"><div class="flex items-center gap-6"><div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-[1.2rem] flex items-center justify-center text-2xl"><i class="fa-solid fa-box-archive"></i></div><div><p class="font-black text-slate-800 text-lg uppercase">${d.data().title}</p><p class="text-[10px] text-red-500 font-bold uppercase tracking-widest mt-1">Lock: ${new Date(d.data().deadline).toLocaleString()}</p></div></div><div class="flex gap-2"><button onclick="window.viewSubmissions('${d.id}', '${d.data().title}')" class="bg-slate-900 text-white px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">View Submissions</button></div></div>`).join('');
-                });
-            }
-            else if(pageId === 'student-assignments') {
-                container.innerHTML = `<div class="mb-10"><h2 class="text-3xl font-extrabold text-slate-800 tracking-tight leading-none">My Work</h2></div><div id="student-asgn-list" class="space-y-4"></div>`;
-                onSnapshot(query(collection(dbFirestore, dbCollections.assignments), orderBy('timestamp', 'desc')), (snap) => {
-                    const list = document.getElementById('student-asgn-list');
-                    if(list) list.innerHTML = snap.docs.map(d => {
-                        const now = new Date(), dl = new Date(d.data().deadline), isLocked = now > dl;
-                        return `<div class="p-8 bg-white border border-slate-100 rounded-[2.5rem] card-premium flex flex-col md:flex-row justify-between items-center gap-6">
-                            <div class="flex items-center gap-6"><div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-[1.2rem] flex items-center justify-center text-2xl"><i class="fa-solid fa-cloud-upload"></i></div><div><p class="font-black text-slate-800 text-lg uppercase leading-tight">${d.data().title}</p><div class="flex gap-3 mt-2"><p class="text-[10px] text-red-500 font-bold uppercase tracking-widest">Lock: ${dl.toLocaleString()}</p>${d.data().handoutData ? `<button onclick="window.downloadFile('${d.data().handoutName}', '${d.data().handoutData}')" class="text-[10px] text-blue-600 font-bold underline uppercase tracking-widest">Get Handout</button>` : ''}</div></div></div>
-                            ${isLocked ? `<div class="bg-red-50 text-red-500 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest"><i class="fa-solid fa-lock"></i> Locked</div>` : `<label class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black shadow-xl cursor-pointer hover:bg-blue-700 transition-all uppercase text-xs">Submit Work<input type="file" class="hidden" onchange="window.uploadSubmission('${d.id}', this)"></label>`}
-                        </div>`;
-                    }).join('');
-                });
-            }
-            else if(pageId.includes('timetable')) {
-                const r = currentUser.role;
-                container.innerHTML = `<div class="mb-10"><h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">Smart Timetable</h2></div>
+            if(pageId.includes('timetable')) {
+                const role = currentUser.role;
+                container.innerHTML = `<div class="mb-10"><h2 class="text-3xl font-extrabold tracking-tight">${getTranslation('nav-schedule')}</h2><p class="text-slate-500 font-medium mt-1">Weekly session grid and linked handouts.</p></div>
                     <div class="timetable-grid">
                         <div class="timetable-header">Time</div>
                         ${staticData.timetable.days.map(d => `<div class="timetable-header">${d}</div>`).join('')}
                         ${staticData.timetable.hours.map(h => `
-                            <div class="timetable-slot timetable-time">${h}</div>
+                            <div class="timetable-slot flex items-center justify-center text-[10px] font-black text-slate-400 border-r border-slate-100">${h}</div>
                             ${staticData.timetable.days.map(d => {
                                 const slot = staticData.timetable.slots.find(s => s.day === d && s.time === h);
-                                return `<div class="timetable-slot">${slot ? `<div class="timetable-card" onclick="window.renderPage('${r === 'teacher' ? 'teacher-classes' : 'student-materials'}')"><p class="font-black text-blue-800">${slot.className}</p><p class="opacity-60 text-[8px] mt-1 font-bold">Cloud Sync</p></div>` : ''}</div>`;
+                                return `<div class="timetable-slot">${slot ? `<div class="timetable-card" onclick="window.renderPage('${role === 'teacher' ? 'teacher-classes' : 'student-materials'}')"><p class="font-black text-blue-800">${slot.className}</p><p class="opacity-60 text-[8px] mt-1 font-bold">RESOURCES</p></div>` : ''}</div>`;
                             }).join('')}
                         `).join('')}
                     </div>`;
+                return;
             }
-            else if(pageId === 'teacher-scan') {
-                container.innerHTML = `<div class="max-w-md mx-auto fade-in"><div class="bg-white p-8 rounded-[3rem] shadow-2xl border border-slate-100 relative overflow-hidden"><button onclick="window.renderPage('teacher-classes')" class="mb-6 text-slate-400 hover:text-blue-600 transition flex items-center gap-2 font-bold text-xs uppercase tracking-widest p-2"><i class="fa-solid fa-arrow-left"></i> BACK</button><div id="scanner-sync-status" class="text-[10px] text-center p-2.5 bg-slate-50 rounded-2xl mb-6 text-slate-400 font-bold uppercase tracking-widest">CLOUD ENGINE READY</div><div id="reader" class="rounded-[2.5rem] overflow-hidden bg-slate-900 aspect-square relative border-8 border-slate-50 shadow-inner"></div><div id="scan-feedback" class="absolute inset-x-8 top-[135px] bottom-32 rounded-[2.5rem] z-10 pointer-events-none transition-all duration-300"></div><div class="mt-8"><input id="manual-id" placeholder="ID MANUALLY" class="w-full bg-slate-50 p-4 rounded-2xl outline-none font-bold border-2 border-transparent focus:border-blue-400 uppercase tracking-tighter"></div></div></div>`;
-                onSnapshot(doc(dbFirestore, dbCollections.classes, activeClassId), (d) => { activeSessionFile = d.data()?.currentFile || null; const el = document.getElementById('scanner-sync-status'); if(el) el.innerHTML = activeSessionFile ? `<span class="text-green-500 font-extrabold">📂 SYNCING: ${activeSessionFile}</span>` : `READY`; });
-                setTimeout(() => { activeScanner = new Html5Qrcode("reader"); activeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => { if (isProcessingScan) return; isProcessingScan = true; const f = document.getElementById('scan-feedback'); if(f) f.classList.add('scan-flash'); handleTeacherScanSuccess(txt); setTimeout(() => { if(f) f.classList.remove('scan-flash'); isProcessingScan = false; }, 2000); }).catch(() => { document.getElementById('reader').innerHTML = `<div class="p-12 text-center text-red-400 font-bold text-sm">HARDWARE ERROR</div>`; }); }, 600);
+
+            if(pageId === 'teacher-classes') {
+                container.innerHTML = `<div class="mb-10 flex justify-between items-center"><h2 class="text-3xl font-extrabold tracking-tight">${getTranslation('nav-hub')}</h2><button onclick="window.requestAddClass()" class="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black text-xs shadow-xl"><i class="fa-solid fa-plus mr-2"></i> Add Class</button></div><div id="cls-list" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>`;
+                onSnapshot(query(collection(dbFirestore, dbCollections.classes), orderBy('timestamp', 'asc')), (snap) => {
+                    const list = document.getElementById('cls-list');
+                    if(list) list.innerHTML = snap.docs.map(d => `<div class="bg-[var(--card-light)] p-8 rounded-[2.5rem] border border-[var(--border-light)] card-premium flex flex-col justify-between h-full group relative">
+                        <div class="absolute top-6 right-6 flex gap-2"><button onclick="window.requestEditClass('${d.id}')" class="w-10 h-10 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-xl"><i class="fa-solid fa-pen"></i></button><button onclick="window.requestDeleteClass('${d.id}')" class="w-10 h-10 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-xl"><i class="fa-solid fa-trash"></i></button></div>
+                        <div class="flex items-center gap-5 mb-10"><div class="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-2xl flex items-center justify-center text-2xl"><i class="fa-solid ${d.data().icon || 'fa-chalkboard'}"></i></div><div><h3 class="font-extrabold text-lg">${d.data().name}</h3><span class="text-[9px] bg-blue-600 text-white px-2 py-0.5 rounded-full font-black uppercase">${d.data().type || 'Cours'}</span></div></div>
+                        <button onclick="window.startScanning('${d.id}')" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-black text-xs uppercase shadow-xl">Mark Identity</button></div>`).join('');
+                });
+            }
+            else if(pageId.includes('assignments')) {
+                if (currentUser.role === 'teacher') {
+                    container.innerHTML = `<div class="mb-10"><h2 class="text-3xl font-extrabold tracking-tight">${getTranslation('nav-assignments')}</h2></div>
+                        <form onsubmit="window.handleCreateAssignment(event)" class="bg-[var(--card-light)] p-8 rounded-[2.5rem] border border-[var(--border-light)] mb-10 grid grid-cols-1 md:grid-cols-2 gap-4 shadow-sm">
+                            <div class="col-span-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">New Submission Task</div>
+                            <input id="asgn-title" class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl outline-none font-bold" placeholder="Assignment Title">
+                            <input id="asgn-deadline" type="datetime-local" class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl outline-none font-bold">
+                            <div class="md:col-span-2"><label class="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl flex items-center gap-3 border-2 border-dashed border-[var(--border-light)] cursor-pointer transition-all font-bold text-slate-400 text-sm"><i class="fa-solid fa-paperclip text-blue-600"></i> Attach PDF Handout<input type="file" class="hidden" onchange="window.handleAsgnHandout(this)"></label></div>
+                            <button type="submit" class="md:col-span-2 bg-blue-600 text-white p-4 rounded-2xl font-black shadow-xl">PUBLISH</button>
+                        </form><div id="asgn-list" class="space-y-4"></div>`;
+                    onSnapshot(query(collection(dbFirestore, dbCollections.assignments), orderBy('timestamp', 'desc')), (snap) => {
+                        const list = document.getElementById('asgn-list');
+                        if(list) list.innerHTML = snap.docs.map(d => `<div class="p-8 bg-[var(--card-light)] border border-[var(--border-light)] rounded-[2.5rem] card-premium flex justify-between items-center"><div class="flex items-center gap-6"><div class="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-2xl flex items-center justify-center text-2xl"><i class="fa-solid fa-box-archive"></i></div><div><p class="font-black text-lg uppercase">${d.data().title}</p><p class="text-[10px] text-red-500 font-bold uppercase mt-1">Locks: ${new Date(d.data().deadline).toLocaleString()}</p></div></div><button onclick="window.viewSubmissions('${d.id}', '${d.data().title}')" class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase shadow-xl">View Submissions</button></div>`).join('');
+                    });
+                } else {
+                    container.innerHTML = `<div class="mb-10"><h2 class="text-3xl font-extrabold leading-none">${getTranslation('nav-work')}</h2></div><div id="student-asgn-list" class="space-y-4"></div>`;
+                    onSnapshot(query(collection(dbFirestore, dbCollections.assignments), orderBy('timestamp', 'desc')), (snap) => {
+                        const list = document.getElementById('student-asgn-list');
+                        if(list) list.innerHTML = snap.docs.map(d => {
+                            const now = new Date(), dl = new Date(d.data().deadline), isLocked = now > dl;
+                            return `<div class="p-8 bg-[var(--card-light)] border border-[var(--border-light)] rounded-[2.5rem] card-premium flex flex-col md:flex-row justify-between items-center gap-6">
+                                <div class="flex items-center gap-6"><div class="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-2xl flex items-center justify-center text-2xl"><i class="fa-solid fa-cloud-upload"></i></div><div><p class="font-black text-lg uppercase leading-tight">${d.data().title}</p><div class="flex gap-3 mt-2"><p class="text-[10px] text-red-500 font-bold uppercase tracking-widest">Until: ${dl.toLocaleString()}</p>${d.data().handoutData ? `<button onclick="window.requestPreview('${d.data().handoutName}', '${d.data().handoutData}')" class="text-[10px] text-blue-600 font-bold underline uppercase">Preview Handout</button>` : ''}</div></div></div>
+                                ${isLocked ? `<div class="bg-red-50 text-red-500 px-8 py-4 rounded-2xl font-black text-xs uppercase"><i class="fa-solid fa-lock"></i> Closed</div>` : `<label class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black shadow-xl cursor-pointer uppercase text-xs">Submit<input type="file" class="hidden" onchange="window.uploadSubmission('${d.id}', this)"></label>`}
+                            </div>`;
+                        }).join('');
+                    });
+                }
             }
             else if(pageId.includes('chat')) {
-                let contacts = currentUser.role === 'teacher' ? staticData.students : [{id:staticData.users.teacher.id, name:staticData.users.teacher.name}];
-                if (!activeChatPartner && contacts.length) activeChatPartner = contacts[0];
+                const students = Object.values(staticData.users).filter(u => u.role === 'student');
+                if (!activeChatPartner && students.length) activeChatPartner = students[0];
                 const isMobile = window.innerWidth < 1024;
-                container.innerHTML = `<div class="flex h-full bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden fade-in relative"><div id="chat-list" class="${(isMobile && activeChatPartner) ? 'hidden' : 'flex'} w-full lg:w-80 border-r border-slate-100 flex-col bg-slate-50/30"><div class="p-6 border-b border-slate-100 bg-white"><h3 class="font-black text-slate-800 text-lg uppercase tracking-tighter">Messages</h3></div><div class="overflow-y-auto flex-1 p-4 space-y-2">${contacts.map(c => `<div onclick="window.switchChat('${c.id}', '${c.name}')" class="p-4 rounded-2xl cursor-pointer transition-all flex items-center gap-4 ${activeChatPartner?.id === c.id ? 'bg-white shadow-lg border border-slate-100' : 'hover:bg-white border border-transparent'}"><div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-black text-lg">${c.name.charAt(0)}</div><div class="flex-1 text-sm font-bold text-slate-700">${c.name}</div></div>`).join('')}</div></div><div id="chat-area" class="${(isMobile && !activeChatPartner) ? 'hidden' : 'flex'} flex-1 flex-col bg-white"><div class="p-4 md:p-6 border-b border-slate-100 flex items-center gap-4 glass sticky top-0">${isMobile ? `<button onclick="window.switchChat(null)" class="text-slate-400 p-2 hover:bg-slate-50 rounded-xl transition-all"><i class="fa-solid fa-chevron-left"></i></button>` : ''}<div class="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold shadow-lg">${activeChatPartner?.name.charAt(0) || '?'}</div><div class="flex-1 overflow-hidden"><h4 class="font-black text-slate-800 truncate leading-tight">${activeChatPartner?.name || 'Secure Channel'}</h4><p id="chat-typing" class="text-[9px] font-bold text-blue-500 uppercase tracking-widest typing-status hidden">Typing...</p></div></div><div id="msg-stream" class="flex-1 p-4 md:p-8 overflow-y-auto space-y-4 bg-slate-50/10 min-h-[300px]"></div><div class="p-4 md:p-6 border-t border-slate-50"><form onsubmit="window.handleSendMessage(event)" class="flex gap-3"><input type="text" id="chat-input" placeholder="Message..." class="flex-1 bg-slate-50 border-2 border-transparent focus:border-blue-400 rounded-2xl px-6 py-4 text-sm font-bold transition-all outline-none shadow-inner" oninput="window.handleTyping()"><button type="submit" class="w-14 h-14 bg-blue-600 text-white rounded-2xl shadow-xl active:scale-90 transition-all flex items-center justify-center"><i class="fa-solid fa-paper-plane text-xl"></i></button></form></div></div></div>`;
+                container.innerHTML = `<div class="flex h-full bg-[var(--card-light)] rounded-[2.5rem] shadow-sm border border-[var(--border-light)] overflow-hidden fade-in relative"><div id="chat-list" class="${(isMobile && activeChatPartner) ? 'hidden' : 'flex'} w-full lg:w-80 border-r border-[var(--border-light)] flex-col"><div class="p-6 border-b border-[var(--border-light)]"><h3 class="font-black text-lg uppercase tracking-tighter">Students</h3></div><div class="overflow-y-auto flex-1 p-4 space-y-2">${students.map(c => `<div onclick="window.switchChat('${c.id}', '${c.name}')" class="p-4 rounded-2xl cursor-pointer transition-all flex items-center gap-4 ${activeChatPartner?.id === c.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}"><div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center font-black text-lg">${c.name.charAt(0)}</div><div class="flex-1 text-sm font-bold">${c.name}</div></div>`).join('')}</div></div><div id="chat-area" class="${(isMobile && !activeChatPartner) ? 'hidden' : 'flex'} flex-1 flex-col bg-[var(--card-light)]"><div class="p-4 md:p-6 border-b border-[var(--border-light)] flex items-center gap-4 sticky top-0"><div class="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold shadow-lg">${activeChatPartner?.name.charAt(0) || '?'}</div><div class="flex-1 overflow-hidden"><h4 class="font-black truncate leading-tight">${activeChatPartner?.name || 'Secure Hub'}</h4><p id="chat-typing" class="text-[9px] font-bold text-blue-500 uppercase typing-status hidden">Typing...</p></div></div><div id="msg-stream" class="flex-1 p-4 md:p-8 overflow-y-auto space-y-4 bg-slate-500/5 min-h-[300px]"></div><div class="p-4 md:p-6 border-t border-[var(--border-light)]"><form onsubmit="window.handleSendMessage(event)" class="flex gap-3"><input type="text" id="chat-input" placeholder="Message..." class="flex-1 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-blue-400 rounded-2xl px-6 py-4 text-sm font-bold outline-none transition-all" oninput="window.handleTyping()"><button type="submit" class="w-14 h-14 bg-blue-600 text-white rounded-2xl shadow-xl"><i class="fa-solid fa-paper-plane"></i></button></form></div></div></div>`;
                 if(activeChatPartner) {
                     const cid = [String(currentUser.id), String(activeChatPartner.id)].sort().join('_');
                     onSnapshot(query(collection(dbFirestore, dbCollections.messages), where('chatId', '==', cid)), (snap) => {
@@ -509,55 +554,38 @@
                             let prevDate = null;
                             div.innerHTML = msgs.map(m => {
                                 const d = new Date(m.timestamp?.seconds * 1000), dKey = d.toDateString();
-                                const isMe = String(m.senderId) === String(currentUser.id);
                                 let divider = dKey !== prevDate ? `<div class="date-divider"><span>${dKey === new Date().toDateString()?'Today':dKey}</span></div>` : '';
                                 prevDate = dKey;
-                                const statusHtml = isMe ? `<span class="ml-1 opacity-60">${m.read ? '<i class="fa-solid fa-check-double text-blue-400"></i>' : '<i class="fa-solid fa-check"></i>'}</span>` : '';
-                                const delHtml = isMe ? `<button onclick="window.requestDeleteMessage('${m.id}')" class="delete-btn ml-3 text-red-400 hover:text-red-600"><i class="fa-solid fa-trash-can text-[10px]"></i></button>` : '';
-                                return `${divider}<div class="flex w-full ${isMe?'justify-end':'justify-start'} mb-2"><div class="msg-bubble ${isMe?'msg-sent shadow-blue-500/10':'msg-received border border-slate-100'}">${m.text}<div class="text-[8px] opacity-60 text-right mt-1 flex items-center justify-end">${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ${statusHtml} ${delHtml}</div></div></div>`;
-                            }).join('');
-                            div.scrollTop = div.scrollHeight;
+                                return `${divider}<div class="flex w-full ${String(m.senderId) === String(currentUser.id)?'justify-end':'justify-start'} mb-2 group"><div class="msg-bubble ${String(m.senderId) === String(currentUser.id)?'msg-sent':'msg-received'}">${m.text}<div class="text-[8px] opacity-60 text-right mt-1">${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ${String(m.senderId) === String(currentUser.id)?`<button onclick="window.requestDeleteMessage('${m.id}')" class="delete-btn ml-2"><i class="fa-solid fa-trash text-red-300"></i></button>`:''}</div></div></div>`;
+                            }).join(''); div.scrollTop = div.scrollHeight;
                         }
-                    });
-                    onSnapshot(doc(dbFirestore, dbCollections.presence, activeChatPartner.id), (doc) => {
-                        const data = doc.data(); const label = document.getElementById('chat-typing');
-                        if(label) (data?.isTyping && data?.chatId === cid) ? label.classList.remove('hidden') : label.classList.add('hidden');
                     });
                 }
             }
-            else if(pageId === 'student-materials') {
-                container.innerHTML = `<div class="mb-10"><h2 class="text-3xl font-extrabold text-slate-800 tracking-tight leading-none">Resources</h2></div><div id="mat-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>`;
-                onSnapshot(query(collection(dbFirestore, dbCollections.materials), where('studentId', '==', String(currentUser.id))), (snap) => {
-                    const items = []; snap.forEach(d=>items.push(d.data()));
-                    const list = document.getElementById('mat-list');
-                    if(list) list.innerHTML = items.length ? items.map(m => {
-                        const syncDate = m.timestamp ? new Date(m.timestamp.seconds * 1000) : new Date();
-                        return `<div class="p-6 bg-white border border-slate-200 rounded-[2.2rem] flex items-center justify-between shadow-sm hover:shadow-md transition-all"><div class="flex items-center gap-5"><div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-[1.2rem] flex items-center justify-center text-2xl"><i class="fa-solid fa-file-pdf"></i></div><div><p class="font-extrabold text-slate-800 text-sm uppercase leading-tight">${m.fileName}</p><p class="text-[9px] text-green-600 font-bold uppercase tracking-widest mt-1">Synced at ${syncDate.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p></div></div><button onclick="window.downloadFile('${m.fileName}','${m.fileData}')" class="p-4 text-slate-400 hover:text-blue-600 transition-all"><i class="fa-solid fa-download text-lg"></i></button></div>`;
-                    }).join('') : `<div class="col-span-2 text-center py-20 opacity-40 uppercase font-black tracking-widest">Library Empty</div>`;
-                });
+            else if(pageId === 'teacher-scan') {
+                container.innerHTML = `<div class="max-w-md mx-auto fade-in"><div class="bg-[var(--card-light)] p-8 rounded-[3rem] shadow-2xl border border-[var(--border-light)] relative overflow-hidden"><button onclick="window.renderPage('teacher-classes')" class="mb-6 text-slate-400 hover:text-blue-600 transition flex items-center gap-2 font-bold text-xs uppercase tracking-widest p-2"><i class="fa-solid fa-arrow-left"></i> BACK</button><div id="scanner-sync-status" class="text-[10px] text-center p-2.5 bg-slate-50 dark:bg-slate-800 rounded-2xl mb-6 text-slate-400 font-bold uppercase tracking-widest">SCANNER ACTIVE</div><div id="reader" class="rounded-[2.5rem] overflow-hidden bg-slate-900 aspect-square border-8 border-[var(--border-light)]"></div><div id="scan-feedback" class="absolute inset-x-8 top-[135px] bottom-32 rounded-[2.5rem] z-10 pointer-events-none transition-all"></div><div class="mt-8"><input id="manual-id" placeholder="ID MANUALLY" class="w-full bg-slate-50 p-4 rounded-2xl outline-none font-bold border-2 border-transparent focus:border-blue-400 uppercase tracking-tighter"></div></div></div>`;
+                setTimeout(() => { activeScanner = new Html5Qrcode("reader"); activeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => { handleTeacherScanSuccess(txt); }); }, 500);
             }
             else if(pageId === 'student-qr') {
-                container.innerHTML = `<div class="h-full flex items-center justify-center p-4"><div class="bg-white p-12 md:p-16 rounded-[4rem] shadow-2xl text-center border border-slate-50 max-w-sm w-full"><div class="w-16 h-16 bg-blue-600 rounded-[1.2rem] flex items-center justify-center text-2xl font-bold text-white mx-auto mb-8 shadow-2xl shadow-blue-200">${currentUser.name.charAt(0)}</div><h2 class="font-black text-2xl text-slate-800 mb-2">${currentUser.name}</h2><p class="text-[10px] text-blue-600 font-bold uppercase tracking-[0.35em] mb-10">Verification ID</p><div id="sqr" class="mb-10 flex justify-center bg-white p-4 border-2 border-slate-100 rounded-[2.5rem] shadow-inner"></div></div></div>`;
-                setTimeout(() => { new QRCode(document.getElementById("sqr"), { text: JSON.stringify({ id: currentUser.id, name: currentUser.name }), width: 220, height: 220, colorDark: "#1e293b" }); }, 200);
+                container.innerHTML = `<div class="h-full flex items-center justify-center p-4"><div class="bg-[var(--card-light)] p-16 rounded-[4rem] shadow-2xl text-center border border-[var(--border-light)] max-w-sm w-full"><div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-2xl font-bold text-white mx-auto mb-8 shadow-2xl shadow-blue-200">${currentUser.name.charAt(0)}</div><h2 class="font-black text-2xl mb-2">${currentUser.name}</h2><p class="text-[10px] text-blue-600 font-bold uppercase tracking-[0.3em] mb-10">Verification ID</p><div id="sqr" class="mb-10 flex justify-center bg-white p-4 border rounded-[2rem] shadow-inner"></div></div></div>`;
+                setTimeout(() => { new QRCode(document.getElementById("sqr"), { text: JSON.stringify({ id: currentUser.id, name: currentUser.name }), width: 220, height: 220, colorDark: "#0f172a" }); }, 200);
+            }
+            else if(pageId === 'student-materials') {
+                container.innerHTML = `<div class="mb-10"><h2 class="text-3xl font-extrabold leading-none">${getTranslation('nav-handouts')}</h2></div><div id="mat-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>`;
+                onSnapshot(query(collection(dbFirestore, dbCollections.materials), where('studentId', '==', String(currentUser.id))), (snap) => {
+                    const list = document.getElementById('mat-list');
+                    if(list) list.innerHTML = snap.docs.map(d => {
+                        const m = d.data(); const syncDate = m.timestamp ? new Date(m.timestamp.seconds * 1000) : new Date();
+                        return `<div class="p-6 bg-[var(--card-light)] border border-[var(--border-light)] rounded-[2rem] flex items-center justify-between shadow-sm"><div class="flex items-center gap-5"><div class="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-2xl flex items-center justify-center text-2xl"><i class="fa-solid fa-file-pdf"></i></div><div><p class="font-black text-sm uppercase">${m.fileName}</p><p class="text-[9px] text-emerald-600 font-bold uppercase mt-1">Linked: ${syncDate.toLocaleTimeString()}</p></div></div><div class="flex gap-2"><button onclick="window.requestPreview('${m.fileName}','${m.fileData}')" class="w-10 h-10 bg-slate-50 dark:bg-slate-800 rounded-xl"><i class="fa-solid fa-eye"></i></button><button onclick="window.downloadFile('${m.fileName}','${m.fileData}')" class="w-10 h-10 bg-slate-50 dark:bg-slate-800 text-blue-600 rounded-xl"><i class="fa-solid fa-download"></i></button></div></div>`;
+                    }).join('');
+                });
             }
         };
 
         window.startScanning = (cid) => { activeClassId = cid; window.renderPage('teacher-scan'); };
-        window.handleManualScan = () => { const v = document.getElementById('manual-id').value; if(v) handleTeacherScanSuccess(v); };
-        window.changeMonth = (o, r) => { currentCalendarDate.setMonth(currentCalendarDate.getMonth() + o); window.renderPage(r === 'teacher' ? 'teacher-calendar' : 'student-calendar'); };
-        window.uploadFile = async (cid, input) => {
-            if(!input.files[0]) return;
-            const file = input.files[0]; if(file.size > 800000) return showToast("File too large");
-            const reader = new FileReader(); reader.onload = async (e) => { await setDoc(doc(dbFirestore, dbCollections.classes, cid), { currentFile: file.name, currentFileData: e.target.result }, { merge: true }); showToast("Ready for sync"); }; reader.readAsDataURL(file);
-        };
-        window.switchChat = (id, name) => { activeChatPartner = id ? { id, name } : null; window.renderPage('teacher-chat'); };
-        window.openChatFromNotif = (pid, pname) => { activeChatPartner = { id: pid, name: pname }; notificationStore = notificationStore.filter(n => n.senderId !== pid); window.renderPage('teacher-chat'); markMessagesRead(pid); };
-        window.handleSendMessage = async (e) => {
-            e.preventDefault(); const inp = document.getElementById('chat-input'), txt = inp.value.trim(); if(!txt || !activeChatPartner) return;
-            const cid = [String(currentUser.id), String(activeChatPartner.id)].sort().join('_');
-            await addDoc(collection(dbFirestore, dbCollections.messages), { chatId: cid, senderId: String(currentUser.id), senderName: currentUser.name, receiverId: String(activeChatPartner.id), text: txt, timestamp: Timestamp.now(), read: false });
-            inp.value = '';
-        };
+        window.requestPreview = (title, data) => { const m = document.getElementById('modal-container'), g = document.getElementById('generic-modal-content'), b = document.getElementById('modal-body-content'); m.classList.remove('hidden'); g.classList.remove('hidden'); b.innerHTML = `<h4 class="font-black text-lg mb-4 uppercase text-center">${title}</h4>${data.startsWith('data:image')?`<img src="${data}" class="w-full rounded-2xl">`:`<div class="p-20 text-center bg-slate-50 dark:bg-slate-800 rounded-2xl font-bold text-slate-400">Preview not available for documents.</div>`}`; };
+        window.saveGrade = async (subId, grade) => { await updateDoc(doc(dbFirestore, dbCollections.submissions, subId), { grade }); showToast("Grade Published."); };
+        window.downloadFile = (name, data) => { const a = document.createElement('a'); a.href = data; a.download = name; a.click(); };
         window.handleTyping = async () => {
             if(!activeChatPartner) return;
             const ref = doc(dbFirestore, dbCollections.presence, currentUser.id);
@@ -565,35 +593,73 @@
             if(typingTimeout) clearTimeout(typingTimeout);
             typingTimeout = setTimeout(async () => { await setDoc(ref, { isTyping: false }, { merge: true }); }, 2500);
         };
-        window.downloadFile = (name, data) => { const a = document.createElement('a'); a.href = data; a.download = name; a.click(); };
-        window.markMessagesRead = markMessagesRead;
-        window.handleTeacherScanSuccess = handleTeacherScanSuccess;
+        window.requestDeleteMessage = (msgId) => { const m = document.getElementById('modal-container'), d = document.getElementById('delete-modal-content'), b = document.getElementById('confirm-delete-btn'); m.classList.remove('hidden'); d.classList.remove('hidden'); b.onclick = async () => { try { await deleteDoc(doc(dbFirestore, dbCollections.messages, msgId)); window.closeConfirmModal(); } catch (e) {} }; };
+        window.handleTeacherScanSuccess = async (txt) => {
+            try {
+                let sData = txt.trim().startsWith('{') ? JSON.parse(txt) : { id: txt, name: "Student #" + txt.substring(0,4) };
+                await addDoc(collection(dbFirestore, dbCollections.attendance), { studentId: String(sData.id), studentName: sData.name || "Student", classId: activeClassId || "generic", timestamp: Timestamp.now() });
+                showToast(`Verified: ${sData.name}`); document.getElementById('scan-sound').play().catch(()=>{});
+            } catch (e) { showToast("LINK ERROR"); }
+        };
+        window.viewSubmissions = async (asgnId, title) => {
+            const m = document.getElementById('modal-container'), sc = document.getElementById('submissions-modal-content'), list = document.getElementById('submissions-list-area'), t = document.getElementById('sub-modal-asgn-title');
+            m.classList.remove('hidden'); sc.classList.remove('hidden'); t.innerText = title;
+            onSnapshot(query(collection(dbFirestore, dbCollections.submissions), where('assignmentId', '==', asgnId)), (snap) => {
+                if(snap.empty) { list.innerHTML = `<div class="p-20 text-center text-slate-400 font-bold uppercase text-xs">Waiting for work...</div>`; return; }
+                list.innerHTML = snap.docs.map(d => {
+                    const sub = d.data(); const dte = sub.timestamp ? new Date(sub.timestamp.seconds * 1000) : new Date();
+                    return `<div class="p-6 bg-slate-50 dark:bg-slate-800/50 border border-[var(--border-light)] rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div class="flex-1"><p class="font-black uppercase text-sm">${sub.studentName}</p><p class="text-[9px] text-blue-600 font-bold uppercase mt-1">RECEIVED: ${dte.toLocaleString()}</p></div>
+                        <div class="flex items-center gap-3"><input type="text" placeholder="Mark" value="${sub.grade || ''}" class="w-20 bg-white dark:bg-slate-800 p-2.5 rounded-xl border text-center font-bold" onblur="window.saveGrade('${d.id}', this.value)"><button onclick="window.requestPreview('${sub.fileName}', '${sub.fileData}')" class="w-11 h-11 bg-white dark:bg-slate-800 rounded-xl shadow-sm"><i class="fa-solid fa-eye"></i></button><button onclick="window.downloadFile('${sub.fileName}', '${sub.fileData}')" class="w-11 h-11 bg-blue-600 text-white rounded-xl shadow-lg"><i class="fa-solid fa-download"></i></button></div>
+                    </div>`;
+                }).join('');
+            });
+        };
+        window.handleAsgnHandout = (input) => { const file = input.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = (e) => { asgnHandoutFile = { name: file.name, data: e.target.result }; showToast("Attached."); }; reader.readAsDataURL(file); };
+        window.handleCreateAssignment = async (e) => {
+            e.preventDefault(); const title = document.getElementById('asgn-title').value, dead = document.getElementById('asgn-deadline').value;
+            if(!title || !dead) return;
+            await addDoc(collection(dbFirestore, dbCollections.assignments), { title, deadline: dead, creatorId: currentUser.id, handoutName: asgnHandoutFile.name, handoutData: asgnHandoutFile.data, timestamp: Timestamp.now() });
+            asgnHandoutFile = { name: null, data: null }; showToast("Published."); window.renderPage('teacher-assignments');
+        };
+        window.uploadSubmission = async (asgnId, input) => {
+            const file = input.files[0]; if(!file) return;
+            const reader = new FileReader(); reader.onload = async (e) => { await setDoc(doc(dbFirestore, dbCollections.submissions, `${asgnId}_${currentUser.id}`), { assignmentId: asgnId, studentId: currentUser.id, studentName: currentUser.name, fileName: file.name, fileData: e.target.result, timestamp: Timestamp.now() }); showToast("Submitted."); }; reader.readAsDataURL(file);
+        };
+        window.uploadFile = async (cid, input) => {
+            const file = input.files[0]; if(!file) return;
+            const reader = new FileReader(); reader.onload = async (e) => { await setDoc(doc(dbFirestore, dbCollections.classes, cid), { currentFile: file.name, currentFileData: e.target.result }, { merge: true }); showToast("Resource Ready"); };
+            reader.readAsDataURL(file);
+        };
+        window.switchChat = (id, name) => { activeChatPartner = id ? { id, name } : null; window.renderPage('teacher-chat'); };
+        window.handleSendMessage = async (e) => {
+            e.preventDefault(); const inp = document.getElementById('chat-input'), txt = inp.value.trim(); if(!txt || !activeChatPartner) return;
+            const cid = [String(currentUser.id), String(activeChatPartner.id)].sort().join('_');
+            await addDoc(collection(dbFirestore, dbCollections.messages), { chatId: cid, senderId: String(currentUser.id), text: txt, timestamp: Timestamp.now(), read: false });
+            inp.value = '';
+        };
 
         function setupGlobalNotifications() {
-            if (globalUnsubscribe) globalUnsubscribe();
-            const q = query(collection(dbFirestore, dbCollections.messages), where("receiverId", "==", String(currentUser.id)));
-            globalUnsubscribe = onSnapshot(q, (snap) => {
+            onSnapshot(query(collection(dbFirestore, dbCollections.messages), where("receiverId", "==", String(currentUser.id))), (snap) => {
                 snap.docChanges().forEach((change) => {
                     if (change.type === "added" && change.doc.data().read !== true) {
                         const msg = change.doc.data();
-                        if (!notificationStore.find(n => n.id === change.doc.id)) {
-                             notificationStore.unshift({ id: change.doc.id, senderId: msg.senderId, senderName: msg.senderName, text: msg.text });
-                        }
+                        if (!notificationStore.find(n => n.id === change.doc.id)) { notificationStore.unshift({ id: change.doc.id, text: msg.text }); }
                     }
                 });
                 window.updateNotificationBadge();
             });
         }
 
-        // --- 6. INITIALIZE ---
+        // --- 5. INITIALIZE ---
         (async () => {
             try {
                 await signInAnonymously(auth);
                 window.isAuthReady = true;
                 const footDot = document.getElementById('footer-conn-dot');
-                if(footDot) footDot.className = "w-2 h-2 rounded-full bg-green-500 shadow-lg";
-                if(document.getElementById('footer-conn-text')) document.getElementById('footer-conn-text').innerText = "Cloud Verified";
-            } catch (e) { console.error(e); }
+                if(footDot) footDot.className = "w-2 h-2 rounded-full bg-blue-500 shadow-lg";
+                if(document.getElementById('footer-conn-text')) document.getElementById('footer-conn-text').innerText = "Verified Platform";
+            } catch (e) { showToast("Sync Engine Offline."); }
         })();
 
     </script>
