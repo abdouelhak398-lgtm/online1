@@ -21,7 +21,7 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, setDoc, getDoc, updateDoc, getDocs, doc, Timestamp, where, orderBy, enableNetwork } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- FIREBASE CONFIGURATION (LIVE) ---
+        // --- FIREBASE CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyD2aOVfl6bXOpWCL9eaiM85g14WB25aXYg",
             authDomain: "alpha-26f1e.firebaseapp.com",
@@ -36,7 +36,7 @@
         const auth = getAuth(app);
         const dbFirestore = getFirestore(app);
         
-        // Expose to window for vanilla JS access
+        // Expose to window
         window.dbFirestore = dbFirestore;
         window.auth = auth;
         window.collection = collection;
@@ -53,7 +53,6 @@
         window.Timestamp = Timestamp;
         window.enableNetwork = enableNetwork;
         
-        // SHARED APP ID
         window.appId = typeof __app_id !== 'undefined' ? __app_id : 'edusaas-live-demo-v2';
         
         window.dbCollections = {
@@ -70,7 +69,7 @@
 
         function showAuthErrorModal(error) {
             if (document.getElementById('auth-error-modal')) return;
-
+            // ... (Auth modal logic remains same as established) ...
             let title = "⚠️ Connection Issue";
             let message = "We couldn't connect to the authentication server.";
             let steps = "";
@@ -78,38 +77,16 @@
             if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
                 title = "⚠️ Enable Anonymous Auth";
                 message = "The code is correct, but the <b>Anonymous Sign-in</b> method is disabled in your Firebase Console.";
-                steps = `
-                    <ol style="list-style-type:decimal; margin-left:20px; color:#e2e8f0; margin-top:10px;">
-                        <li>Go to <a href="https://console.firebase.google.com/" target="_blank" style="color:#fbbf24; text-decoration:underline;">Firebase Console</a> > <b>Authentication</b>.</li>
-                        <li>Click the <b>Sign-in method</b> tab.</li>
-                        <li>Click <b>Anonymous</b> -> Toggle <b>Enable</b> -> Click <b>Save</b>.</li>
-                    </ol>
-                `;
+                steps = `<ol style="list-style-type:decimal; margin-left:20px; color:#e2e8f0; margin-top:10px;"><li>Go to <a href="https://console.firebase.google.com/" target="_blank" style="color:#fbbf24; text-decoration:underline;">Firebase Console</a> > <b>Authentication</b>.</li><li>Click the <b>Sign-in method</b> tab.</li><li>Click <b>Anonymous</b> -> Toggle <b>Enable</b> -> Click <b>Save</b>.</li></ol>`;
             } else if (error.code === 'permission-denied') {
                  title = "⚠️ Database Permissions";
                  message = "Your database rules are blocking access.";
-                 steps = `
-                    <ol style="list-style-type:decimal; margin-left:20px; color:#e2e8f0; margin-top:10px;">
-                        <li>Go to <a href="https://console.firebase.google.com/" target="_blank" style="color:#fbbf24; text-decoration:underline;">Firebase Console</a> > <b>Firestore Database</b> > <b>Rules</b>.</li>
-                        <li>Change to: <code>allow read, write: if true;</code></li>
-                        <li>Click <b>Publish</b>.</li>
-                    </ol>
-                 `;
+                 steps = `<ol style="list-style-type:decimal; margin-left:20px; color:#e2e8f0; margin-top:10px;"><li>Go to <a href="https://console.firebase.google.com/" target="_blank" style="color:#fbbf24; text-decoration:underline;">Firebase Console</a> > <b>Firestore Database</b> > <b>Rules</b>.</li><li>Change to: <code>allow read, write: if true;</code></li><li>Click <b>Publish</b>.</li></ol>`;
             } else {
                 message = `Error: ${error.message}`;
             }
 
-            const modalHTML = `
-                <div id="auth-error-modal" style="position:fixed; inset:0; background:rgba(15, 23, 42, 0.95); z-index:9999; color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px; font-family:'Outfit', sans-serif;">
-                    <h2 style="font-size:2rem; margin-bottom:1rem; color:#fbbf24; font-weight:700;">${title}</h2>
-                    <p style="max-w:600px; color:#cbd5e1;">${message}</p>
-                    <div style="text-align:left; background:#1e293b; padding:20px; border-radius:12px; margin-top:20px; border:1px solid #334155; max-width:500px; width:100%;">
-                        ${steps}
-                        <div style="margin-top:15px; font-size:0.75rem; color:#94a3b8; font-family:monospace;">Code: ${error.code}</div>
-                    </div>
-                    <button onclick="location.reload()" style="margin-top:30px; padding:12px 30px; background:#2563eb; color:white; border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:1rem; transition:all 0.2s;">Retry Connection</button>
-                </div>
-            `;
+            const modalHTML = `<div id="auth-error-modal" style="position:fixed; inset:0; background:rgba(15, 23, 42, 0.95); z-index:9999; color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px; font-family:'Outfit', sans-serif;"><h2 style="font-size:2rem; margin-bottom:1rem; color:#fbbf24; font-weight:700;">${title}</h2><p style="max-w:600px; color:#cbd5e1;">${message}</p><div style="text-align:left; background:#1e293b; padding:20px; border-radius:12px; margin-top:20px; border:1px solid #334155; max-width:500px; width:100%;">${steps}<div style="margin-top:15px; font-size:0.75rem; color:#94a3b8; font-family:monospace;">Code: ${error.code}</div></div><button onclick="location.reload()" style="margin-top:30px; padding:12px 30px; background:#2563eb; color:white; border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:1rem; transition:all 0.2s;">Retry Connection</button></div>`;
             document.body.insertAdjacentHTML('beforeend', modalHTML);
         }
 
@@ -121,15 +98,10 @@
                     await signInAnonymously(auth);
                  }
              } catch (e) {
-                 try {
-                     await signInAnonymously(auth);
-                 } catch (err) {
+                 try { await signInAnonymously(auth); } catch (err) {
                      console.error("Auth Critical Error:", err);
-                     window.authFailed = true;
-                     window.authError = err;
-                     if (typeof __initial_auth_token === 'undefined') {
-                         showAuthErrorModal(err);
-                     }
+                     window.authFailed = true; window.authError = err;
+                     if (typeof __initial_auth_token === 'undefined') showAuthErrorModal(err);
                  }
              }
         };
@@ -193,183 +165,76 @@
                 <p id="role-display" class="text-[10px] font-semibold text-yellow-500 uppercase tracking-wider mt-1">School Manager</p>
             </div>
         </div>
-        
-        <!-- School Context -->
         <div class="mx-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 mb-2">
             <p id="lbl-active-tenant" class="text-[10px] text-blue-400 uppercase font-bold mb-1">Active Tenant</p>
             <div id="school-name-display" class="font-bold text-sm text-blue-900 truncate">Select Role</div>
         </div>
-
-        <nav id="nav-menu" class="flex-1 overflow-y-auto py-4 space-y-1 px-4">
-            <!-- Nav Items -->
-        </nav>
-
+        <nav id="nav-menu" class="flex-1 overflow-y-auto py-4 space-y-1 px-4"></nav>
         <div class="p-6 border-t border-slate-50">
-            <button onclick="logout()" class="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
-                <i class="fa-solid fa-right-from-bracket"></i> <span id="lbl-signout">Sign Out</span>
-            </button>
+            <button onclick="logout()" class="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"><i class="fa-solid fa-right-from-bracket"></i> <span id="lbl-signout">Sign Out</span></button>
         </div>
     </aside>
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-full relative overflow-hidden bg-slate-50/50">
-        
-        <!-- Header -->
         <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 h-20 flex items-center justify-between px-8 shadow-sm z-30 sticky top-0">
             <div class="flex items-center gap-4">
-                <button class="md:hidden text-slate-500 hover:text-blue-600 transition">
-                    <i class="fa-solid fa-bars text-xl"></i>
-                </button>
+                <button class="md:hidden text-slate-500 hover:text-blue-600 transition"><i class="fa-solid fa-bars text-xl"></i></button>
                 <h2 id="page-title" class="text-xl font-bold text-slate-800">Dashboard</h2>
             </div>
-
             <div class="flex items-center gap-4 md:gap-6">
                 <!-- Language Selector -->
                 <div class="relative group">
-                    <button class="p-2 text-slate-400 hover:text-blue-600 transition flex items-center gap-1">
-                        <i class="fa-solid fa-globe text-lg"></i>
-                    </button>
+                    <button class="p-2 text-slate-400 hover:text-blue-600 transition flex items-center gap-1"><i class="fa-solid fa-globe text-lg"></i></button>
                     <div class="hidden group-hover:block absolute right-0 mt-0 w-32 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-50">
                         <button onclick="setLanguage('en')" class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50">🇺🇸 English</button>
                         <button onclick="setLanguage('fr')" class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50">🇫🇷 Français</button>
                         <button onclick="setLanguage('ar')" class="block w-full text-right px-4 py-2 text-sm hover:bg-slate-50 font-arabic">🇩🇿 العربية</button>
                     </div>
                 </div>
-
-                <!-- Notifications with Dropdown -->
+                <!-- Notifications -->
                 <div class="relative">
-                    <button onclick="toggleNotifications()" class="relative p-2 text-slate-400 hover:text-blue-600 transition-colors focus:outline-none">
-                        <i class="fa-regular fa-bell text-xl"></i>
-                        <span id="notif-badge" class="absolute top-0 right-0 w-5 h-5 bg-yellow-400 text-blue-900 rounded-full border-2 border-white text-[10px] font-bold flex items-center justify-center hidden shadow-sm">0</span>
-                    </button>
-                    
-                    <!-- Dropdown Menu -->
+                    <button onclick="toggleNotifications()" class="relative p-2 text-slate-400 hover:text-blue-600 transition-colors focus:outline-none"><i class="fa-regular fa-bell text-xl"></i><span id="notif-badge" class="absolute top-0 right-0 w-5 h-5 bg-yellow-400 text-blue-900 rounded-full border-2 border-white text-[10px] font-bold flex items-center justify-center hidden shadow-sm">0</span></button>
                     <div id="notification-dropdown" class="hidden absolute right-0 mt-4 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden transform dropdown-enter">
-                        <div class="p-4 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
-                            <h3 id="lbl-notif-title" class="font-bold text-slate-700 text-sm">Notifications</h3>
-                            <button id="lbl-mark-read" onclick="clearNotifications()" class="text-xs text-blue-500 font-medium hover:text-blue-700">Mark all read</button>
-                        </div>
-                        <div id="notification-list" class="max-h-80 overflow-y-auto">
-                            <!-- Items Injected Here -->
-                            <div class="p-8 text-center text-slate-400 text-xs">
-                                <i class="fa-regular fa-bell-slash text-2xl mb-2 opacity-50"></i>
-                                <p id="lbl-no-notif">No new notifications</p>
-                            </div>
-                        </div>
+                        <div class="p-4 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center"><h3 id="lbl-notif-title" class="font-bold text-slate-700 text-sm">Notifications</h3><button id="lbl-mark-read" onclick="clearNotifications()" class="text-xs text-blue-500 font-medium hover:text-blue-700">Mark all read</button></div>
+                        <div id="notification-list" class="max-h-80 overflow-y-auto"><div class="p-8 text-center text-slate-400 text-xs"><i class="fa-regular fa-bell-slash text-2xl mb-2 opacity-50"></i><p id="lbl-no-notif">No new notifications</p></div></div>
                     </div>
                 </div>
-
                 <div class="h-8 w-px bg-slate-200"></div>
-                
-                <div class="flex items-center gap-3">
-                    <div class="text-right hidden sm:block">
-                        <p id="user-name" class="text-sm font-bold text-slate-800">Guest</p>
-                        <p id="user-role" class="text-xs text-slate-500 font-medium">Not Logged In</p>
-                    </div>
-                    <div class="w-10 h-10 rounded-full bg-yellow-100 border-2 border-yellow-200 flex items-center justify-center text-yellow-700 font-bold shadow-sm" id="user-initials">?</div>
-                </div>
+                <div class="flex items-center gap-3"><div class="text-right hidden sm:block"><p id="user-name" class="text-sm font-bold text-slate-800">Guest</p><p id="user-role" class="text-xs text-slate-500 font-medium">Not Logged In</p></div><div class="w-10 h-10 rounded-full bg-yellow-100 border-2 border-yellow-200 flex items-center justify-center text-yellow-700 font-bold shadow-sm" id="user-initials">?</div></div>
             </div>
         </header>
-
-        <!-- Dynamic View Container -->
-        <div id="app-content" class="flex-1 overflow-y-auto p-8 relative scroll-smooth">
-            <!-- Views injected here -->
-        </div>
-
+        <div id="app-content" class="flex-1 overflow-y-auto p-8 relative scroll-smooth"></div>
     </main>
 
     <!-- Login Modal -->
     <div id="login-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity">
         <div class="bg-white rounded-3xl shadow-2xl max-w-5xl w-full overflow-hidden flex flex-col md:flex-row fade-in border border-white/20">
-            <!-- Left Side: Brand -->
             <div class="md:w-5/12 bg-blue-600 p-12 flex flex-col justify-center text-white relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                <div class="relative z-10">
-                    <div class="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-3xl font-bold mb-6">E</div>
-                    <h1 class="text-4xl font-bold mb-4 tracking-tight">EduSaaS</h1>
-                    <p class="text-blue-100 text-lg mb-8 leading-relaxed">The next-gen platform for modern schools. Scan, track, and learn.</p>
-                    <div class="space-y-4 text-sm font-medium text-blue-50">
-                        <div class="flex items-center gap-3 bg-blue-700/30 p-3 rounded-xl border border-blue-500/30">
-                            <i class="fa-solid fa-qrcode text-yellow-400"></i> <span id="lbl-feat-attendance">Smart Attendance</span>
-                        </div>
-                        <div class="flex items-center gap-3 bg-blue-700/30 p-3 rounded-xl border border-blue-500/30">
-                            <i class="fa-solid fa-comments text-yellow-400"></i> <span id="lbl-feat-chat">Real-time Chat</span>
-                        </div>
-                    </div>
-                </div>
+                <div class="relative z-10"><div class="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-3xl font-bold mb-6">E</div><h1 class="text-4xl font-bold mb-4 tracking-tight">EduSaaS</h1><p class="text-blue-100 text-lg mb-8 leading-relaxed">The next-gen platform for modern schools. Scan, track, and learn.</p><div class="space-y-4 text-sm font-medium text-blue-50"><div class="flex items-center gap-3 bg-blue-700/30 p-3 rounded-xl border border-blue-500/30"><i class="fa-solid fa-qrcode text-yellow-400"></i> <span id="lbl-feat-attendance">Smart Attendance</span></div><div class="flex items-center gap-3 bg-blue-700/30 p-3 rounded-xl border border-blue-500/30"><i class="fa-solid fa-comments text-yellow-400"></i> <span id="lbl-feat-chat">Real-time Chat</span></div></div></div>
             </div>
-            <!-- Right Side: Roles -->
             <div class="md:w-7/12 p-12 bg-white">
-                <h2 id="lbl-welcome" class="text-2xl font-bold text-slate-800 mb-2">Welcome Back</h2>
-                <p id="lbl-select-role" class="text-slate-500 mb-8">Select your role to access the dashboard.</p>
-                
+                <h2 id="lbl-welcome" class="text-2xl font-bold text-slate-800 mb-2">Welcome Back</h2><p id="lbl-select-role" class="text-slate-500 mb-8">Select your role to access the dashboard.</p>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <button onclick="login('superadmin')" class="p-5 border border-slate-200 rounded-2xl hover:border-purple-500 hover:bg-purple-50 hover:shadow-md transition-all group text-left">
-                        <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-shield-halved"></i></div>
-                        <span id="lbl-role-super" class="font-bold text-slate-700 group-hover:text-purple-700 block">Super Admin</span>
-                        <span id="lbl-desc-super" class="text-xs text-slate-400">Platform Owner</span>
-                    </button>
-
-                    <button onclick="login('schooladmin')" class="p-5 border border-slate-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 hover:shadow-md transition-all group text-left">
-                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-building-columns"></i></div>
-                        <span id="lbl-role-admin" class="font-bold text-slate-700 group-hover:text-blue-700 block">School Admin</span>
-                        <span id="lbl-desc-admin" class="text-xs text-slate-400">Principal/Staff</span>
-                    </button>
-
-                    <button onclick="login('teacher')" class="p-5 border border-slate-200 rounded-2xl hover:border-green-500 hover:bg-green-50 hover:shadow-md transition-all group text-left">
-                        <div class="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-chalkboard-user"></i></div>
-                        <span id="lbl-role-teacher" class="font-bold text-slate-700 group-hover:text-green-700 block">Teacher</span>
-                        <span id="lbl-desc-teacher" class="text-xs text-slate-400">Faculty Member</span>
-                    </button>
-
-                    <!-- Student Selection Group -->
-                    <div class="p-5 border border-slate-200 rounded-2xl bg-yellow-50/50 hover:shadow-md transition-all group">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-10 h-10 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center"><i class="fa-solid fa-graduation-cap"></i></div>
-                            <div>
-                                <span id="lbl-role-student" class="font-bold text-slate-700 block">Student</span>
-                                <span id="lbl-select-profile" class="text-xs text-slate-400">Select Profile</span>
-                            </div>
-                        </div>
-                        <div class="space-y-2 pl-2">
-                            <button onclick="login('student1')" class="w-full text-left text-xs font-bold text-slate-600 hover:text-yellow-600 flex items-center gap-2">
-                                <span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Yacine Brahimi
-                            </button>
-                            <button onclick="login('student2')" class="w-full text-left text-xs font-bold text-slate-600 hover:text-yellow-600 flex items-center gap-2">
-                                <span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Meriem Hadjadj
-                            </button>
-                            <button onclick="login('student3')" class="w-full text-left text-xs font-bold text-slate-600 hover:text-yellow-600 flex items-center gap-2">
-                                <span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Youcef Belaili
-                            </button>
-                        </div>
-                    </div>
+                    <button onclick="login('superadmin')" class="p-5 border border-slate-200 rounded-2xl hover:border-purple-500 hover:bg-purple-50 hover:shadow-md transition-all group text-left"><div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-shield-halved"></i></div><span id="lbl-role-super" class="font-bold text-slate-700 group-hover:text-purple-700 block">Super Admin</span><span id="lbl-desc-super" class="text-xs text-slate-400">Platform Owner</span></button>
+                    <button onclick="login('schooladmin')" class="p-5 border border-slate-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 hover:shadow-md transition-all group text-left"><div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-building-columns"></i></div><span id="lbl-role-admin" class="font-bold text-slate-700 group-hover:text-blue-700 block">School Admin</span><span id="lbl-desc-admin" class="text-xs text-slate-400">Principal/Staff</span></button>
+                    <button onclick="login('teacher')" class="p-5 border border-slate-200 rounded-2xl hover:border-green-500 hover:bg-green-50 hover:shadow-md transition-all group text-left"><div class="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-chalkboard-user"></i></div><span id="lbl-role-teacher" class="font-bold text-slate-700 group-hover:text-green-700 block">Teacher</span><span id="lbl-desc-teacher" class="text-xs text-slate-400">Faculty Member</span></button>
+                    <div class="p-5 border border-slate-200 rounded-2xl bg-yellow-50/50 hover:shadow-md transition-all group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center"><i class="fa-solid fa-graduation-cap"></i></div><div><span id="lbl-role-student" class="font-bold text-slate-700 block">Student</span><span id="lbl-select-profile" class="text-xs text-slate-400">Select Profile</span></div></div><div class="space-y-2 pl-2"><button onclick="login('student1')" class="w-full text-left text-xs font-bold text-slate-600 hover:text-yellow-600 flex items-center gap-2"><span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Yacine Brahimi</button><button onclick="login('student2')" class="w-full text-left text-xs font-bold text-slate-600 hover:text-yellow-600 flex items-center gap-2"><span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Meriem Hadjadj</button><button onclick="login('student3')" class="w-full text-left text-xs font-bold text-slate-600 hover:text-yellow-600 flex items-center gap-2"><span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Youcef Belaili</button></div></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Image Viewer Modal -->
-    <div id="image-modal" class="fixed inset-0 z-[100] bg-black/90 hidden flex items-center justify-center p-4 cursor-pointer" onclick="this.classList.add('hidden')">
-        <img id="modal-img" src="" class="max-w-full max-h-full rounded-lg shadow-2xl">
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 z-50 flex items-center gap-4">
-        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white shrink-0"><i class="fa-solid fa-check"></i></div>
-        <span id="toast-msg" class="font-medium text-sm">Notification</span>
-    </div>
-
-    <!-- Audio Assets -->
+    <!-- Modals & Toasts -->
+    <div id="image-modal" class="fixed inset-0 z-[100] bg-black/90 hidden flex items-center justify-center p-4 cursor-pointer" onclick="this.classList.add('hidden')"><img id="modal-img" src="" class="max-w-full max-h-full rounded-lg shadow-2xl"></div>
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 z-50 flex items-center gap-4"><div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white shrink-0"><i class="fa-solid fa-check"></i></div><span id="toast-msg" class="font-medium text-sm">Notification</span></div>
     <audio id="scan-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
     <audio id="msg-sound" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3" preload="auto"></audio>
 
     <script>
-        // --- 1. STATE & DATA ---
         const db = {
-            schools: [
-                { id: 's1', name: 'École Privée El Nardjess', type: 'Private' },
-                { id: 's2', name: 'Lycée Emir Abdelkader', type: 'Public' }
-            ],
+            schools: [{ id: 's1', name: 'École Privée El Nardjess' }, { id: 's2', name: 'Lycée Emir Abdelkader' }],
             users: {
                 superadmin: { name: 'Amine Benali', role: 'superadmin', schoolId: null, id: 'super_dz' },
                 schooladmin: { name: 'Mourad Boukhalfa', role: 'schooladmin', schoolId: 's1', id: 'admin_dz' },
@@ -378,132 +243,24 @@
                 student2: { name: 'Meriem Hadjadj', role: 'student', schoolId: 's1', id: 'student_dz_2' },
                 student3: { name: 'Youcef Belaili', role: 'student', schoolId: 's1', id: 'student_dz_3' }
             },
-            classes: [
-                { id: 'c1', name: 'Advanced Calculus', time: '09:00 AM', room: '101', currentFile: null },
-                { id: 'c2', name: 'Linear Algebra', time: '11:00 AM', room: '102', currentFile: null }
-            ],
-            students: [
-                { id: 'student_dz_1', name: 'Yacine Brahimi', attendance: 85, tuitionStatus: 'Paid', tuitionDue: 0 },
-                { id: 'student_dz_2', name: 'Meriem Hadjadj', attendance: 100, tuitionStatus: 'Paid', tuitionDue: 0 },
-                { id: 'student_dz_3', name: 'Youcef Belaili', attendance: 92, tuitionStatus: 'Overdue', tuitionDue: 1200 },
-                { id: 'student_dz_4', name: 'Sofiane Feghouli', attendance: 45, tuitionStatus: 'Pending', tuitionDue: 500 },
-            ]
+            classes: [{ id: 'c1', name: 'Advanced Calculus', time: '09:00 AM', room: '101', currentFile: null }, { id: 'c2', name: 'Linear Algebra', time: '11:00 AM', room: '102', currentFile: null }],
+            students: [ { id: 'student_dz_1', name: 'Yacine Brahimi' }, { id: 'student_dz_2', name: 'Meriem Hadjadj' }, { id: 'student_dz_3', name: 'Youcef Belaili' }, { id: 'student_dz_4', name: 'Sofiane Feghouli' } ]
         };
 
-        // --- TRANSLATIONS ---
-        const translations = {
-            en: {
-                'lbl-active-tenant': 'Active Tenant',
-                'lbl-signout': 'Sign Out',
-                'lbl-notif-title': 'Notifications',
-                'lbl-mark-read': 'Mark all read',
-                'lbl-no-notif': 'No new notifications',
-                'lbl-feat-attendance': 'Smart Attendance',
-                'lbl-feat-chat': 'Real-time Chat',
-                'lbl-welcome': 'Welcome Back',
-                'lbl-select-role': 'Select your role to access the dashboard.',
-                'title-teacher-classes': 'My Classes',
-                'title-teacher-calendar': 'Attendance Records',
-                'title-teacher-chat': 'Messages',
-                'title-student-qr': 'My Digital ID',
-                'title-student-calendar': 'My History',
-                'title-student-materials': 'Materials',
-                'title-settings': 'Account Settings',
-                'lbl-sending': 'Sending:',
-                'lbl-no-file': 'No file attached',
-                'lbl-file-loading': 'Loading file status...',
-                'lbl-contacts': 'Contacts',
-                'lbl-type-msg': 'Type message...',
-                'lbl-display-name': 'Display Name',
-                'lbl-save': 'Save Changes',
-                'lbl-no-materials': 'No materials received yet'
-            },
-            fr: {
-                'lbl-active-tenant': 'Locataire Actif',
-                'lbl-signout': 'Déconnexion',
-                'lbl-notif-title': 'Notifications',
-                'lbl-mark-read': 'Tout marquer comme lu',
-                'lbl-no-notif': 'Aucune nouvelle notification',
-                'lbl-feat-attendance': 'Présence Intelligente',
-                'lbl-feat-chat': 'Chat en temps réel',
-                'lbl-welcome': 'Bon retour',
-                'lbl-select-role': 'Sélectionnez votre rôle pour accéder au tableau de bord.',
-                'title-teacher-classes': 'Mes Cours',
-                'title-teacher-calendar': 'Registres de Présence',
-                'title-teacher-chat': 'Messages',
-                'title-student-qr': 'Mon ID Numérique',
-                'title-student-calendar': 'Mon Historique',
-                'title-student-materials': 'Matériaux',
-                'title-settings': 'Paramètres du Compte',
-                'lbl-sending': 'Envoi:',
-                'lbl-no-file': 'Aucun fichier joint',
-                'lbl-file-loading': 'Chargement...',
-                'lbl-contacts': 'Contacts',
-                'lbl-type-msg': 'Tapez un message...',
-                'lbl-display-name': 'Nom d\'affichage',
-                'lbl-save': 'Enregistrer',
-                'lbl-no-materials': 'Aucun matériel reçu'
-            },
-            ar: {
-                'lbl-active-tenant': 'المستأجر النشط',
-                'lbl-signout': 'تسجيل الخروج',
-                'lbl-notif-title': 'إشعارات',
-                'lbl-mark-read': 'ضع علامة مقروء على الكل',
-                'lbl-no-notif': 'لا إشعارات جديدة',
-                'lbl-feat-attendance': 'الحضور الذكي',
-                'lbl-feat-chat': 'دردشة حية',
-                'lbl-welcome': 'مرحبا بعودتك',
-                'lbl-select-role': 'اختر دورك للوصول إلى لوحة القيادة.',
-                'title-teacher-classes': 'فصولي',
-                'title-teacher-calendar': 'سجلات الحضور',
-                'title-teacher-chat': 'الرسائل',
-                'title-student-qr': 'هويتي الرقمية',
-                'title-student-calendar': 'تاريخي',
-                'title-student-materials': 'المواد',
-                'title-settings': 'إعدادات الحساب',
-                'lbl-sending': 'جاري الإرسال:',
-                'lbl-no-file': 'لم يتم إرفاق ملف',
-                'lbl-file-loading': 'جار التحميل...',
-                'lbl-contacts': 'جهات الاتصال',
-                'lbl-type-msg': 'اكتب رسالة...',
-                'lbl-display-name': 'الاسم المعروض',
-                'lbl-save': 'حفظ التغييرات',
-                'lbl-no-materials': 'لم يتم استلام أي مواد'
-            }
-        };
+        const translations = { en: { 'lbl-active-tenant': 'Active Tenant', 'lbl-signout': 'Sign Out', 'lbl-notif-title': 'Notifications', 'lbl-mark-read': 'Mark all read', 'lbl-no-notif': 'No new notifications', 'lbl-contacts': 'Contacts', 'lbl-type-msg': 'Type message...', 'lbl-display-name': 'Display Name', 'lbl-save': 'Save Changes', 'title-teacher-classes': 'My Classes', 'title-teacher-calendar': 'Attendance Records', 'title-teacher-chat': 'Messages', 'title-student-qr': 'My Digital ID', 'title-student-calendar': 'My History', 'title-student-materials': 'Materials', 'title-settings': 'Account Settings', 'lbl-sending': 'Sending:', 'lbl-no-file': 'No file attached', 'lbl-file-loading': 'Loading status...', 'lbl-no-materials': 'No materials received' }, fr: { 'lbl-active-tenant': 'Locataire Actif', 'lbl-signout': 'Déconnexion', 'lbl-notif-title': 'Notifications', 'lbl-mark-read': 'Tout lu', 'lbl-no-notif': 'Aucune notif', 'lbl-contacts': 'Contacts', 'lbl-type-msg': 'Message...', 'lbl-display-name': 'Nom', 'lbl-save': 'Enregistrer', 'title-teacher-classes': 'Mes Cours', 'title-teacher-calendar': 'Présence', 'title-teacher-chat': 'Messages', 'title-student-qr': 'Mon ID', 'title-student-calendar': 'Historique', 'title-student-materials': 'Matériaux', 'title-settings': 'Paramètres', 'lbl-sending': 'Envoi:', 'lbl-no-file': 'Aucun fichier', 'lbl-file-loading': 'Chargement...', 'lbl-no-materials': 'Aucun matériel' }, ar: { 'lbl-active-tenant': 'المستأجر', 'lbl-signout': 'خروج', 'lbl-notif-title': 'إشعارات', 'lbl-mark-read': 'قراءة الكل', 'lbl-no-notif': 'لا إشعارات', 'lbl-contacts': 'جهات الاتصال', 'lbl-type-msg': 'رسالة...', 'lbl-display-name': 'الاسم', 'lbl-save': 'حفظ', 'title-teacher-classes': 'فصولي', 'title-teacher-calendar': 'الحضور', 'title-teacher-chat': 'الرسائل', 'title-student-qr': 'هويتي', 'title-student-calendar': 'التاريخ', 'title-student-materials': 'المواد', 'title-settings': 'الإعدادات', 'lbl-sending': 'جاري الإرسال:', 'lbl-no-file': 'بلا ملف', 'lbl-file-loading': 'تحميل...', 'lbl-no-materials': 'لا مواد' } };
 
-        let currentLang = 'en';
-
-        // --- PLATFORM DETECTION ---
-        const platform = (() => {
-            const ua = navigator.userAgent.toLowerCase();
-            if (ua.includes('iphone') || ua.includes('ipad')) return 'ios';
-            if (ua.includes('android')) return 'android';
-            return 'desktop';
-        })();
-
-        document.body.classList.add(`platform-${platform}`);
-
-        let currentUser = null;
-        let activeClassId = null;
-        let activeScanner = null;
-        let activeChatPartner = null;
-        let firestoreUnsubscribes = [];
-        let globalUnsubscribe = null;
-        let userProfileUnsubscribe = null; 
-        let notificationStore = []; 
-        let currentCalendarDate = new Date();
-        let activeSessionFile = null;
-        let isFileSynced = false;
+        let currentLang = 'en', currentUser = null, activeClassId = null, activeScanner = null, activeChatPartner = null;
+        let firestoreUnsubscribes = [], globalUnsubscribe = null, userProfileUnsubscribe = null, notificationStore = [], currentCalendarDate = new Date(), activeSessionFile = null, isFileSynced = false, heartbeatInterval = null, presenceUnsubscribes = [];
 
         const routes = {
-            superadmin: [{ id: 'saas-dashboard', label: 'Platform Overview', icon: 'fa-chart-line' }, { id: 'saas-schools', label: 'Manage Schools', icon: 'fa-school' }, { id: 'saas-subs', label: 'Subscriptions', icon: 'fa-credit-card' }, { id: 'settings', label: 'Settings', icon: 'fa-cog' }],
-            schooladmin: [{ id: 'admin-dashboard', label: 'Dashboard', icon: 'fa-chart-pie' }, { id: 'admin-finance', label: 'Financial Module', icon: 'fa-coins' }, { id: 'admin-users', label: 'User Management', icon: 'fa-users' }, { id: 'admin-payroll', label: 'Teacher Payroll', icon: 'fa-file-invoice-dollar' }, { id: 'settings', label: 'Settings', icon: 'fa-cog' }],
+            superadmin: [{ id: 'saas-dashboard', label: 'Platform Overview', icon: 'fa-chart-line' }, { id: 'settings', label: 'Settings', icon: 'fa-cog' }],
+            schooladmin: [{ id: 'admin-dashboard', label: 'Dashboard', icon: 'fa-chart-pie' }, { id: 'settings', label: 'Settings', icon: 'fa-cog' }],
             teacher: [{ id: 'teacher-classes', label: 'My Classes & Scanning', icon: 'fa-chalkboard-user', key: 'title-teacher-classes' }, { id: 'teacher-calendar', label: 'Attendance Calendar', icon: 'fa-calendar-check', key: 'title-teacher-calendar' }, { id: 'teacher-chat', label: 'Chat with Students', icon: 'fa-comments', key: 'title-teacher-chat' }, { id: 'settings', label: 'Settings', icon: 'fa-cog', key: 'title-settings' }],
             student: [{ id: 'student-qr', label: 'My Digital ID', icon: 'fa-id-card', key: 'title-student-qr' }, { id: 'student-calendar', label: 'Attendance Calendar', icon: 'fa-calendar-days', key: 'title-student-calendar' }, { id: 'student-materials', label: 'Received Materials', icon: 'fa-folder-open', key: 'title-student-materials' }, { id: 'teacher-chat', label: 'Chat with Teacher', icon: 'fa-comments', key: 'title-teacher-chat' }, { id: 'settings', label: 'Settings', icon: 'fa-cog', key: 'title-settings' }]
         };
+        document.body.classList.add(navigator.userAgent.toLowerCase().includes('mobile') ? 'platform-mobile' : 'platform-desktop');
 
-        // --- AUTH & INIT ---
+        // AUTH & SETUP
         async function safeGetDoc(docRef, retries = 5, delay = 1000) {
             for (let i = 0; i < retries; i++) {
                 try { return await window.getDoc(docRef); } catch (e) {
@@ -519,10 +276,8 @@
 
         async function login(roleKey) {
             if (window.authFailed) { showAuthErrorModal(window.authError?.code); return; }
-            if (!window.isAuthReady) {
-                showToast("Connecting...");
-                try { await new Promise((res, rej) => { let at=0; const i=setInterval(()=>{ at++; if(window.isAuthReady){clearInterval(i);res();}else if(window.authFailed){clearInterval(i);rej();}else if(at>50){clearInterval(i);res();} },100); }); } catch (e) { showAuthErrorModal('timeout'); return; }
-            }
+            if (!window.isAuthReady) { showToast("Connecting..."); try { await new Promise((res, rej) => { let at=0; const i=setInterval(()=>{ at++; if(window.isAuthReady){clearInterval(i);res();}else if(window.authFailed){clearInterval(i);rej();}else if(at>50){clearInterval(i);res();} },100); }); } catch (e) { showAuthErrorModal('timeout'); return; } }
+            
             const defUser = db.users[roleKey];
             const isStudent = defUser.role === 'student';
             const userRef = window.doc(window.dbFirestore, window.dbCollections.users, defUser.id);
@@ -533,412 +288,106 @@
                     await window.setDoc(userRef, { name: defUser.name, role: defUser.role, schoolId: defUser.schoolId, bio: isStudent ? 'Student' : 'Faculty', notificationsEnabled: true });
                     currentUser = { ...defUser, bio: isStudent ? 'Student' : 'Faculty', notificationsEnabled: true };
                 }
-            } catch (e) {
-                console.error(e);
-                if (e.code === 'permission-denied') { showAuthErrorModal(e.code); return; }
-                currentUser = defUser; showToast("Offline Mode");
-            }
+            } catch (e) { if (e.code === 'permission-denied') { showAuthErrorModal(e.code); return; } currentUser = defUser; showToast("Offline Mode"); }
 
             document.getElementById('login-modal').classList.add('hidden');
-            const browserLang = navigator.language.split('-')[0];
-            if (['en', 'fr', 'ar'].includes(browserLang)) setLanguage(browserLang);
-            updateUIHeader(); renderSidebar();
+            const lang = navigator.language.split('-')[0];
+            if (['en', 'fr', 'ar'].includes(lang)) setLanguage(lang);
+            updateUIHeader(); renderSidebar(); startHeartbeat();
             userProfileUnsubscribe = window.onSnapshot(userRef, (doc) => { if(doc.exists()) { currentUser={...currentUser, ...doc.data()}; updateUIHeader(); } });
             setupGlobalNotifications();
             renderPage(isStudent ? 'student-qr' : (defUser.role === 'teacher' ? 'teacher-classes' : 'saas-dashboard'));
             showToast(`Welcome back, ${currentUser.name}`);
         }
 
-        // --- LANGUAGE SYSTEM ---
-        window.setLanguage = (lang) => {
-            currentLang = lang;
-            const isRTL = lang === 'ar';
-            document.documentElement.setAttribute('dir', isRTL ? 'rtl' : 'ltr');
-            document.documentElement.lang = lang;
-            if (isRTL) document.body.classList.add('font-arabic'); else document.body.classList.remove('font-arabic');
-            document.querySelectorAll('[id^="lbl-"]').forEach(el => { const k=el.id; if(translations[lang][k]) el.innerText=translations[lang][k]; });
-            renderSidebar();
-            if(document.getElementById('app-content').innerHTML !== '') {
-                 const currentPageTitle = document.getElementById('page-title');
-                 if(currentPageTitle && currentPageTitle.dataset.key) currentPageTitle.innerText = getTranslation(currentPageTitle.dataset.key);
-            }
-        };
+        // PRESENCE
+        function startHeartbeat() {
+            if(heartbeatInterval) clearInterval(heartbeatInterval);
+            const update = () => { if(currentUser) window.updateDoc(window.doc(window.dbFirestore, window.dbCollections.users, currentUser.id), { lastSeen: window.Timestamp.now(), isOnline: true }).catch(()=>{}); };
+            update(); heartbeatInterval = setInterval(update, 30000);
+        }
+        function stopHeartbeat() { if(heartbeatInterval) clearInterval(heartbeatInterval); }
 
-        function getTranslation(key) { return translations[currentLang][key] || key; }
-
-        // --- REST OF FUNCTIONS ---
-        function renderSidebar() {
-            const nav = document.getElementById('nav-menu');
-            if (!nav || !currentUser) return;
-            nav.innerHTML = '';
-            const r = routes[currentUser.role];
-            r.forEach((rt, idx) => {
-                const b = document.createElement('button');
-                b.className = `sidebar-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-xl mb-1`;
-                const label = rt.key ? getTranslation(rt.key) : rt.label;
-                b.innerHTML = `<i class="fa-solid ${rt.icon} w-6"></i> ${label}`;
-                b.onclick = () => { document.querySelectorAll('.sidebar-item').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderPage(rt.id); };
-                nav.appendChild(b);
+        function trackContactsPresence(contacts) {
+            presenceUnsubscribes.forEach(u => u()); presenceUnsubscribes = [];
+            contacts.forEach(contact => {
+                const ref = window.doc(window.dbFirestore, window.dbCollections.users, contact.id);
+                const unsub = window.onSnapshot(ref, (doc) => {
+                    const data = doc.data();
+                    const el = document.getElementById(`status-indicator-${contact.id}`);
+                    const headerEl = document.getElementById('chat-header-status');
+                    const isOnline = (Date.now()/1000 - (data?.lastSeen?.seconds || 0)) < 120;
+                    if(el) el.className = `absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-300'}`;
+                    if(activeChatPartner?.id === contact.id && headerEl) headerEl.innerText = isOnline ? 'Online' : 'Offline';
+                });
+                presenceUnsubscribes.push(unsub);
             });
         }
 
-        function logout() {
-            if(activeScanner) try { activeScanner.stop(); activeScanner = null; } catch(e){}
-            firestoreUnsubscribes.forEach(u => u()); firestoreUnsubscribes = [];
-            if(globalUnsubscribe) globalUnsubscribe();
-            if(userProfileUnsubscribe) userProfileUnsubscribe();
-            currentUser = null; notificationStore = []; updateNotificationBadge();
-            document.getElementById('login-modal').classList.remove('hidden');
-            document.getElementById('app-content').innerHTML = '';
-        }
+        // --- GLOBAL EXPORTS ---
+        window.login = login; window.logout = logout; window.setLanguage = setLanguage; window.renderPage = renderPage; window.toggleNotifications = toggleNotifications; window.clearNotifications = clearNotifications; window.openChatFromNotif = openChatFromNotif; window.uploadFile = uploadFile; window.startScanning = startScanning; window.manualTeacherScan = manualTeacherScan; window.saveSettings = saveSettings; window.switchChat = switchChat; window.handleSendMessage = handleSendMessage; window.showFileSelected = showFileSelected; window.downloadFile = downloadFile; window.viewImage = viewImage; window.changeMonth = changeMonth;
 
-        function updateUIHeader() {
-            if (!currentUser) return;
-            document.getElementById('user-name').innerText = currentUser.name;
-            document.getElementById('user-role').innerText = currentUser.role.toUpperCase();
-            document.getElementById('user-initials').innerText = currentUser.name.charAt(0);
-            const sName = currentUser.schoolId ? db.schools.find(s => s.id === currentUser.schoolId).name : 'Super Admin';
-            document.getElementById('school-name-display').innerText = sName;
-        }
-
-        // --- NOTIFICATIONS & CHAT ---
+        // UI HELPERS
+        function setLanguage(lang) { currentLang = lang; document.documentElement.dir = lang==='ar'?'rtl':'ltr'; if(lang==='ar') document.body.classList.add('font-arabic'); else document.body.classList.remove('font-arabic'); document.querySelectorAll('[id^="lbl-"]').forEach(el => { const k=el.id; if(translations[lang][k]) el.innerText=translations[lang][k]; }); renderSidebar(); if(document.getElementById('app-content').innerHTML!==''){ const t=document.getElementById('page-title'); if(t.dataset.key) t.innerText=getTranslation(t.dataset.key); } }
+        function getTranslation(key) { return translations[currentLang][key] || key; }
+        function renderSidebar() { const nav=document.getElementById('nav-menu'); if(!nav||!currentUser)return; nav.innerHTML=''; (routes[currentUser.role]||[]).forEach((rt, idx)=>{ const b=document.createElement('button'); b.className=`sidebar-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-xl mb-1`; const l=rt.key?getTranslation(rt.key):rt.label; b.innerHTML=`<i class="fa-solid ${rt.icon} w-6"></i> ${l}`; b.onclick=()=>{ document.querySelectorAll('.sidebar-item').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderPage(rt.id); }; nav.appendChild(b); }); }
+        function logout() { if(activeScanner) try{activeScanner.stop()}catch(e){}; firestoreUnsubscribes.forEach(u=>u()); firestoreUnsubscribes=[]; if(globalUnsubscribe) globalUnsubscribe(); if(userProfileUnsubscribe) userProfileUnsubscribe(); stopHeartbeat(); currentUser=null; notificationStore=[]; updateNotificationBadge(); document.getElementById('login-modal').classList.remove('hidden'); document.getElementById('app-content').innerHTML=''; }
+        function updateUIHeader() { if(!currentUser)return; document.getElementById('user-name').innerText=currentUser.name; document.getElementById('user-role').innerText=currentUser.role.toUpperCase(); document.getElementById('user-initials').innerText=currentUser.name.charAt(0); document.getElementById('school-name-display').innerText=currentUser.schoolId?db.schools.find(s=>s.id===currentUser.schoolId).name:'Super Admin'; }
         function toggleNotifications() { document.getElementById('notification-dropdown').classList.toggle('hidden'); }
+        function clearNotifications() { notificationStore=[]; updateNotificationBadge(); renderNotificationList(); }
+        function updateNotificationBadge() { const b=document.getElementById('notif-badge'); b.innerText=notificationStore.length; notificationStore.length?b.classList.remove('hidden'):b.classList.add('hidden'); }
+        function showToast(msg) { const t=document.getElementById('toast'); document.getElementById('toast-msg').innerText=msg; t.classList.remove('translate-y-24','opacity-0'); setTimeout(()=>t.classList.add('translate-y-24','opacity-0'),3000); }
+        function viewImage(src) { const m=document.getElementById('image-modal'); document.getElementById('modal-img').src=src; m.classList.remove('hidden'); }
+        function downloadFile(name, data) { let h=data; if(!h||!h.startsWith('data:')) h='data:text/plain;charset=utf-8,'+encodeURIComponent("Placeholder for "+name); const a=document.createElement('a'); a.href=h; a.download=name; document.body.appendChild(a); a.click(); document.body.removeChild(a); showToast("Downloading..."); }
+        function showFileSelected(input) { if(input.files[0]) { document.getElementById('file-indicator').innerText=`📎 ${input.files[0].name}`; document.getElementById('file-indicator').classList.remove('hidden'); } }
 
-        function setupGlobalNotifications() {
-            if (globalUnsubscribe) globalUnsubscribe();
-            const q = window.query(window.collection(window.dbFirestore, window.dbCollections.messages), window.where("receiverId", "==", String(currentUser.id)));
-            let initialLoad = true;
-            globalUnsubscribe = window.onSnapshot(q, (snap) => {
-                snap.docChanges().forEach((change) => {
-                    if (change.type === "added") {
-                        const msg = change.doc.data();
-                        if (msg.read !== true && !notificationStore.find(n => n.id === change.doc.id)) {
-                             notificationStore.unshift({
-                                id: change.doc.id, senderId: msg.senderId, senderName: msg.senderName, text: msg.text, time: msg.timestamp ? new Date(msg.timestamp.seconds * 1000) : new Date()
-                            });
-                        }
-                        const now = Date.now() / 1000;
-                        const msgTime = msg.timestamp?.seconds || 0;
-                        const isRecent = (now - msgTime) < 10;
-                        if (!initialLoad && isRecent && msg.read !== true && currentUser.notificationsEnabled !== false) {
-                            document.getElementById('msg-sound').play().catch(e=>{});
-                            showToast(`New message from ${msg.senderName}`);
-                        }
-                    }
-                    if (change.type === "modified") {
-                        const msg = change.doc.data();
-                        if (msg.read === true) notificationStore = notificationStore.filter(n => n.id !== change.doc.id);
-                    }
-                });
-                notificationStore.sort((a,b) => b.time - a.time);
-                updateNotificationBadge(); renderNotificationList(); initialLoad = false;
-            }, (error) => {});
-        }
-
-        function renderNotificationList() {
-            const list = document.getElementById('notification-list');
-            if (notificationStore.length === 0) {
-                list.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs"><i class="fa-regular fa-bell-slash text-2xl mb-2 opacity-50"></i><p>${getTranslation('lbl-no-notif')}</p></div>`;
-                return;
-            }
-            list.innerHTML = notificationStore.map((notif) => `
-                <div onclick="openChatFromNotif('${notif.senderId}', '${notif.senderName}')" class="p-4 border-b border-slate-50 hover:bg-blue-50 cursor-pointer transition flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">${notif.senderName.charAt(0)}</div>
-                    <div class="flex-1 overflow-hidden"><p class="text-sm font-bold text-slate-700 truncate">${notif.senderName}</p><p class="text-xs text-slate-500 truncate">${notif.text}</p><p class="text-[10px] text-slate-400 mt-1">${notif.time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p></div><div class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                </div>
-            `).join('');
-        }
-
-        function updateNotificationBadge() {
-            const badge = document.getElementById('notif-badge');
-            const count = notificationStore.length;
-            if (count > 0) { badge.innerText = count > 9 ? '9+' : count; badge.classList.remove('hidden'); badge.classList.remove('badge-pop'); void badge.offsetWidth; badge.classList.add('badge-pop'); } 
-            else { badge.classList.add('hidden'); }
-        }
-
-        function clearNotifications() { notificationStore = []; updateNotificationBadge(); renderNotificationList(); }
-
-        function openChatFromNotif(partnerId, partnerName) {
-            document.getElementById('notification-dropdown').classList.add('hidden');
-            notificationStore = notificationStore.filter(n => n.senderId !== partnerId);
-            updateNotificationBadge(); renderNotificationList();
-            activeChatPartner = { id: partnerId, name: partnerName };
-            renderPage('teacher-chat');
-            markMessagesRead(partnerId);
-        }
-
-        async function markMessagesRead(senderId) {
-            try {
-                const q = window.query(window.collection(window.dbFirestore, window.dbCollections.messages), window.where("senderId", "==", senderId), window.where("receiverId", "==", String(currentUser.id)), window.where("read", "==", false));
-                const snapshot = await window.getDocs(q);
-                snapshot.forEach(doc => window.updateDoc(window.doc(window.dbFirestore, window.dbCollections.messages, doc.id), { read: true }));
-            } catch(e) {}
-        }
-
-        // --- RENDERERS & LOGIC ---
+        // --- CORE MODULES ---
         function renderPage(pageId) {
             document.getElementById('notification-dropdown').classList.add('hidden');
             if(activeScanner) { activeScanner.stop().catch(()=>{}); activeScanner=null; }
             firestoreUnsubscribes.forEach(u => u()); firestoreUnsubscribes = [];
-
-            const container = document.getElementById('app-content');
-            container.innerHTML = '';
-            
-            let title = 'Dashboard';
-            let titleKey = null;
+            if(!pageId.includes('chat')) { presenceUnsubscribes.forEach(u => u()); presenceUnsubscribes = []; }
+            const container = document.getElementById('app-content'); container.innerHTML = '';
+            let title = 'Dashboard'; let titleKey = null;
             Object.values(routes).flat().forEach(r => { if(r.id === pageId) { titleKey = r.key; title = r.key ? getTranslation(r.key) : r.label; } });
-            const titleEl = document.getElementById('page-title');
-            titleEl.innerText = title;
-            if(titleKey) titleEl.dataset.key = titleKey;
-
-            switch(pageId) {
-                case 'teacher-classes': renderTeacherClasses(container); break;
-                case 'teacher-scan': renderTeacherScanner(container); break;
-                case 'teacher-calendar': renderTeacherCalendar(container); break;
-                case 'teacher-chat': renderChat(container); break;
-                case 'student-qr': renderStudentQR(container); break;
-                case 'student-calendar': renderStudentCalendar(container); break;
-                case 'student-materials': renderStudentMaterials(container); break;
-                case 'settings': renderSettings(container); break;
-                default: container.innerHTML = '<div class="text-center mt-10 text-slate-400">Section Under Development</div>';
-            }
-        }
-
-        function renderTeacherScanner(container) {
-            const cls = db.classes.find(c => c.id === activeClassId);
-            container.innerHTML = `
-                <div class="max-w-md mx-auto fade-in">
-                    <div class="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 relative overflow-hidden">
-                        <div class="flex justify-between items-center mb-6">
-                            <button onclick="renderPage('teacher-classes')" class="text-slate-400 hover:text-blue-600"><i class="fa-solid fa-arrow-left"></i></button>
-                            <h3 class="font-bold text-slate-800">Scan Attendance</h3><div class="w-6"></div>
-                        </div>
-                        <div id="scanner-file-display" class="mb-4 text-xs text-center p-2 bg-slate-50 rounded-lg border border-slate-100">${getTranslation('lbl-file-loading')}</div>
-                        <div id="reader" class="rounded-2xl overflow-hidden bg-slate-900 min-h-[300px] shadow-inner relative"></div>
-                        <div class="mt-6 flex gap-2">
-                            <input id="manual-student-id" placeholder="Or enter ID..." class="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 ring-blue-200 outline-none">
-                            <button onclick="manualTeacherScan()" class="bg-blue-600 text-white px-4 rounded-xl hover:bg-blue-700"><i class="fa-solid fa-check"></i></button>
-                        </div>
-                    </div>
-                </div>`;
+            const te = document.getElementById('page-title'); te.innerText = title; te.dataset.key = titleKey;
             
-            const classRef = window.doc(window.dbFirestore, window.dbCollections.classes, activeClassId);
-            const unsubFile = window.onSnapshot(classRef, (doc) => {
-                const data = doc.data();
-                activeSessionFile = data?.currentFile || null; 
-                const el = document.getElementById('scanner-file-display');
-                if(el) {
-                    el.innerHTML = activeSessionFile 
-                        ? `<span class="text-green-600 font-bold"><i class="fa-solid fa-paperclip"></i> ${getTranslation('lbl-sending')} ${activeSessionFile}</span>` 
-                        : `<span class="text-slate-400"><i class="fa-solid fa-ban"></i> ${getTranslation('lbl-no-file')}</span>`;
-                }
-            });
-            firestoreUnsubscribes.push(unsubFile);
-
-            setTimeout(() => {
-                activeScanner = new Html5Qrcode("reader");
-                activeScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, (txt) => {
-                    handleTeacherScanSuccess(txt); activeScanner.pause(true); document.getElementById('scan-sound').play(); setTimeout(()=>activeScanner.resume(), 2000);
-                });
-            }, 300);
+            if(pageId==='teacher-classes') renderTeacherClasses(container);
+            else if(pageId==='teacher-scan') renderTeacherScanner(container);
+            else if(pageId==='teacher-chat' || pageId.includes('chat')) renderChat(container);
+            else if(pageId==='student-qr') renderStudentQR(container);
+            else if(pageId==='student-materials') renderStudentMaterials(container);
+            else if(pageId.includes('calendar')) pageId==='teacher-calendar'?renderTeacherCalendar(container):renderStudentCalendar(container);
+            else if(pageId==='settings') renderSettings(container);
         }
 
-        async function handleTeacherScanSuccess(txt) {
-            try {
-                let sData = txt.startsWith('{') ? JSON.parse(txt) : {id:txt, name:"Student #"+txt};
-                const clsSnap = await window.getDoc(window.doc(window.dbFirestore, window.dbCollections.classes, activeClassId));
-                const fileToSend = clsSnap.data()?.currentFile;
-                const fileDataToSend = clsSnap.data()?.currentFileData;
-
-                await window.addDoc(window.collection(window.dbFirestore, window.dbCollections.attendance), {
-                    studentId: String(sData.id), studentName: sData.name, classId: activeClassId, className: db.classes.find(c=>c.id===activeClassId).name, timestamp: window.Timestamp.now(), status: 'present'
-                });
-                if(fileToSend) await window.addDoc(window.collection(window.dbFirestore, window.dbCollections.materials), {
-                    studentId: String(sData.id), fileName: fileToSend, fileData: fileDataToSend, classId: activeClassId, className: db.classes.find(c=>c.id===activeClassId).name, timestamp: window.Timestamp.now()
-                });
-                showToast(`${sData.name} Marked Present`);
-            } catch(e) { showToast("Scan Error"); }
-        }
-
-        // --- Simplified Renderers for brevity, logic maintained ---
-        function renderSettings(c) {
-             c.innerHTML = `
-                <div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-sm border border-slate-100 fade-in p-8">
-                    <h2 class="text-xl font-bold text-slate-800 mb-6">${getTranslation('title-settings')}</h2>
-                    <div class="space-y-6">
-                        <div><label class="block text-sm font-medium text-slate-700 mb-2">${getTranslation('lbl-display-name')}</label><input type="text" id="settings-name" value="${currentUser.name}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-100 outline-none"></div>
-                        <div class="pt-4 border-t border-slate-50 flex justify-end"><button onclick="saveSettings()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition">${getTranslation('lbl-save')}</button></div>
-                    </div>
-                </div>`;
-        }
-        async function saveSettings() {
-             const n = document.getElementById('settings-name').value.trim();
-             if(!n) return showToast("Name empty");
-             await window.setDoc(window.doc(window.dbFirestore, window.dbCollections.users, currentUser.id), {name:n}, {merge:true});
-             currentUser.name=n; updateUIHeader(); showToast("Saved");
-        }
-        
-        function renderStudentQR(c) { c.innerHTML=`<div class="h-full flex flex-col items-center justify-center p-6"><div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 text-center max-w-sm w-full"><div class="w-24 h-24 bg-slate-50 rounded-full mx-auto mb-4 border-4 border-white shadow-lg flex items-center justify-center text-3xl font-bold text-slate-400">${currentUser.name.charAt(0)}</div><h2 class="text-2xl font-bold text-slate-800">${currentUser.name}</h2><div id="sqr" class="flex justify-center mb-6 p-4 border-2 border-dashed border-slate-200 rounded-2xl mt-4"></div></div></div>`; setTimeout(()=>new QRCode(document.getElementById("sqr"), {text:JSON.stringify({type:'edusaas_student_id',id:currentUser.id,name:currentUser.name}),width:180,height:180}),100); }
-        function renderTeacherClasses(c) {
-             c.innerHTML = `<div class="mb-6"><h2 class="text-2xl font-bold text-slate-800">${getTranslation('title-teacher-classes')}</h2></div><div id="classes-list" class="space-y-4"></div>`;
-             const unsub = window.onSnapshot(window.collection(window.dbFirestore, window.dbCollections.classes), (s) => {
-                const d = s.empty ? {} : s.docs.reduce((a,x)=>({...a,[x.id]:x.data()}),{});
-                document.getElementById('classes-list').innerHTML = db.classes.map(cl => `
-                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex justify-between items-center">
-                        <div><h3 class="font-bold text-lg text-slate-800">${cl.name}</h3><p class="text-sm text-slate-400">${cl.time}</p></div>
-                        <div class="flex gap-3"><label class="w-10 h-10 bg-slate-100 hover:bg-yellow-100 rounded-full flex items-center justify-center cursor-pointer text-slate-500 relative"><i class="fa-solid fa-file-arrow-up"></i><input type="file" class="hidden" onchange="uploadFile('${cl.id}', this)">${d[cl.id]?.currentFile?'<div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>':''}</label><button onclick="startScanning('${cl.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl shadow-lg shadow-blue-200 transition"><i class="fa-solid fa-camera mr-2"></i> Scan</button></div>
-                    </div>`).join('');
-             });
-             firestoreUnsubscribes.push(unsub);
-        }
-        
-        async function uploadFile(cid, input) {
-            if(input.files[0]) {
-                const file = input.files[0];
-                
-                // Read file as Base64 to store in Firestore (since no Storage setup)
-                // Limit size to avoid Firestore quota issues
-                if (file.size > 800000) {
-                     showToast("File too large (>800KB)");
-                     return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = async function(e) {
-                    const base64Data = e.target.result;
-                    // Store both name and data
-                    await window.setDoc(window.doc(window.dbFirestore, window.dbCollections.classes, cid), { 
-                        currentFile: file.name,
-                        currentFileData: base64Data
-                    }, { merge: true });
-                    showToast("File Attached");
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
+        // SCANNER
+        function renderTeacherClasses(c) { c.innerHTML = `<div class="mb-6"><h2 class="text-2xl font-bold text-slate-800">${getTranslation('title-teacher-classes')}</h2></div><div id="classes-list" class="space-y-4"></div>`; const unsub = window.onSnapshot(window.collection(window.dbFirestore, window.dbCollections.classes), (s) => { const d = s.empty ? {} : s.docs.reduce((a,x)=>({...a,[x.id]:x.data()}),{}); document.getElementById('classes-list').innerHTML = db.classes.map(cl => `<div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex justify-between items-center"><div><h3 class="font-bold text-lg text-slate-800">${cl.name}</h3><p class="text-sm text-slate-400">${cl.time}</p></div><div class="flex gap-3"><label class="w-10 h-10 bg-slate-100 hover:bg-yellow-100 rounded-full flex items-center justify-center cursor-pointer text-slate-500 relative"><i class="fa-solid fa-file-arrow-up"></i><input type="file" class="hidden" onchange="uploadFile('${cl.id}', this)">${d[cl.id]?.currentFile?'<div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>':''}</label><button onclick="startScanning('${cl.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl shadow-lg transition"><i class="fa-solid fa-camera mr-2"></i> Scan</button></div></div>`).join(''); }); firestoreUnsubscribes.push(unsub); }
+        async function uploadFile(cid, input) { if(input.files[0]) { const f=input.files[0]; if(f.size>800000){showToast("File too large");return;} const r=new FileReader(); r.onload=async(e)=>{ await window.setDoc(window.doc(window.dbFirestore, window.dbCollections.classes, cid), { currentFile: f.name, currentFileData: e.target.result }, { merge: true }); showToast("Attached"); }; r.readAsDataURL(f); } }
         function startScanning(cid) { activeClassId=cid; renderPage('teacher-scan'); }
-        function manualTeacherScan() { handleTeacherScanSuccess(document.getElementById('manual-student-id').value); }
-        
-        function renderStudentMaterials(c) { 
-            c.innerHTML = `<div class="mb-6"><h2 class="text-2xl font-bold text-slate-800">${getTranslation('title-student-materials')}</h2></div><div id="materials-list" class="space-y-3"></div>`;
-            const ref = window.collection(window.dbFirestore, window.dbCollections.materials);
-            const q = window.query(ref, window.where('studentId', '==', String(currentUser.id)));
-            const unsub = window.onSnapshot(q, (snap) => {
-                const mats = []; snap.forEach(d=>mats.push(d.data()));
-                document.getElementById('materials-list').innerHTML = mats.length ? mats.map(m=>`
-                    <div class="p-4 bg-white rounded-xl border border-slate-100 flex items-center gap-4 group hover:shadow-md transition">
-                        <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-file"></i></div>
-                        <div class="flex-1">
-                            <p class="font-bold text-slate-700 text-sm">${m.fileName}</p>
-                            <p class="text-xs text-slate-400">${m.className}</p>
-                        </div>
-                        <button onclick="downloadFile('${m.fileName}', '${m.fileData}')" class="ml-auto w-8 h-8 flex items-center justify-center text-slate-400 hover:text-blue-600 transition" title="Download">
-                            <i class="fa-solid fa-download"></i>
-                        </button>
-                    </div>`).join('') : `<div class="p-8 text-center text-slate-400">${getTranslation('lbl-no-materials')}</div>`;
-            });
-            firestoreUnsubscribes.push(unsub);
-        }
-        
-        function downloadFile(fileName, fileData) {
-            // Support both text placeholder and real Base64
-            let href = fileData;
-            if (!href || !href.startsWith('data:')) {
-                 href = 'data:text/plain;charset=utf-8,' + encodeURIComponent("File Content Placeholder for " + fileName);
-            }
-            
-            const element = document.createElement('a');
-            element.setAttribute('href', href);
-            element.setAttribute('download', fileName);
-            element.style.display = 'none';
-            document.body.appendChild(element);
-            element.click();
-            document.body.removeChild(element);
-            showToast("Downloading...");
-        }
-
-        // CALENDARS
-        window.changeMonth = changeMonth; 
-        function changeMonth(offset, role) {
-            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + offset);
-            role === 'teacher' ? renderTeacherCalendar(document.getElementById('app-content')) : renderStudentCalendar(document.getElementById('app-content'));
-        }
-
-        function renderTeacherCalendar(container) {
-            container.innerHTML = `
-                <div class="flex flex-col h-full bg-white rounded-3xl shadow-sm border border-slate-100 fade-in overflow-hidden"><div class="p-6 border-b border-slate-50 flex justify-between items-center"><button onclick="changeMonth(-1, 'teacher')" class="p-2"><i class="fa-solid fa-chevron-left"></i></button><h2 id="calendar-title" class="text-lg font-bold"></h2><button onclick="changeMonth(1, 'teacher')" class="p-2"><i class="fa-solid fa-chevron-right"></i></button></div><div class="flex-1 p-8"><div id="calendar-days" class="calendar-grid"></div></div></div>`;
-             renderCalendarGrid('calendar-days', 'calendar-title', {}, 'teacher');
-        }
-
-        function renderStudentCalendar(container) {
-             container.innerHTML = `
-                <div class="flex flex-col h-full bg-white rounded-3xl shadow-sm border border-slate-100 fade-in overflow-hidden"><div class="p-6 border-b border-slate-50 flex justify-between items-center"><button onclick="changeMonth(-1, 'student')" class="p-2"><i class="fa-solid fa-chevron-left"></i></button><h2 id="calendar-title" class="text-lg font-bold"></h2><button onclick="changeMonth(1, 'student')" class="p-2"><i class="fa-solid fa-chevron-right"></i></button></div><div class="flex-1 p-8"><div id="calendar-days" class="calendar-grid"></div></div></div>`;
-             renderCalendarGrid('calendar-days', 'calendar-title', {}, 'student');
-        }
-
-        function renderCalendarGrid(gid, tid, ev, role) {
-            const grid = document.getElementById(gid), title = document.getElementById(tid); if(!grid) return;
-            const y = currentCalendarDate.getFullYear(), m = currentCalendarDate.getMonth();
-            title.innerText = new Date(y, m).toLocaleDateString(currentLang, {month:'long', year:'numeric'});
-            grid.innerHTML = '';
-            const first = new Date(y, m, 1).getDay(), days = new Date(y, m+1, 0).getDate();
-            for(let i=0; i<first; i++) grid.innerHTML+=`<div class="empty"></div>`;
-            for(let i=1; i<=days; i++) grid.innerHTML+=`<div class="calendar-day">${i}</div>`;
-        }
+        function renderTeacherScanner(c) { c.innerHTML = `<div class="max-w-md mx-auto fade-in"><div class="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 relative overflow-hidden"><div class="flex justify-between items-center mb-6"><button onclick="renderPage('teacher-classes')" class="text-slate-400 hover:text-blue-600"><i class="fa-solid fa-arrow-left"></i></button><h3 class="font-bold text-slate-800">Scan</h3><div class="w-6"></div></div><div id="scanner-file-display" class="mb-4 text-xs text-center p-2 bg-slate-50 rounded-lg">Loading...</div><div id="reader" class="rounded-2xl overflow-hidden bg-slate-900 min-h-[300px] shadow-inner relative"><div id="scan-feedback" class="absolute inset-0 z-10 hidden"></div></div><div class="mt-6 flex gap-2"><input id="manual-student-id" placeholder="Enter ID..." class="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-sm outline-none"><button onclick="manualTeacherScan()" class="bg-blue-600 text-white px-4 rounded-xl"><i class="fa-solid fa-check"></i></button></div></div></div>`; const unsub = window.onSnapshot(window.doc(window.dbFirestore, window.dbCollections.classes, activeClassId), (d) => { activeSessionFile = d.data()?.currentFile || null; isFileSynced = true; document.getElementById('scanner-file-display').innerHTML = activeSessionFile ? `<span class="text-green-600 font-bold"><i class="fa-solid fa-paperclip"></i> Sending: ${activeSessionFile}</span>` : `<span class="text-slate-400">No file</span>`; }); firestoreUnsubscribes.push(unsub); setTimeout(() => { activeScanner = new Html5Qrcode("reader"); activeScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, (txt) => { if(!isFileSynced)return; document.getElementById('scan-feedback').classList.add('scan-flash','hidden'); void document.getElementById('scan-feedback').offsetWidth; document.getElementById('scan-feedback').classList.remove('hidden'); document.getElementById('scan-sound').play().catch(()=>{}); handleTeacherScanSuccess(txt); activeScanner.pause(true); setTimeout(()=>activeScanner.resume(), 1500); }); }, 300); }
+        async function handleTeacherScanSuccess(txt) { try { let sData = JSON.parse(txt); const clsSnap = await window.getDoc(window.doc(window.dbFirestore, window.dbCollections.classes, activeClassId)); const f = clsSnap.data()?.currentFile; const fd = clsSnap.data()?.currentFileData; await window.addDoc(window.collection(window.dbFirestore, window.dbCollections.attendance), { studentId: String(sData.id), studentName: sData.name, classId: activeClassId, className: db.classes.find(c=>c.id===activeClassId).name, timestamp: window.Timestamp.now() }); if(f) await window.addDoc(window.collection(window.dbFirestore, window.dbCollections.materials), { studentId: String(sData.id), fileName: f, fileData: fd, classId: activeClassId, className: db.classes.find(c=>c.id===activeClassId).name, timestamp: window.Timestamp.now() }); showToast(`${sData.name} Marked`); } catch(e) { showToast("Error"); } }
+        function manualTeacherScan() { handleTeacherScanSuccess(JSON.stringify({id:document.getElementById('manual-student-id').value, name:"Student"})); }
 
         // CHAT
-        function renderChat(container) {
+        function renderChat(c) {
             let contacts = currentUser.role === 'teacher' ? db.students.map(s => ({id:s.id, name:s.name})) : [{id:db.users.teacher.id, name:db.users.teacher.name}];
             if (!activeChatPartner && contacts.length) activeChatPartner = contacts[0];
-
-            container.innerHTML = `
-                <div class="flex h-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden fade-in">
-                    <div class="w-1/3 border-r border-slate-50 bg-slate-50 flex flex-col">
-                        <div class="p-6 border-b border-slate-100"><h3 class="font-bold text-slate-700">${getTranslation('lbl-contacts')}</h3></div>
-                        <div class="overflow-y-auto flex-1 p-2 space-y-1">
-                            ${contacts.map(c => `<div onclick="switchChat('${c.id}', '${c.name}')" class="p-3 rounded-xl cursor-pointer hover:bg-white transition flex items-center gap-3 ${activeChatPartner?.id === c.id ? 'bg-white shadow-sm ring-1 ring-slate-100' : ''}"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center font-bold relative">${c.name.charAt(0)}<div id="contact-badge-${c.id}" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] flex items-center justify-center hidden border border-white text-white">0</div></div><span id="contact-name-${c.id}" class="font-medium text-slate-700 text-sm">${c.name}</span></div>`).join('')}
-                        </div>
-                    </div>
-                    <div class="flex-1 flex flex-col bg-white">
-                        <div class="p-4 border-b border-slate-50 flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center font-bold">${activeChatPartner?.name.charAt(0)}</div><h4 class="font-bold text-slate-800">${activeChatPartner?.name}</h4></div>
-                        <div id="msg-stream" class="flex-1 p-6 overflow-y-auto space-y-3 bg-slate-50/30"></div>
-                        <div class="p-4 bg-white border-t border-slate-50"><form onsubmit="handleSendMessage(event)" class="flex gap-2"><label class="p-3 text-slate-400 hover:text-blue-600 cursor-pointer transition"><i class="fa-solid fa-paperclip"></i><input type="file" id="chat-file-input" class="hidden" onchange="showFileSelected(this)"></label><div class="flex-1 bg-slate-100 rounded-full flex items-center px-4 border border-transparent focus-within:border-blue-300 focus-within:bg-white transition"><input type="text" id="chat-input" placeholder="${getTranslation('lbl-type-msg')}" class="w-full bg-transparent border-none outline-none text-sm py-3"><span id="file-indicator" class="text-xs text-blue-600 font-bold hidden mr-2"></span></div><button type="submit" class="w-12 h-12 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow-lg shadow-blue-200 transition transform hover:scale-105"><i class="fa-solid fa-paper-plane"></i></button></form></div>
-                    </div>
-                </div>`;
+            c.innerHTML = `<div class="flex h-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden fade-in"><div class="w-1/3 border-r border-slate-50 bg-slate-50 flex flex-col"><div class="p-6 border-b border-slate-100"><h3 class="font-bold text-slate-700">${getTranslation('lbl-contacts')}</h3></div><div class="overflow-y-auto flex-1 p-2 space-y-1">${contacts.map(ct => `<div onclick="switchChat('${ct.id}', '${ct.name}')" class="p-3 rounded-xl cursor-pointer hover:bg-white transition flex items-center gap-3 ${activeChatPartner?.id === ct.id ? 'bg-white shadow-sm ring-1 ring-slate-100' : ''}"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center font-bold relative">${ct.name.charAt(0)}<div id="status-indicator-${ct.id}" class="absolute bottom-0 right-0 w-3 h-3 bg-gray-300 border-2 border-white rounded-full"></div><div id="contact-badge-${ct.id}" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] flex items-center justify-center hidden border border-white text-white">0</div></div><span class="font-medium text-slate-700 text-sm">${ct.name}</span></div>`).join('')}</div></div><div class="flex-1 flex flex-col bg-white"><div class="p-4 border-b border-slate-50 flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center font-bold">${activeChatPartner?.name.charAt(0)}</div><div><h4 class="font-bold text-slate-800">${activeChatPartner?.name}</h4><p id="chat-header-status" class="text-xs text-slate-400">Offline</p></div></div><div id="msg-stream" class="flex-1 p-6 overflow-y-auto space-y-3 bg-slate-50/30"></div><div class="p-4 bg-white border-t border-slate-50"><form onsubmit="handleSendMessage(event)" class="flex gap-2"><label class="p-3 text-slate-400 hover:text-blue-600 cursor-pointer transition"><i class="fa-solid fa-paperclip"></i><input type="file" id="chat-file-input" class="hidden" onchange="showFileSelected(this)"></label><div class="flex-1 bg-slate-100 rounded-full flex items-center px-4"><input type="text" id="chat-input" placeholder="${getTranslation('lbl-type-msg')}" class="w-full bg-transparent border-none outline-none text-sm py-3"><span id="file-indicator" class="text-xs text-blue-600 font-bold hidden mr-2"></span></div><button type="submit" class="w-12 h-12 bg-blue-600 text-white rounded-full"><i class="fa-solid fa-paper-plane"></i></button></form></div></div></div>`;
             if(activeChatPartner) { markMessagesRead(activeChatPartner.id); setupChatListener(activeChatPartner.id); }
-            
-            // Unread Count Listener
+            trackContactsPresence(contacts);
+            // Unread counts
             const msgRef = window.collection(window.dbFirestore, window.dbCollections.messages);
             const q = window.query(msgRef, window.where("receiverId", "==", String(currentUser.id)));
             const countUnsub = window.onSnapshot(q, (snapshot) => {
-                const unreadCounts = {};
-                snapshot.forEach(doc => { 
-                    const data = doc.data(); 
-                    if(data.read === false) unreadCounts[data.senderId] = (unreadCounts[data.senderId] || 0) + 1; 
-                });
-                contacts.forEach(c => {
-                    const el = document.getElementById(`contact-name-${c.id}`), badge = document.getElementById(`contact-badge-${c.id}`), count = unreadCounts[c.id] || 0;
-                    if (el && badge) {
-                        if (count > 0 && activeChatPartner?.id !== c.id) { 
-                            el.classList.add('font-extrabold', 'text-blue-600'); el.classList.remove('font-medium', 'text-slate-700');
-                            badge.innerText = count; badge.classList.remove('hidden');
-                        } else {
-                            el.classList.remove('font-extrabold', 'text-blue-600'); el.classList.add('font-medium', 'text-slate-700');
-                            badge.classList.add('hidden');
-                        }
-                    }
-                });
+                const counts = {}; snapshot.forEach(d => { if(!d.data().read) counts[d.data().senderId] = (counts[d.data().senderId] || 0) + 1; });
+                contacts.forEach(ct => { const b = document.getElementById(`contact-badge-${ct.id}`); if(b) { const cnt=counts[ct.id]||0; b.innerText=cnt; cnt>0?b.classList.remove('hidden'):b.classList.add('hidden'); } });
             });
             firestoreUnsubscribes.push(countUnsub);
         }
-
-        function switchChat(id, name) { activeChatPartner = { id, name }; renderPage('teacher-chat'); }
-
         function setupChatListener(pid) {
             const cid = [String(currentUser.id), String(pid)].sort().join('_');
-            const ref = window.collection(window.dbFirestore, window.dbCollections.messages);
-            const q = window.query(ref, window.where('chatId', '==', cid));
+            const q = window.query(window.collection(window.dbFirestore, window.dbCollections.messages), window.where('chatId', '==', cid));
             const unsub = window.onSnapshot(q, (snap) => {
                 let msgs = []; snap.forEach(d => msgs.push({id: d.id, ...d.data()}));
                 msgs.sort((a,b)=>(a.timestamp?.seconds||0)-(b.timestamp?.seconds||0));
@@ -949,66 +398,61 @@
                     let content = m.text;
                     if(m.file && m.fileData) {
                         const isImg = m.file.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-                        content = isImg 
-                            ? `<div class="mb-1"><img src="${m.fileData}" class="max-w-[150px] rounded-lg cursor-pointer" onclick="viewImage('${m.fileData}')"></div>`
-                            : `<div class="flex items-center gap-2 mb-1 bg-black/10 p-2 rounded"><i class="fa-solid fa-file"></i> <span class="underline text-xs font-bold cursor-pointer" onclick="downloadFile('${m.file}', '${m.fileData}')">${m.file}</span></div>`;
+                        content = isImg ? `<img src="${m.fileData}" class="max-w-[150px] rounded-lg cursor-pointer" onclick="viewImage('${m.fileData}')">` : `<div class="flex items-center gap-2 bg-black/10 p-2 rounded"><i class="fa-solid fa-file"></i> <span class="underline text-xs font-bold cursor-pointer" onclick="downloadFile('${m.file}', '${m.fileData}')">${m.file}</span></div>`;
                     }
+                    // Seen indicator
+                    let status = '';
+                    if(isMe) status = m.read ? '<i class="fa-solid fa-check-double text-blue-300 text-[10px] ml-1"></i>' : '<i class="fa-solid fa-check text-slate-300 text-[10px] ml-1"></i>';
                     
-                    // Add Seen Indicator logic here
-                    let statusHtml = '';
-                    if (isMe) {
-                         statusHtml = m.read 
-                            ? '<i class="fa-solid fa-check-double text-blue-300 text-[10px] ml-1" title="Seen"></i>' 
-                            : '<i class="fa-solid fa-check text-blue-200/60 text-[10px] ml-1" title="Sent"></i>';
-                    }
-
-                    return `<div class="flex w-full ${isMe?'justify-end':'justify-start'} slide-in-right"><div class="msg-bubble px-4 py-3 text-sm ${isMe?'msg-sent':'msg-received'}">
-                        ${content} 
-                        <div class="flex items-center justify-end gap-1 mt-1">
-                            <span class="text-[9px] opacity-70">${new Date(m.timestamp?.seconds*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span>
-                            ${statusHtml}
-                        </div>
-                    </div></div>`;
+                    return `<div class="flex w-full ${isMe?'justify-end':'justify-start'} slide-in-right"><div class="msg-bubble px-4 py-3 text-sm ${isMe?'msg-sent':'msg-received'}">${content} <div class="flex items-center justify-end gap-1 mt-1"><span class="text-[9px] opacity-60">${new Date(m.timestamp?.seconds*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span> ${status}</div></div></div>`;
                 }).join('');
                 div.scrollTop = div.scrollHeight;
             });
             firestoreUnsubscribes.push(unsub);
         }
-        async function handleSendMessage(e) {
-            e.preventDefault(); const inp = document.getElementById('chat-input'), finp = document.getElementById('chat-file-input'), txt = inp.value.trim();
-            const file = finp.files[0];
+        function openChatFromNotif(pid, pname) { document.getElementById('notification-dropdown').classList.add('hidden'); notificationStore=notificationStore.filter(n=>n.senderId!==pid); updateNotificationBadge(); renderNotificationList(); activeChatPartner={id:pid,name:pname}; renderPage('teacher-chat'); markMessagesRead(pid); }
 
-            if(!txt && !file) return;
-            
-            let fileData = null;
-            if(file) {
-                 if (file.size > 800000) { showToast("File too large (>800KB)"); return; }
-                 const reader = new FileReader();
-                 fileData = await new Promise(resolve => { reader.onload = e => resolve(e.target.result); reader.readAsDataURL(file); });
-            }
-
-            const cid = [String(currentUser.id), String(activeChatPartner.id)].sort().join('_');
-            await window.addDoc(window.collection(window.dbFirestore, window.dbCollections.messages), { 
-                chatId: cid, 
-                senderId: String(currentUser.id), 
-                senderName: currentUser.name, 
-                receiverId: String(activeChatPartner.id), 
-                text: txt || (file ? "Sent an attachment" : ""), 
-                file: file ? file.name : null, 
-                fileData: fileData,
-                timestamp: window.Timestamp.now(), 
-                read: false 
+        function setupGlobalNotifications() {
+            if (globalUnsubscribe) globalUnsubscribe();
+            const q = window.query(window.collection(window.dbFirestore, window.dbCollections.messages), window.where("receiverId", "==", String(currentUser.id)));
+            let initialLoad = true;
+            globalUnsubscribe = window.onSnapshot(q, (snap) => {
+                snap.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        const msg = change.doc.data();
+                        // Only notify if unread
+                        if (msg.read !== true && !notificationStore.find(n => n.id === change.doc.id)) {
+                             notificationStore.unshift({ id: change.doc.id, senderId: msg.senderId, senderName: msg.senderName, text: msg.text, time: msg.timestamp ? new Date(msg.timestamp.seconds * 1000) : new Date() });
+                        }
+                        const now = Date.now() / 1000;
+                        const msgTime = msg.timestamp?.seconds || 0;
+                        if (!initialLoad && (now - msgTime) < 10 && msg.read !== true && currentUser.notificationsEnabled !== false) {
+                            document.getElementById('msg-sound').play().catch(()=>{});
+                            showToast(`New message from ${msg.senderName}`);
+                        }
+                    }
+                    if (change.type === "modified" && change.doc.data().read === true) notificationStore = notificationStore.filter(n => n.id !== change.doc.id);
+                });
+                notificationStore.sort((a,b) => b.time - a.time); updateNotificationBadge(); renderNotificationList(); initialLoad = false;
             });
-            inp.value = ''; finp.value = ''; document.getElementById('file-indicator').classList.add('hidden');
         }
-        function showFileSelected(input) { if(input.files[0]) { const el = document.getElementById('file-indicator'); el.innerText = `📎 ${input.files[0].name}`; el.classList.remove('hidden'); } }
+        
+        function renderStudentMaterials(c) { 
+             c.innerHTML = `<div class="mb-6"><h2 class="text-2xl font-bold text-slate-800">${getTranslation('title-student-materials')}</h2></div><div id="materials-list" class="space-y-3"></div>`;
+             const q = window.query(window.collection(window.dbFirestore, window.dbCollections.materials), window.where('studentId', '==', String(currentUser.id)));
+             const unsub = window.onSnapshot(q, (snap) => {
+                const mats = []; snap.forEach(d=>mats.push(d.data()));
+                document.getElementById('materials-list').innerHTML = mats.length ? mats.map(m=>`<div class="p-4 bg-white rounded-xl border border-slate-100 flex items-center gap-4"><div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-file"></i></div><div><p class="font-bold text-slate-700 text-sm">${m.fileName}</p><p class="text-xs text-slate-400">${m.className}</p></div><button onclick="downloadFile('${m.fileName}', '${m.fileData}')" class="ml-auto w-8 h-8 flex items-center justify-center text-slate-400 hover:text-blue-600 transition"><i class="fa-solid fa-download"></i></button></div>`).join('') : `<div class="p-8 text-center text-slate-400">${getTranslation('lbl-no-materials')}</div>`;
+             });
+             firestoreUnsubscribes.push(unsub);
+        }
+        function renderStudentCalendar(c) { c.innerHTML = `<div class="flex flex-col h-full bg-white rounded-3xl shadow-sm border border-slate-100 fade-in overflow-hidden"><div class="p-6 border-b border-slate-50 flex justify-between items-center"><button onclick="changeMonth(-1, 'student')" class="p-2"><i class="fa-solid fa-chevron-left"></i></button><h2 id="calendar-title" class="text-lg font-bold"></h2><button onclick="changeMonth(1, 'student')" class="p-2"><i class="fa-solid fa-chevron-right"></i></button></div><div class="flex-1 p-8"><div id="calendar-days" class="calendar-grid"></div></div></div>`; renderCalendarGrid('calendar-days', 'calendar-title', {}, 'student'); }
+        function renderTeacherCalendar(c) { c.innerHTML = `<div class="flex flex-col h-full bg-white rounded-3xl shadow-sm border border-slate-100 fade-in overflow-hidden"><div class="p-6 border-b border-slate-50 flex justify-between items-center"><button onclick="changeMonth(-1, 'teacher')" class="p-2"><i class="fa-solid fa-chevron-left"></i></button><h2 id="calendar-title" class="text-lg font-bold"></h2><button onclick="changeMonth(1, 'teacher')" class="p-2"><i class="fa-solid fa-chevron-right"></i></button></div><div class="flex-1 p-8"><div id="calendar-days" class="calendar-grid"></div></div></div>`; renderCalendarGrid('calendar-days', 'calendar-title', {}, 'teacher'); }
+        function renderSettings(c) { c.innerHTML = `<div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-sm border border-slate-100 fade-in p-8"><h2 class="text-xl font-bold text-slate-800 mb-6">${getTranslation('title-settings')}</h2><div class="space-y-6"><div><label class="block text-sm font-medium text-slate-700 mb-2">${getTranslation('lbl-display-name')}</label><input type="text" id="settings-name" value="${currentUser.name}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-100 outline-none"></div><div class="pt-4 border-t border-slate-50 flex justify-end"><button onclick="saveSettings()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition">${getTranslation('lbl-save')}</button></div></div></div>`; }
+        function changeMonth(offset, role) { currentCalendarDate.setMonth(currentCalendarDate.getMonth() + offset); role==='teacher'?renderTeacherCalendar(document.getElementById('app-content')):renderStudentCalendar(document.getElementById('app-content')); }
+        function renderCalendarGrid(gid, tid, ev, role) { const grid = document.getElementById(gid), title = document.getElementById(tid); if(!grid) return; const y = currentCalendarDate.getFullYear(), m = currentCalendarDate.getMonth(); title.innerText = new Date(y, m).toLocaleDateString(currentLang, {month:'long', year:'numeric'}); grid.innerHTML = ''; const first = new Date(y, m, 1).getDay(), days = new Date(y, m+1, 0).getDate(); for(let i=0; i<first; i++) grid.innerHTML+=`<div class="empty"></div>`; for(let i=1; i<=days; i++) grid.innerHTML+=`<div class="calendar-day">${i}</div>`; }
+        async function saveSettings() { const n = document.getElementById('settings-name').value.trim(); if(!n) return showToast("Name empty"); await window.setDoc(window.doc(window.dbFirestore, window.dbCollections.users, currentUser.id), {name:n}, {merge:true}); currentUser.name=n; updateUIHeader(); showToast("Saved"); }
 
-        // Helpers
-        window.toggleNotifications=toggleNotifications; window.clearNotifications=clearNotifications; window.openChatFromNotif=openChatFromNotif; window.renderPage=renderPage; window.uploadFile=uploadFile; window.startScanning=startScanning; window.login=login; window.logout=logout; window.saveSettings=saveSettings; window.switchChat=switchChat; window.handleSendMessage=handleSendMessage; window.showFileSelected=showFileSelected; window.manualTeacherScan=manualTeacherScan; window.setLanguage=setLanguage; window.downloadFile=downloadFile; window.viewImage=viewImage;
-
-        function showToast(msg) { const t=document.getElementById('toast'); document.getElementById('toast-msg').innerText=msg; t.classList.remove('translate-y-24','opacity-0'); setTimeout(()=>t.classList.add('translate-y-24','opacity-0'),3000); }
-        function viewImage(src) { const m=document.getElementById('image-modal'); document.getElementById('modal-img').src=src; m.classList.remove('hidden'); }
-        function downloadFile(name, data) { const a=document.createElement('a'); a.href=data; a.download=name; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
     </script>
 </body>
 </html>
