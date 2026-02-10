@@ -69,7 +69,7 @@
 
         function showAuthErrorModal(error) {
             if (document.getElementById('auth-error-modal')) return;
-            // ... (Auth modal logic remains same as established) ...
+
             let title = "⚠️ Connection Issue";
             let message = "We couldn't connect to the authentication server.";
             let steps = "";
@@ -77,16 +77,38 @@
             if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
                 title = "⚠️ Enable Anonymous Auth";
                 message = "The code is correct, but the <b>Anonymous Sign-in</b> method is disabled in your Firebase Console.";
-                steps = `<ol style="list-style-type:decimal; margin-left:20px; color:#e2e8f0; margin-top:10px;"><li>Go to <a href="https://console.firebase.google.com/" target="_blank" style="color:#fbbf24; text-decoration:underline;">Firebase Console</a> > <b>Authentication</b>.</li><li>Click the <b>Sign-in method</b> tab.</li><li>Click <b>Anonymous</b> -> Toggle <b>Enable</b> -> Click <b>Save</b>.</li></ol>`;
+                steps = `
+                    <ol style="list-style-type:decimal; margin-left:20px; color:#e2e8f0; margin-top:10px;">
+                        <li>Go to <a href="https://console.firebase.google.com/" target="_blank" style="color:#fbbf24; text-decoration:underline;">Firebase Console</a> > <b>Authentication</b>.</li>
+                        <li>Click the <b>Sign-in method</b> tab.</li>
+                        <li>Click <b>Anonymous</b> -> Toggle <b>Enable</b> -> Click <b>Save</b>.</li>
+                    </ol>
+                `;
             } else if (error.code === 'permission-denied') {
                  title = "⚠️ Database Permissions";
                  message = "Your database rules are blocking access.";
-                 steps = `<ol style="list-style-type:decimal; margin-left:20px; color:#e2e8f0; margin-top:10px;"><li>Go to <a href="https://console.firebase.google.com/" target="_blank" style="color:#fbbf24; text-decoration:underline;">Firebase Console</a> > <b>Firestore Database</b> > <b>Rules</b>.</li><li>Change to: <code>allow read, write: if true;</code></li><li>Click <b>Publish</b>.</li></ol>`;
+                 steps = `
+                    <ol style="list-style-type:decimal; margin-left:20px; color:#e2e8f0; margin-top:10px;">
+                        <li>Go to <a href="https://console.firebase.google.com/" target="_blank" style="color:#fbbf24; text-decoration:underline;">Firebase Console</a> > <b>Firestore Database</b> > <b>Rules</b>.</li>
+                        <li>Change to: <code>allow read, write: if true;</code></li>
+                        <li>Click <b>Publish</b>.</li>
+                    </ol>
+                 `;
             } else {
                 message = `Error: ${error.message}`;
             }
 
-            const modalHTML = `<div id="auth-error-modal" style="position:fixed; inset:0; background:rgba(15, 23, 42, 0.95); z-index:9999; color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px; font-family:'Outfit', sans-serif;"><h2 style="font-size:2rem; margin-bottom:1rem; color:#fbbf24; font-weight:700;">${title}</h2><p style="max-w:600px; color:#cbd5e1;">${message}</p><div style="text-align:left; background:#1e293b; padding:20px; border-radius:12px; margin-top:20px; border:1px solid #334155; max-width:500px; width:100%;">${steps}<div style="margin-top:15px; font-size:0.75rem; color:#94a3b8; font-family:monospace;">Code: ${error.code}</div></div><button onclick="location.reload()" style="margin-top:30px; padding:12px 30px; background:#2563eb; color:white; border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:1rem; transition:all 0.2s;">Retry Connection</button></div>`;
+            const modalHTML = `
+                <div id="auth-error-modal" style="position:fixed; inset:0; background:rgba(15, 23, 42, 0.95); z-index:9999; color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px; font-family:'Outfit', sans-serif;">
+                    <h2 style="font-size:2rem; margin-bottom:1rem; color:#fbbf24; font-weight:700;">${title}</h2>
+                    <p style="max-w:600px; color:#cbd5e1;">${message}</p>
+                    <div style="text-align:left; background:#1e293b; padding:20px; border-radius:12px; margin-top:20px; border:1px solid #334155; max-width:500px; width:100%;">
+                        ${steps}
+                        <div style="margin-top:15px; font-size:0.75rem; color:#94a3b8; font-family:monospace;">Code: ${error.code}</div>
+                    </div>
+                    <button onclick="location.reload()" style="margin-top:30px; padding:12px 30px; background:#2563eb; color:white; border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:1rem; transition:all 0.2s;">Retry Connection</button>
+                </div>
+            `;
             document.body.insertAdjacentHTML('beforeend', modalHTML);
         }
 
@@ -98,10 +120,15 @@
                     await signInAnonymously(auth);
                  }
              } catch (e) {
-                 try { await signInAnonymously(auth); } catch (err) {
+                 try {
+                     await signInAnonymously(auth);
+                 } catch (err) {
                      console.error("Auth Critical Error:", err);
-                     window.authFailed = true; window.authError = err;
-                     if (typeof __initial_auth_token === 'undefined') showAuthErrorModal(err);
+                     window.authFailed = true;
+                     window.authError = err;
+                     if (typeof __initial_auth_token === 'undefined') {
+                         showAuthErrorModal(err);
+                     }
                  }
              }
         };
@@ -165,76 +192,192 @@
                 <p id="role-display" class="text-[10px] font-semibold text-yellow-500 uppercase tracking-wider mt-1">School Manager</p>
             </div>
         </div>
+        
+        <!-- School Context -->
         <div class="mx-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 mb-2">
             <p id="lbl-active-tenant" class="text-[10px] text-blue-400 uppercase font-bold mb-1">Active Tenant</p>
             <div id="school-name-display" class="font-bold text-sm text-blue-900 truncate">Select Role</div>
         </div>
-        <nav id="nav-menu" class="flex-1 overflow-y-auto py-4 space-y-1 px-4"></nav>
+
+        <nav id="nav-menu" class="flex-1 overflow-y-auto py-4 space-y-1 px-4">
+            <!-- Nav Items -->
+        </nav>
+
         <div class="p-6 border-t border-slate-50">
-            <button onclick="logout()" class="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"><i class="fa-solid fa-right-from-bracket"></i> <span id="lbl-signout">Sign Out</span></button>
+            <button onclick="logout()" class="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+                <i class="fa-solid fa-right-from-bracket"></i> <span id="lbl-signout">Sign Out</span>
+            </button>
         </div>
     </aside>
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-full relative overflow-hidden bg-slate-50/50">
+        
+        <!-- Header -->
         <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 h-20 flex items-center justify-between px-8 shadow-sm z-30 sticky top-0">
             <div class="flex items-center gap-4">
-                <button class="md:hidden text-slate-500 hover:text-blue-600 transition"><i class="fa-solid fa-bars text-xl"></i></button>
+                <button class="md:hidden text-slate-500 hover:text-blue-600 transition">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
                 <h2 id="page-title" class="text-xl font-bold text-slate-800">Dashboard</h2>
             </div>
+
             <div class="flex items-center gap-4 md:gap-6">
                 <!-- Language Selector -->
                 <div class="relative group">
-                    <button class="p-2 text-slate-400 hover:text-blue-600 transition flex items-center gap-1"><i class="fa-solid fa-globe text-lg"></i></button>
+                    <button class="p-2 text-slate-400 hover:text-blue-600 transition flex items-center gap-1">
+                        <i class="fa-solid fa-globe text-lg"></i>
+                    </button>
                     <div class="hidden group-hover:block absolute right-0 mt-0 w-32 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-50">
                         <button onclick="setLanguage('en')" class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50">🇺🇸 English</button>
                         <button onclick="setLanguage('fr')" class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50">🇫🇷 Français</button>
                         <button onclick="setLanguage('ar')" class="block w-full text-right px-4 py-2 text-sm hover:bg-slate-50 font-arabic">🇩🇿 العربية</button>
                     </div>
                 </div>
-                <!-- Notifications -->
+
+                <!-- Notifications with Dropdown -->
                 <div class="relative">
-                    <button onclick="toggleNotifications()" class="relative p-2 text-slate-400 hover:text-blue-600 transition-colors focus:outline-none"><i class="fa-regular fa-bell text-xl"></i><span id="notif-badge" class="absolute top-0 right-0 w-5 h-5 bg-yellow-400 text-blue-900 rounded-full border-2 border-white text-[10px] font-bold flex items-center justify-center hidden shadow-sm">0</span></button>
+                    <button onclick="toggleNotifications()" class="relative p-2 text-slate-400 hover:text-blue-600 transition-colors focus:outline-none">
+                        <i class="fa-regular fa-bell text-xl"></i>
+                        <span id="notif-badge" class="absolute top-0 right-0 w-5 h-5 bg-yellow-400 text-blue-900 rounded-full border-2 border-white text-[10px] font-bold flex items-center justify-center hidden shadow-sm">0</span>
+                    </button>
+                    
+                    <!-- Dropdown Menu -->
                     <div id="notification-dropdown" class="hidden absolute right-0 mt-4 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden transform dropdown-enter">
-                        <div class="p-4 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center"><h3 id="lbl-notif-title" class="font-bold text-slate-700 text-sm">Notifications</h3><button id="lbl-mark-read" onclick="clearNotifications()" class="text-xs text-blue-500 font-medium hover:text-blue-700">Mark all read</button></div>
-                        <div id="notification-list" class="max-h-80 overflow-y-auto"><div class="p-8 text-center text-slate-400 text-xs"><i class="fa-regular fa-bell-slash text-2xl mb-2 opacity-50"></i><p id="lbl-no-notif">No new notifications</p></div></div>
+                        <div class="p-4 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+                            <h3 id="lbl-notif-title" class="font-bold text-slate-700 text-sm">Notifications</h3>
+                            <button id="lbl-mark-read" onclick="clearNotifications()" class="text-xs text-blue-500 font-medium hover:text-blue-700">Mark all read</button>
+                        </div>
+                        <div id="notification-list" class="max-h-80 overflow-y-auto">
+                            <!-- Items Injected Here -->
+                            <div class="p-8 text-center text-slate-400 text-xs">
+                                <i class="fa-regular fa-bell-slash text-2xl mb-2 opacity-50"></i>
+                                <p id="lbl-no-notif">No new notifications</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
                 <div class="h-8 w-px bg-slate-200"></div>
-                <div class="flex items-center gap-3"><div class="text-right hidden sm:block"><p id="user-name" class="text-sm font-bold text-slate-800">Guest</p><p id="user-role" class="text-xs text-slate-500 font-medium">Not Logged In</p></div><div class="w-10 h-10 rounded-full bg-yellow-100 border-2 border-yellow-200 flex items-center justify-center text-yellow-700 font-bold shadow-sm" id="user-initials">?</div></div>
+                
+                <div class="flex items-center gap-3">
+                    <div class="text-right hidden sm:block">
+                        <p id="user-name" class="text-sm font-bold text-slate-800">Guest</p>
+                        <p id="user-role" class="text-xs text-slate-500 font-medium">Not Logged In</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-yellow-100 border-2 border-yellow-200 flex items-center justify-center text-yellow-700 font-bold shadow-sm" id="user-initials">?</div>
+                </div>
             </div>
         </header>
-        <div id="app-content" class="flex-1 overflow-y-auto p-8 relative scroll-smooth"></div>
+
+        <!-- Dynamic View Container -->
+        <div id="app-content" class="flex-1 overflow-y-auto p-8 relative scroll-smooth">
+            <!-- Views injected here -->
+        </div>
+
+        <!-- Connection Status Bar -->
+        <div class="bg-slate-900 text-white text-[10px] py-1 px-4 flex justify-between items-center z-50">
+            <div class="flex items-center gap-2" id="conn-status">
+                <span id="conn-dot" class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
+                <span id="conn-text" class="text-yellow-400">Connecting...</span>
+            </div>
+            <div id="debug-user-id" class="text-slate-500 font-mono"></div>
+        </div>
+
     </main>
 
     <!-- Login Modal -->
     <div id="login-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity">
         <div class="bg-white rounded-3xl shadow-2xl max-w-5xl w-full overflow-hidden flex flex-col md:flex-row fade-in border border-white/20">
+            <!-- Left Side: Brand -->
             <div class="md:w-5/12 bg-blue-600 p-12 flex flex-col justify-center text-white relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                <div class="relative z-10"><div class="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-3xl font-bold mb-6">E</div><h1 class="text-4xl font-bold mb-4 tracking-tight">EduSaaS</h1><p class="text-blue-100 text-lg mb-8 leading-relaxed">The next-gen platform for modern schools. Scan, track, and learn.</p><div class="space-y-4 text-sm font-medium text-blue-50"><div class="flex items-center gap-3 bg-blue-700/30 p-3 rounded-xl border border-blue-500/30"><i class="fa-solid fa-qrcode text-yellow-400"></i> <span id="lbl-feat-attendance">Smart Attendance</span></div><div class="flex items-center gap-3 bg-blue-700/30 p-3 rounded-xl border border-blue-500/30"><i class="fa-solid fa-comments text-yellow-400"></i> <span id="lbl-feat-chat">Real-time Chat</span></div></div></div>
+                <div class="relative z-10">
+                    <div class="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-3xl font-bold mb-6">E</div>
+                    <h1 class="text-4xl font-bold mb-4 tracking-tight">EduSaaS</h1>
+                    <p class="text-blue-100 text-lg mb-8 leading-relaxed">The next-gen platform for modern schools. Scan, track, and learn.</p>
+                    <div class="space-y-4 text-sm font-medium text-blue-50">
+                        <div class="flex items-center gap-3 bg-blue-700/30 p-3 rounded-xl border border-blue-500/30">
+                            <i class="fa-solid fa-qrcode text-yellow-400"></i> <span id="lbl-feat-attendance">Smart Attendance</span>
+                        </div>
+                        <div class="flex items-center gap-3 bg-blue-700/30 p-3 rounded-xl border border-blue-500/30">
+                            <i class="fa-solid fa-comments text-yellow-400"></i> <span id="lbl-feat-chat">Real-time Chat</span>
+                        </div>
+                    </div>
+                </div>
             </div>
+            <!-- Right Side: Roles -->
             <div class="md:w-7/12 p-12 bg-white">
-                <h2 id="lbl-welcome" class="text-2xl font-bold text-slate-800 mb-2">Welcome Back</h2><p id="lbl-select-role" class="text-slate-500 mb-8">Select your role to access the dashboard.</p>
+                <h2 id="lbl-welcome" class="text-2xl font-bold text-slate-800 mb-2">Welcome Back</h2>
+                <p id="lbl-select-role" class="text-slate-500 mb-8">Select your role to access the dashboard.</p>
+                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <button onclick="login('superadmin')" class="p-5 border border-slate-200 rounded-2xl hover:border-purple-500 hover:bg-purple-50 hover:shadow-md transition-all group text-left"><div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-shield-halved"></i></div><span id="lbl-role-super" class="font-bold text-slate-700 group-hover:text-purple-700 block">Super Admin</span><span id="lbl-desc-super" class="text-xs text-slate-400">Platform Owner</span></button>
-                    <button onclick="login('schooladmin')" class="p-5 border border-slate-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 hover:shadow-md transition-all group text-left"><div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-building-columns"></i></div><span id="lbl-role-admin" class="font-bold text-slate-700 group-hover:text-blue-700 block">School Admin</span><span id="lbl-desc-admin" class="text-xs text-slate-400">Principal/Staff</span></button>
-                    <button onclick="login('teacher')" class="p-5 border border-slate-200 rounded-2xl hover:border-green-500 hover:bg-green-50 hover:shadow-md transition-all group text-left"><div class="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-chalkboard-user"></i></div><span id="lbl-role-teacher" class="font-bold text-slate-700 group-hover:text-green-700 block">Teacher</span><span id="lbl-desc-teacher" class="text-xs text-slate-400">Faculty Member</span></button>
-                    <div class="p-5 border border-slate-200 rounded-2xl bg-yellow-50/50 hover:shadow-md transition-all group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center"><i class="fa-solid fa-graduation-cap"></i></div><div><span id="lbl-role-student" class="font-bold text-slate-700 block">Student</span><span id="lbl-select-profile" class="text-xs text-slate-400">Select Profile</span></div></div><div class="space-y-2 pl-2"><button onclick="login('student1')" class="w-full text-left text-xs font-bold text-slate-600 hover:text-yellow-600 flex items-center gap-2"><span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Yacine Brahimi</button><button onclick="login('student2')" class="w-full text-left text-xs font-bold text-slate-600 hover:text-yellow-600 flex items-center gap-2"><span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Meriem Hadjadj</button><button onclick="login('student3')" class="w-full text-left text-xs font-bold text-slate-600 hover:text-yellow-600 flex items-center gap-2"><span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Youcef Belaili</button></div></div>
+                    <button onclick="login('superadmin')" class="p-5 border border-slate-200 rounded-2xl hover:border-purple-500 hover:bg-purple-50 hover:shadow-md transition-all group text-left">
+                        <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-shield-halved"></i></div>
+                        <span id="lbl-role-super" class="font-bold text-slate-700 group-hover:text-purple-700 block">Super Admin</span>
+                        <span id="lbl-desc-super" class="text-xs text-slate-400">Platform Owner</span>
+                    </button>
+
+                    <button onclick="login('schooladmin')" class="p-5 border border-slate-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 hover:shadow-md transition-all group text-left">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-building-columns"></i></div>
+                        <span id="lbl-role-admin" class="font-bold text-slate-700 group-hover:text-blue-700 block">School Admin</span>
+                        <span id="lbl-desc-admin" class="text-xs text-slate-400">Principal/Staff</span>
+                    </button>
+
+                    <button onclick="login('teacher')" class="p-5 border border-slate-200 rounded-2xl hover:border-green-500 hover:bg-green-50 hover:shadow-md transition-all group text-left">
+                        <div class="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-chalkboard-user"></i></div>
+                        <span id="lbl-role-teacher" class="font-bold text-slate-700 group-hover:text-green-700 block">Teacher</span>
+                        <span id="lbl-desc-teacher" class="text-xs text-slate-400">Faculty Member</span>
+                    </button>
+
+                    <!-- Student Selection Group -->
+                    <div class="p-5 border border-slate-200 rounded-2xl bg-yellow-50/50 hover:shadow-md transition-all group">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center"><i class="fa-solid fa-graduation-cap"></i></div>
+                            <div>
+                                <span id="lbl-role-student" class="font-bold text-slate-700 block">Student</span>
+                                <span id="lbl-select-profile" class="text-xs text-slate-400">Select Profile</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2 pl-2">
+                            <button onclick="login('student1')" class="w-full text-left text-xs font-bold text-slate-600 hover:text-yellow-600 flex items-center gap-2">
+                                <span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Yacine Brahimi
+                            </button>
+                            <button onclick="login('student2')" class="w-full text-left text-xs font-bold text-slate-600 hover:text-yellow-600 flex items-center gap-2">
+                                <span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Meriem Hadjadj
+                            </button>
+                            <button onclick="login('student3')" class="w-full text-left text-xs font-bold text-slate-600 hover:text-yellow-600 flex items-center gap-2">
+                                <span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Youcef Belaili
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modals & Toasts -->
-    <div id="image-modal" class="fixed inset-0 z-[100] bg-black/90 hidden flex items-center justify-center p-4 cursor-pointer" onclick="this.classList.add('hidden')"><img id="modal-img" src="" class="max-w-full max-h-full rounded-lg shadow-2xl"></div>
-    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 z-50 flex items-center gap-4"><div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white shrink-0"><i class="fa-solid fa-check"></i></div><span id="toast-msg" class="font-medium text-sm">Notification</span></div>
+    <!-- Image Viewer Modal -->
+    <div id="image-modal" class="fixed inset-0 z-[100] bg-black/90 hidden flex items-center justify-center p-4 cursor-pointer" onclick="this.classList.add('hidden')">
+        <img id="modal-img" src="" class="max-w-full max-h-full rounded-lg shadow-2xl">
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 z-50 flex items-center gap-4">
+        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white shrink-0"><i class="fa-solid fa-check"></i></div>
+        <span id="toast-msg" class="font-medium text-sm">Notification</span>
+    </div>
+
+    <!-- Audio Assets -->
     <audio id="scan-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
     <audio id="msg-sound" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3" preload="auto"></audio>
 
     <script>
+        // --- 1. STATE & DATA ---
         const db = {
-            schools: [{ id: 's1', name: 'École Privée El Nardjess' }, { id: 's2', name: 'Lycée Emir Abdelkader' }],
+            schools: [
+                { id: 's1', name: 'École Privée El Nardjess', type: 'Private' },
+                { id: 's2', name: 'Lycée Emir Abdelkader', type: 'Public' }
+            ],
             users: {
                 superadmin: { name: 'Amine Benali', role: 'superadmin', schoolId: null, id: 'super_dz' },
                 schooladmin: { name: 'Mourad Boukhalfa', role: 'schooladmin', schoolId: 's1', id: 'admin_dz' },
@@ -243,11 +386,99 @@
                 student2: { name: 'Meriem Hadjadj', role: 'student', schoolId: 's1', id: 'student_dz_2' },
                 student3: { name: 'Youcef Belaili', role: 'student', schoolId: 's1', id: 'student_dz_3' }
             },
-            classes: [{ id: 'c1', name: 'Advanced Calculus', time: '09:00 AM', room: '101', currentFile: null }, { id: 'c2', name: 'Linear Algebra', time: '11:00 AM', room: '102', currentFile: null }],
-            students: [ { id: 'student_dz_1', name: 'Yacine Brahimi' }, { id: 'student_dz_2', name: 'Meriem Hadjadj' }, { id: 'student_dz_3', name: 'Youcef Belaili' }, { id: 'student_dz_4', name: 'Sofiane Feghouli' } ]
+            classes: [
+                { id: 'c1', name: 'Advanced Calculus', time: '09:00 AM', room: '101', currentFile: null },
+                { id: 'c2', name: 'Linear Algebra', time: '11:00 AM', room: '102', currentFile: null }
+            ],
+            students: [
+                { id: 'student_dz_1', name: 'Yacine Brahimi', attendance: 85, tuitionStatus: 'Paid', tuitionDue: 0 },
+                { id: 'student_dz_2', name: 'Meriem Hadjadj', attendance: 100, tuitionStatus: 'Paid', tuitionDue: 0 },
+                { id: 'student_dz_3', name: 'Youcef Belaili', attendance: 92, tuitionStatus: 'Overdue', tuitionDue: 1200 },
+                { id: 'student_dz_4', name: 'Sofiane Feghouli', attendance: 45, tuitionStatus: 'Pending', tuitionDue: 500 },
+            ]
         };
 
-        const translations = { en: { 'lbl-active-tenant': 'Active Tenant', 'lbl-signout': 'Sign Out', 'lbl-notif-title': 'Notifications', 'lbl-mark-read': 'Mark all read', 'lbl-no-notif': 'No new notifications', 'lbl-contacts': 'Contacts', 'lbl-type-msg': 'Type message...', 'lbl-display-name': 'Display Name', 'lbl-save': 'Save Changes', 'title-teacher-classes': 'My Classes', 'title-teacher-calendar': 'Attendance Records', 'title-teacher-chat': 'Messages', 'title-student-qr': 'My Digital ID', 'title-student-calendar': 'My History', 'title-student-materials': 'Materials', 'title-settings': 'Account Settings', 'lbl-sending': 'Sending:', 'lbl-no-file': 'No file attached', 'lbl-file-loading': 'Loading status...', 'lbl-no-materials': 'No materials received' }, fr: { 'lbl-active-tenant': 'Locataire Actif', 'lbl-signout': 'Déconnexion', 'lbl-notif-title': 'Notifications', 'lbl-mark-read': 'Tout lu', 'lbl-no-notif': 'Aucune notif', 'lbl-contacts': 'Contacts', 'lbl-type-msg': 'Message...', 'lbl-display-name': 'Nom', 'lbl-save': 'Enregistrer', 'title-teacher-classes': 'Mes Cours', 'title-teacher-calendar': 'Présence', 'title-teacher-chat': 'Messages', 'title-student-qr': 'Mon ID', 'title-student-calendar': 'Historique', 'title-student-materials': 'Matériaux', 'title-settings': 'Paramètres', 'lbl-sending': 'Envoi:', 'lbl-no-file': 'Aucun fichier', 'lbl-file-loading': 'Chargement...', 'lbl-no-materials': 'Aucun matériel' }, ar: { 'lbl-active-tenant': 'المستأجر', 'lbl-signout': 'خروج', 'lbl-notif-title': 'إشعارات', 'lbl-mark-read': 'قراءة الكل', 'lbl-no-notif': 'لا إشعارات', 'lbl-contacts': 'جهات الاتصال', 'lbl-type-msg': 'رسالة...', 'lbl-display-name': 'الاسم', 'lbl-save': 'حفظ', 'title-teacher-classes': 'فصولي', 'title-teacher-calendar': 'الحضور', 'title-teacher-chat': 'الرسائل', 'title-student-qr': 'هويتي', 'title-student-calendar': 'التاريخ', 'title-student-materials': 'المواد', 'title-settings': 'الإعدادات', 'lbl-sending': 'جاري الإرسال:', 'lbl-no-file': 'بلا ملف', 'lbl-file-loading': 'تحميل...', 'lbl-no-materials': 'لا مواد' } };
+        // --- TRANSLATIONS ---
+        const translations = {
+            en: {
+                'lbl-active-tenant': 'Active Tenant',
+                'lbl-signout': 'Sign Out',
+                'lbl-notif-title': 'Notifications',
+                'lbl-mark-read': 'Mark all read',
+                'lbl-no-notif': 'No new notifications',
+                'lbl-feat-attendance': 'Smart Attendance',
+                'lbl-feat-chat': 'Real-time Chat',
+                'lbl-welcome': 'Welcome Back',
+                'lbl-select-role': 'Select your role to access the dashboard.',
+                'title-teacher-classes': 'My Classes',
+                'title-teacher-calendar': 'Attendance Records',
+                'title-teacher-chat': 'Messages',
+                'title-student-qr': 'My Digital ID',
+                'title-student-calendar': 'My History',
+                'title-student-materials': 'Materials',
+                'title-settings': 'Account Settings',
+                'lbl-sending': 'Sending:',
+                'lbl-no-file': 'No file attached',
+                'lbl-file-loading': 'Loading status...',
+                'lbl-contacts': 'Contacts',
+                'lbl-type-msg': 'Type message...',
+                'lbl-display-name': 'Display Name',
+                'lbl-save': 'Save Changes',
+                'lbl-no-materials': 'No materials received yet'
+            },
+            fr: {
+                'lbl-active-tenant': 'Locataire Actif',
+                'lbl-signout': 'Déconnexion',
+                'lbl-notif-title': 'Notifications',
+                'lbl-mark-read': 'Tout marquer comme lu',
+                'lbl-no-notif': 'Aucune nouvelle notification',
+                'lbl-feat-attendance': 'Présence Intelligente',
+                'lbl-feat-chat': 'Chat en temps réel',
+                'lbl-welcome': 'Bon retour',
+                'lbl-select-role': 'Sélectionnez votre rôle pour accéder au tableau de bord.',
+                'title-teacher-classes': 'Mes Cours',
+                'title-teacher-calendar': 'Registres de Présence',
+                'title-teacher-chat': 'Messages',
+                'title-student-qr': 'Mon ID Numérique',
+                'title-student-calendar': 'Mon Historique',
+                'title-student-materials': 'Matériaux',
+                'title-settings': 'Paramètres du Compte',
+                'lbl-sending': 'Envoi:',
+                'lbl-no-file': 'Aucun fichier joint',
+                'lbl-file-loading': 'Chargement...',
+                'lbl-contacts': 'Contacts',
+                'lbl-type-msg': 'Tapez un message...',
+                'lbl-display-name': 'Nom d\'affichage',
+                'lbl-save': 'Enregistrer',
+                'lbl-no-materials': 'Aucun matériel reçu'
+            },
+            ar: {
+                'lbl-active-tenant': 'المستأجر النشط',
+                'lbl-signout': 'تسجيل الخروج',
+                'lbl-notif-title': 'إشعارات',
+                'lbl-mark-read': 'ضع علامة مقروء على الكل',
+                'lbl-no-notif': 'لا إشعارات جديدة',
+                'lbl-feat-attendance': 'الحضور الذكي',
+                'lbl-feat-chat': 'دردشة حية',
+                'lbl-welcome': 'مرحبا بعودتك',
+                'lbl-select-role': 'اختر دورك للوصول إلى لوحة القيادة.',
+                'title-teacher-classes': 'فصولي',
+                'title-teacher-calendar': 'سجلات الحضور',
+                'title-teacher-chat': 'الرسائل',
+                'title-student-qr': 'هويتي الرقمية',
+                'title-student-calendar': 'تاريخي',
+                'title-student-materials': 'المواد',
+                'title-settings': 'إعدادات الحساب',
+                'lbl-sending': 'جاري الإرسال:',
+                'lbl-no-file': 'لم يتم إرفاق ملف',
+                'lbl-file-loading': 'جار التحميل...',
+                'lbl-contacts': 'جهات الاتصال',
+                'lbl-type-msg': 'اكتب رسالة...',
+                'lbl-display-name': 'الاسم المعروض',
+                'lbl-save': 'حفظ التغييرات',
+                'lbl-no-materials': 'لم يتم استلام أي مواد'
+            }
+        };
 
         let currentLang = 'en', currentUser = null, activeClassId = null, activeScanner = null, activeChatPartner = null;
         let firestoreUnsubscribes = [], globalUnsubscribe = null, userProfileUnsubscribe = null, notificationStore = [], currentCalendarDate = new Date(), activeSessionFile = null, isFileSynced = false, heartbeatInterval = null, presenceUnsubscribes = [];
@@ -298,6 +529,11 @@
             setupGlobalNotifications();
             renderPage(isStudent ? 'student-qr' : (defUser.role === 'teacher' ? 'teacher-classes' : 'saas-dashboard'));
             showToast(`Welcome back, ${currentUser.name}`);
+            
+            // Visual feedback
+            const dot = document.getElementById('conn-status-dot');
+            const txt = document.getElementById('conn-status-text');
+            if(dot && txt) { dot.className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"; txt.innerText="Live"; }
         }
 
         // PRESENCE
@@ -370,10 +606,10 @@
         function manualTeacherScan() { handleTeacherScanSuccess(JSON.stringify({id:document.getElementById('manual-student-id').value, name:"Student"})); }
 
         // CHAT
-        function renderChat(c) {
+        function renderChat(container) {
             let contacts = currentUser.role === 'teacher' ? db.students.map(s => ({id:s.id, name:s.name})) : [{id:db.users.teacher.id, name:db.users.teacher.name}];
             if (!activeChatPartner && contacts.length) activeChatPartner = contacts[0];
-            c.innerHTML = `<div class="flex h-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden fade-in"><div class="w-1/3 border-r border-slate-50 bg-slate-50 flex flex-col"><div class="p-6 border-b border-slate-100"><h3 class="font-bold text-slate-700">${getTranslation('lbl-contacts')}</h3></div><div class="overflow-y-auto flex-1 p-2 space-y-1">${contacts.map(ct => `<div onclick="switchChat('${ct.id}', '${ct.name}')" class="p-3 rounded-xl cursor-pointer hover:bg-white transition flex items-center gap-3 ${activeChatPartner?.id === ct.id ? 'bg-white shadow-sm ring-1 ring-slate-100' : ''}"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center font-bold relative">${ct.name.charAt(0)}<div id="status-indicator-${ct.id}" class="absolute bottom-0 right-0 w-3 h-3 bg-gray-300 border-2 border-white rounded-full"></div><div id="contact-badge-${ct.id}" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] flex items-center justify-center hidden border border-white text-white">0</div></div><span class="font-medium text-slate-700 text-sm">${ct.name}</span></div>`).join('')}</div></div><div class="flex-1 flex flex-col bg-white"><div class="p-4 border-b border-slate-50 flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center font-bold">${activeChatPartner?.name.charAt(0)}</div><div><h4 class="font-bold text-slate-800">${activeChatPartner?.name}</h4><p id="chat-header-status" class="text-xs text-slate-400">Offline</p></div></div><div id="msg-stream" class="flex-1 p-6 overflow-y-auto space-y-3 bg-slate-50/30"></div><div class="p-4 bg-white border-t border-slate-50"><form onsubmit="handleSendMessage(event)" class="flex gap-2"><label class="p-3 text-slate-400 hover:text-blue-600 cursor-pointer transition"><i class="fa-solid fa-paperclip"></i><input type="file" id="chat-file-input" class="hidden" onchange="showFileSelected(this)"></label><div class="flex-1 bg-slate-100 rounded-full flex items-center px-4"><input type="text" id="chat-input" placeholder="${getTranslation('lbl-type-msg')}" class="w-full bg-transparent border-none outline-none text-sm py-3"><span id="file-indicator" class="text-xs text-blue-600 font-bold hidden mr-2"></span></div><button type="submit" class="w-12 h-12 bg-blue-600 text-white rounded-full"><i class="fa-solid fa-paper-plane"></i></button></form></div></div></div>`;
+            container.innerHTML = `<div class="flex h-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden fade-in"><div class="w-1/3 border-r border-slate-50 bg-slate-50 flex flex-col"><div class="p-6 border-b border-slate-100"><h3 class="font-bold text-slate-700">${getTranslation('lbl-contacts')}</h3></div><div class="overflow-y-auto flex-1 p-2 space-y-1">${contacts.map(ct => `<div onclick="switchChat('${ct.id}', '${ct.name}')" class="p-3 rounded-xl cursor-pointer hover:bg-white transition flex items-center gap-3 ${activeChatPartner?.id === ct.id ? 'bg-white shadow-sm ring-1 ring-slate-100' : ''}"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center font-bold relative">${ct.name.charAt(0)}<div id="status-indicator-${ct.id}" class="absolute bottom-0 right-0 w-3 h-3 bg-gray-300 border-2 border-white rounded-full"></div><div id="contact-badge-${ct.id}" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] flex items-center justify-center hidden border border-white text-white">0</div></div><span class="font-medium text-slate-700 text-sm">${ct.name}</span></div>`).join('')}</div></div><div class="flex-1 flex flex-col bg-white"><div class="p-4 border-b border-slate-50 flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center font-bold">${activeChatPartner?.name.charAt(0)}</div><div><h4 class="font-bold text-slate-800">${activeChatPartner?.name}</h4><p id="chat-header-status" class="text-xs text-slate-400">Offline</p></div></div><div id="msg-stream" class="flex-1 p-6 overflow-y-auto space-y-3 bg-slate-50/30"></div><div class="p-4 bg-white border-t border-slate-50"><form onsubmit="handleSendMessage(event)" class="flex gap-2"><label class="p-3 text-slate-400 hover:text-blue-600 cursor-pointer transition"><i class="fa-solid fa-paperclip"></i><input type="file" id="chat-file-input" class="hidden" onchange="showFileSelected(this)"></label><div class="flex-1 bg-slate-100 rounded-full flex items-center px-4 border border-transparent focus-within:border-blue-300 focus-within:bg-white transition"><input type="text" id="chat-input" placeholder="${getTranslation('lbl-type-msg')}" class="w-full bg-transparent border-none outline-none text-sm py-3"><span id="file-indicator" class="text-xs text-blue-600 font-bold hidden mr-2"></span></div><button type="submit" class="w-12 h-12 bg-blue-600 text-white rounded-full"><i class="fa-solid fa-paper-plane"></i></button></form></div></div></div>`;
             if(activeChatPartner) { markMessagesRead(activeChatPartner.id); setupChatListener(activeChatPartner.id); }
             trackContactsPresence(contacts);
             // Unread counts
@@ -385,9 +621,11 @@
             });
             firestoreUnsubscribes.push(countUnsub);
         }
+        function switchChat(id, name) { activeChatPartner = { id, name }; renderPage('teacher-chat'); }
         function setupChatListener(pid) {
             const cid = [String(currentUser.id), String(pid)].sort().join('_');
-            const q = window.query(window.collection(window.dbFirestore, window.dbCollections.messages), window.where('chatId', '==', cid));
+            const ref = window.collection(window.dbFirestore, window.dbCollections.messages);
+            const q = window.query(ref, window.where('chatId', '==', cid));
             const unsub = window.onSnapshot(q, (snap) => {
                 let msgs = []; snap.forEach(d => msgs.push({id: d.id, ...d.data()}));
                 msgs.sort((a,b)=>(a.timestamp?.seconds||0)-(b.timestamp?.seconds||0));
