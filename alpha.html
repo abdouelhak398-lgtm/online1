@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EduSaaS - Professional Academic OS</title>
+    <title>Edu-Alg - Professional Academic OS</title>
     <!-- Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -41,11 +41,11 @@
 
     <style>
         :root {
-            --bg-body: #f1f5f9;      /* Slate 100 for depth */
+            --bg-body: #f1f5f9;
             --bg-surface: #ffffff;
-            --text-primary: #020617; /* Hard Slate 950 for Light Mode visibility */
+            --text-primary: #020617;
             --text-secondary: #334155;
-            --border-color: #cbd5e1; /* Slate 300 for visible grid/borders */
+            --border-color: #cbd5e1;
         }
 
         .dark {
@@ -64,7 +64,6 @@
             overflow-x: hidden;
         }
 
-        /* HARD CONTRAST FIXES FOR HEADERS */
         #page-title, .logo-text { color: #020617 !important; font-weight: 900 !important; }
         .dark #page-title, .dark .logo-text { color: #ffffff !important; }
 
@@ -85,51 +84,61 @@
         .sidebar-nav-item:hover { background-color: rgba(79, 70, 229, 0.1); color: #4f46e5; }
         .sidebar-nav-item.active { background-color: #4f46e5; color: white !important; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
 
-        /* Timetable Grid - High Contrast */
         .grid-container {
-            display: grid; grid-template-columns: 80px repeat(7, 1fr); gap: 1px;
+            display: grid; 
+            grid-template-columns: 100px 1fr;
+            gap: 1px;
             background-color: var(--border-color); border: 2px solid var(--border-color);
             border-radius: 1rem; overflow: hidden;
         }
-        .grid-header { background-color: #f8fafc; color: #020617; font-weight: 900; font-size: 11px; text-transform: uppercase; padding: 1rem 0.5rem; text-align: center; }
+        .grid-header { 
+            background-color: #f8fafc; 
+            color: #020617; 
+            font-weight: 900; 
+            font-size: 11px; 
+            text-transform: uppercase; 
+            padding: 1.5rem 1rem; 
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
         .dark .grid-header { background-color: #1e293b; color: #f8fafc; }
         
-        .grid-slot { background-color: var(--bg-surface); min-height: 110px; padding: 0.5rem; position: relative; }
-        .grid-time-col { background-color: #e2e8f0; color: #020617; font-weight: 900; font-size: 10px; display: flex; align-items: center; justify-content: center; }
+        .grid-slot { background-color: var(--bg-surface); min-height: 120px; padding: 0.75rem; position: relative; }
+        .grid-time-col { background-color: #e2e8f0; color: #020617; font-weight: 900; font-size: 11px; display: flex; align-items: center; justify-content: center; }
         .dark .grid-time-col { background-color: #020617; color: #94a3b8; }
 
         .class-tag { 
-            background: #eef2ff; border-left: 4px solid #4f46e5;
-            padding: 0.5rem; border-radius: 0.5rem; font-size: 10px; font-weight: 800;
+            background: #eef2ff; border-left: 5px solid #cbd5e1;
+            padding: 0.75rem; border-radius: 0.75rem; font-size: 11px; font-weight: 800;
             color: #1e1b4b; height: 100%; display: flex; flex-direction: column;
-            justify-content: space-between;
+            justify-content: center; transition: all 0.4s ease;
         }
-        .dark .class-tag { color: #eef2ff; background: rgba(79, 70, 229, 0.2); }
+        .dark .class-tag { color: #eef2ff; background: rgba(255, 255, 255, 0.03); }
 
-        /* LIVE SYNC HIGHLIGHT */
         @keyframes live-pulse {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); border-color: #10b981; }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); border-color: #10b981; }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); border-color: #10b981; }
         }
         .live-now-glow {
             border: 2px solid #10b981 !important;
+            border-left: 5px solid #10b981 !important;
             background: rgba(16, 185, 129, 0.05) !important;
             animation: live-pulse 2s infinite;
         }
         .live-label {
             background-color: #10b981;
             color: white;
-            padding: 2px 4px;
+            padding: 3px 6px;
             border-radius: 4px;
-            font-size: 8px;
+            font-size: 9px;
             text-transform: uppercase;
             font-weight: 900;
             align-self: flex-start;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
         }
 
-        /* Custom Inputs */
         input, select, textarea {
             background-color: var(--bg-surface);
             border: 2px solid var(--border-color);
@@ -147,12 +156,6 @@
         }
         .btn-pro:active { transform: scale(0.97); }
 
-        /* Inbox Fixes */
-        .msg-bubble { max-width: 80%; padding: 0.75rem 1.25rem; border-radius: 1.25rem; font-size: 0.95rem; line-height: 1.5; font-weight: 500; }
-        .msg-sent { background-color: #4f46e5; color: white; border-bottom-right-radius: 0.25rem; }
-        .msg-received { background-color: #e2e8f0; color: #020617; border: 1px solid #cbd5e1; border-bottom-left-radius: 0.25rem; }
-        .dark .msg-received { background-color: #1e293b; color: white; border-color: #334155; }
-
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -169,7 +172,7 @@
         <div class="p-8 flex items-center gap-4">
             <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg">E</div>
             <div>
-                <h1 class="text-xl font-black uppercase tracking-tight logo-text">EduSaaS</h1>
+                <h1 class="text-xl font-black uppercase tracking-tight logo-text">Edu-Alg</h1>
                 <p class="text-[9px] font-bold uppercase tracking-widest text-primary">Academic OS</p>
             </div>
         </div>
@@ -198,7 +201,7 @@
                     <h2 id="page-title" class="text-lg lg:text-xl font-black uppercase tracking-tight">Workspace</h2>
                     <div class="flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-success animate-pulse"></span>
-                        <span class="text-[9px] font-black uppercase tracking-widest text-success font-black">Secure Sync Active</span>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-success">Secure Sync Active</span>
                     </div>
                 </div>
             </div>
@@ -225,78 +228,23 @@
     <!-- Global Modals -->
     <div id="modal-container" class="fixed inset-0 z-[150] bg-black/70 backdrop-blur-md hidden flex items-center justify-center p-4">
         
-        <!-- Assignment Creation (Teacher) -->
-        <div id="hw-mgmt-modal-content" class="bg-surface rounded-[2rem] shadow-2xl max-w-lg w-full p-10 fade-in hidden border border-color relative" style="background-color: var(--bg-surface); border-color: var(--border-color);">
-            <button type="button" onclick="window.closeConfirmModal()" class="absolute top-8 right-8 text-secondary hover:text-danger transition-all"><i class="fa-solid fa-xmark text-2xl"></i></button>
-            <h3 class="text-2xl font-black mb-8 text-center uppercase tracking-tight">Issue Assignment</h3>
-            <form id="hw-form" onsubmit="window.handleHWSave(event)" class="space-y-5">
-                <input id="hw-title-input" type="text" placeholder="Title of Task" class="font-bold">
-                <textarea id="hw-desc-input" placeholder="Technical objectives..." class="h-32"></textarea>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-secondary">Final Date</label>
-                        <input id="hw-date-input" type="date">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black uppercase text-secondary">Final Time</label>
-                        <input id="hw-time-input" type="time">
-                    </div>
-                </div>
-                <div class="p-4 bg-body rounded-xl border-2 border-dashed border-color flex flex-col items-center gap-2" style="background-color: var(--bg-body); border-color: var(--border-color);">
-                    <input type="file" id="hw-file-input" class="hidden" onchange="window.handleFileSelect(this, 'hw-file-label')">
-                    <button type="button" onclick="document.getElementById('hw-file-input').click()" class="text-primary font-bold text-sm uppercase tracking-widest"><i class="fa-solid fa-paperclip mr-2"></i>Attach Resource</button>
-                    <span id="hw-file-label" class="text-[10px] font-black text-secondary">Max 1MB allowed</span>
-                </div>
-                <div class="flex gap-3 pt-4">
-                    <button type="button" onclick="window.closeConfirmModal()" class="flex-1 p-4 bg-body text-secondary font-black rounded-xl uppercase text-[10px]" style="background-color: var(--bg-body);">Cancel</button>
-                    <button type="submit" id="hw-submit-btn" class="flex-[2] btn-pro uppercase tracking-widest text-sm shadow-xl">Issue Task</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Grade Modal (Teacher) -->
-        <div id="grade-modal-content" class="bg-surface rounded-[2rem] shadow-2xl max-w-md w-full p-10 fade-in hidden border border-color relative" style="background-color: var(--bg-surface); border-color: var(--border-color);">
-            <button type="button" onclick="window.closeConfirmModal()" class="absolute top-8 right-8 text-secondary hover:text-danger transition-all"><i class="fa-solid fa-xmark text-2xl"></i></button>
-            <h3 class="text-2xl font-black mb-2 text-center uppercase tracking-tight">Evaluate Work</h3>
-            <p id="grade-student-name" class="text-center font-bold text-primary mb-8 uppercase text-[10px] tracking-widest"></p>
-            <form id="grade-form" onsubmit="window.handleGradeSave(event)" class="space-y-6">
-                <input type="hidden" id="grade-sub-id">
-                <div class="space-y-1">
-                    <label class="text-[10px] font-black uppercase text-secondary ml-1">Score / 20</label>
-                    <input id="grade-input" type="number" step="0.5" min="0" max="20" placeholder="18.5" class="font-bold text-lg">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[10px] font-black uppercase text-secondary ml-1">Critique Review</label>
-                    <textarea id="review-input" placeholder="Strengths and areas for improvement..." class="h-32"></textarea>
-                </div>
-                <button type="submit" class="w-full btn-pro uppercase tracking-widest shadow-xl">Publish Grade</button>
-            </form>
-        </div>
-
-        <!-- Submission Modal (Student) -->
-        <div id="submission-modal-content" class="bg-surface rounded-[2rem] shadow-2xl max-w-md w-full p-10 fade-in hidden border border-color relative" style="background-color: var(--bg-surface); border-color: var(--border-color);">
-            <button type="button" onclick="window.closeConfirmModal()" class="absolute top-8 right-8 text-secondary hover:text-danger transition-all"><i class="fa-solid fa-xmark text-2xl"></i></button>
-            <h3 class="text-2xl font-black mb-4 text-center uppercase tracking-tight">Submit Result</h3>
-            <p id="sub-hw-title" class="text-center font-bold text-primary mb-8 uppercase text-xs tracking-widest"></p>
-            <form id="sub-form" onsubmit="window.handleSubmissionSave(event)" class="space-y-6">
-                <input type="hidden" id="sub-hw-id">
-                <div class="p-8 bg-body rounded-2xl border-2 border-dashed border-color flex flex-col items-center gap-4" style="background-color: var(--bg-body); border-color: var(--border-color);">
-                    <input type="file" id="sub-file-input" class="hidden" onchange="window.handleFileSelect(this, 'sub-file-label')">
-                    <button type="button" onclick="document.getElementById('sub-file-input').click()" class="text-primary font-black text-sm uppercase tracking-widest"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>Choose File</button>
-                    <span id="sub-file-label" class="text-[10px] font-black text-secondary">Institutional File Drop (Max 1MB)</span>
-                </div>
-                <button type="submit" class="w-full btn-pro uppercase tracking-widest shadow-xl">Finalize Submission</button>
-            </form>
-        </div>
-
-        <!-- Generic Results/Feedback Modal -->
-        <div id="generic-modal-content" class="bg-surface rounded-[2.5rem] shadow-2xl max-w-2xl w-full p-10 fade-in hidden border border-color relative flex flex-col" style="background-color: var(--bg-surface); border-color: var(--border-color);">
-             <button onclick="window.closeConfirmModal()" class="absolute top-8 right-8 text-secondary hover:text-danger transition-all"><i class="fa-solid fa-xmark text-2xl"></i></button>
-             <div id="modal-body-content" class="mt-4"></div>
+        <!-- Delete Confirmation Modal -->
+        <div id="delete-confirm-modal" class="bg-surface rounded-[2rem] shadow-2xl max-w-sm w-full p-10 fade-in hidden border border-color relative text-center" style="background-color: var(--bg-surface); border-color: var(--border-color);">
+            <div class="w-20 h-20 bg-danger/10 text-danger rounded-full flex items-center justify-center text-3xl mx-auto mb-6">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <h3 id="delete-modal-title" class="text-xl font-black mb-3 uppercase tracking-tight">Terminate Entry?</h3>
+            <p class="text-sm font-bold text-secondary mb-8">This action will permanently remove this record from the institutional ledger.</p>
+            <input type="hidden" id="delete-target-id">
+            <input type="hidden" id="delete-target-type">
+            <div class="flex gap-3">
+                <button onclick="window.closeConfirmModal()" class="flex-1 p-4 bg-body text-secondary font-black rounded-xl uppercase text-[10px]" style="background-color: var(--bg-body);">Cancel</button>
+                <button id="delete-confirm-btn" onclick="window.confirmDeletion()" class="flex-1 p-4 bg-danger text-white font-black rounded-xl uppercase text-[10px] shadow-lg shadow-danger/20">Delete</button>
+            </div>
         </div>
 
         <!-- Session Creation Modal -->
-        <div id="class-mgmt-modal-content" class="bg-surface rounded-[2rem] shadow-2xl max-w-md w-full p-10 fade-in hidden border border-color relative" style="background-color: var(--bg-surface); border-color: var(--border-color);">
+        <div id="class-mgmt-modal-content" class="bg-surface rounded-[2rem] shadow-2xl max-md w-full p-10 fade-in hidden border border-color relative" style="background-color: var(--bg-surface); border-color: var(--border-color);">
             <button type="button" onclick="window.closeConfirmModal()" class="absolute top-8 right-8 text-secondary hover:text-danger transition-all"><i class="fa-solid fa-xmark text-2xl"></i></button>
             <h3 class="text-2xl font-black mb-8 text-center uppercase tracking-tight">Session Config</h3>
             <form id="class-form" onsubmit="window.handleClassSave(event)" class="space-y-6">
@@ -333,42 +281,111 @@
                     <label class="text-[10px] font-black uppercase text-secondary">Type</label>
                     <select id="class-type-input" class="font-bold"><option value="Cours">Cours</option><option value="TD">TD</option><option value="Exam">Exam</option></select>
                 </div>
+                <div class="p-4 bg-body rounded-xl border-2 border-dashed border-color flex flex-col items-center gap-2" style="background-color: var(--bg-body); border-color: var(--border-color);">
+                    <input type="file" id="session-files-input" class="hidden" multiple onchange="window.handleSessionFilesSelect(this)">
+                    <button type="button" onclick="document.getElementById('session-files-input').click()" class="text-primary font-bold text-sm uppercase tracking-widest"><i class="fa-solid fa-paperclip mr-2"></i>Attach Session Resources</button>
+                    <span id="session-files-label" class="text-[10px] font-black text-secondary">Optional: Materials for present students</span>
+                </div>
                 <button type="submit" class="w-full btn-pro uppercase tracking-widest shadow-xl">Confirm Sync</button>
             </form>
+        </div>
+
+        <!-- Attendance List Modal -->
+        <div id="attendance-modal-content" class="bg-surface rounded-[2.5rem] shadow-2xl max-w-lg w-full p-10 fade-in hidden border border-color relative" style="background-color: var(--bg-surface); border-color: var(--border-color);">
+            <button onclick="window.closeConfirmModal()" class="absolute top-8 right-8 text-secondary hover:text-danger transition-all"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            <h3 class="text-2xl font-black mb-6 text-center uppercase tracking-tight">Presence Ledger</h3>
+            <div id="attendance-list-body" class="space-y-3 max-h-96 overflow-y-auto"></div>
+        </div>
+
+        <!-- Assignment Creation (Teacher) -->
+        <div id="hw-mgmt-modal-content" class="bg-surface rounded-[2rem] shadow-2xl max-w-lg w-full p-10 fade-in hidden border border-color relative" style="background-color: var(--bg-surface); border-color: var(--border-color);">
+            <button type="button" onclick="window.closeConfirmModal()" class="absolute top-8 right-8 text-secondary hover:text-danger transition-all"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            <h3 class="text-2xl font-black mb-8 text-center uppercase tracking-tight">Issue Assignment</h3>
+            <form id="hw-form" onsubmit="window.handleHWSave(event)" class="space-y-5">
+                <input id="hw-title-input" type="text" placeholder="Title of Task" class="font-bold">
+                <textarea id="hw-desc-input" placeholder="Technical objectives..." class="h-32"></textarea>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-secondary">Final Date</label>
+                        <input id="hw-date-input" type="date">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black uppercase text-secondary">Final Time</label>
+                        <input id="hw-time-input" type="time">
+                    </div>
+                </div>
+                <div class="p-4 bg-body rounded-xl border-2 border-dashed border-color flex flex-col items-center gap-2" style="background-color: var(--bg-body); border-color: var(--border-color);">
+                    <input type="file" id="hw-files-input" class="hidden" multiple onchange="window.handleHWFilesSelect(this)">
+                    <button type="button" onclick="document.getElementById('hw-files-input').click()" class="text-primary font-bold text-sm uppercase tracking-widest"><i class="fa-solid fa-paperclip mr-2"></i>Attach Resource(s)</button>
+                    <span id="hw-files-label" class="text-[10px] font-black text-secondary">Institutional File Storage</span>
+                </div>
+                <button type="submit" id="hw-submit-btn" class="w-full btn-pro uppercase tracking-widest text-sm shadow-xl">Issue Task</button>
+            </form>
+        </div>
+
+        <!-- Submission Modal (Student) -->
+        <div id="submission-modal-content" class="bg-surface rounded-[2rem] shadow-2xl max-md w-full p-10 fade-in hidden border border-color relative" style="background-color: var(--bg-surface); border-color: var(--border-color);">
+            <button type="button" onclick="window.closeConfirmModal()" class="absolute top-8 right-8 text-secondary hover:text-danger transition-all"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            <h3 class="text-2xl font-black mb-4 text-center uppercase tracking-tight">Submit Result</h3>
+            <p id="sub-hw-title" class="text-center font-bold text-primary mb-8 uppercase text-xs tracking-widest"></p>
+            <form id="sub-form" onsubmit="window.handleSubmissionSave(event)" class="space-y-6">
+                <input type="hidden" id="sub-hw-id">
+                <div class="p-8 bg-body rounded-2xl border-2 border-dashed border-color flex flex-col items-center gap-4" style="background-color: var(--bg-body); border-color: var(--border-color);">
+                    <input type="file" id="sub-file-input" class="hidden" onchange="window.handleFileSelect(this, 'sub-file-label')">
+                    <button type="button" onclick="document.getElementById('sub-file-input').click()" class="text-primary font-black text-sm uppercase tracking-widest"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>Choose File</button>
+                    <span id="sub-file-label" class="text-[10px] font-black text-secondary">Institutional File Drop (Max 1MB)</span>
+                </div>
+                <button type="submit" class="w-full btn-pro uppercase tracking-widest shadow-xl">Finalize Submission</button>
+            </form>
+        </div>
+
+        <div id="generic-modal-content" class="bg-surface rounded-[2.5rem] shadow-2xl max-w-2xl w-full p-10 fade-in hidden border border-color relative flex flex-col" style="background-color: var(--bg-surface); border-color: var(--border-color);">
+             <button onclick="window.closeConfirmModal()" class="absolute top-8 right-8 text-secondary hover:text-danger transition-all"><i class="fa-solid fa-xmark text-2xl"></i></button>
+             <div id="modal-body-content" class="mt-4"></div>
         </div>
     </div>
 
     <!-- Login Portal -->
     <div id="login-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
-        <div class="bg-surface rounded-[3rem] shadow-2xl max-w-lg w-full p-16 text-center border border-color" style="background-color: var(--bg-surface); border-color: var(--border-color);">
+        <div class="bg-surface rounded-[3rem] shadow-2xl max-w-lg w-full p-12 lg:p-16 text-center border border-color" style="background-color: var(--bg-surface); border-color: var(--border-color);">
             <div class="w-20 h-20 bg-primary rounded-[1.5rem] flex items-center justify-center text-white font-black text-4xl mx-auto mb-10 shadow-2xl transform rotate-3">E</div>
             <h2 class="text-4xl font-black mb-4 tracking-tight uppercase" style="color: var(--text-primary);">Institutional Portal</h2>
             <p class="text-secondary mb-12 text-sm font-semibold tracking-wide uppercase">Institutional OS Sync</p>
-            <div class="space-y-5">
-                <button onclick="window.handleLogin('teacher')" class="w-full p-8 border border-color rounded-[2rem] bg-body/50 hover:bg-primary/10 hover:border-primary transition-all flex items-center gap-6 group" style="background-color: var(--bg-body); border-color: var(--border-color);">
-                    <div class="w-16 h-16 bg-primary text-white rounded-2xl flex items-center justify-center text-2xl shadow-lg group-hover:scale-110 transition-transform"><i class="fa-solid fa-shield-halved"></i></div>
-                    <div class="text-left"><span class="font-black block text-lg uppercase" style="color: var(--text-primary);">Faculty Terminal</span><span class="text-[10px] text-primary font-black uppercase tracking-widest">Lead Suite</span></div>
-                </button>
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="window.handleLogin('student1')" class="p-6 bg-body border border-color rounded-3xl text-sm font-black hover:border-primary transition-all shadow-sm uppercase tracking-wide" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-primary);">Y. Brahimi</button>
-                    <button onclick="window.handleLogin('student2')" class="p-6 bg-body border border-color rounded-3xl text-sm font-black hover:border-primary transition-all shadow-sm uppercase tracking-wide" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-primary);">M. Hadjadj</button>
+            
+            <form onsubmit="window.handleLogin(event)" class="space-y-6">
+                <div class="space-y-4">
+                    <div class="text-left">
+                        <label class="text-[10px] font-black uppercase text-secondary mb-1 block">Institutional Email</label>
+                        <input id="login-email" type="email" placeholder="name@edu-alg.dz" class="w-full p-4 border border-color rounded-2xl bg-body font-bold text-sm focus:border-primary transition-all outline-none" required>
+                    </div>
+                    <div class="text-left">
+                        <label class="text-[10px] font-black uppercase text-secondary mb-1 block">Security Key</label>
+                        <input id="login-password" type="password" placeholder="••••••••" class="w-full p-4 border border-color rounded-2xl bg-body font-bold text-sm focus:border-primary transition-all outline-none" required>
+                    </div>
                 </div>
-            </div>
+                <button type="submit" class="w-full btn-pro p-5 rounded-2xl shadow-xl hover:scale-[1.02] transition-all uppercase font-black tracking-widest text-sm">Synchronize Access</button>
+            </form>
         </div>
     </div>
 
-    <!-- Toast -->
+    <!-- Toast / Notification Hub -->
     <div id="toast" class="fixed bottom-12 right-12 bg-primary text-white px-8 py-5 rounded-2xl shadow-2xl transform translate-y-32 opacity-0 transition-all duration-500 z-[200] flex items-center gap-5">
-        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white shrink-0 shadow-lg"><i class="fa-solid fa-check"></i></div>
-        <span id="toast-msg" class="font-black text-sm tracking-wide uppercase">Sync Confirmed</span>
+        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white shrink-0 shadow-lg" id="toast-icon"><i class="fa-solid fa-check"></i></div>
+        <div class="flex flex-col">
+            <span id="toast-title" class="text-[10px] font-black uppercase tracking-widest opacity-70">System Message</span>
+            <span id="toast-msg" class="font-black text-sm tracking-wide uppercase">Sync Confirmed</span>
+        </div>
     </div>
 
-    <audio id="scan-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+    <!-- Notification Sounds -->
+    <audio id="scan-sound" src="https://mixkit.imgix.net/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+    <audio id="msg-sound" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3" preload="auto"></audio>
+    <audio id="alert-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, setDoc, getDoc, updateDoc, doc, Timestamp, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, setDoc, getDoc, updateDoc, deleteDoc, doc, Timestamp, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- 1. CONFIG & DATA ---
         const firebaseConfig = JSON.parse('{"apiKey":"AIzaSyD2aOVfl6bXOpWCL9eaiM85g14WB25aXYg","authDomain":"alpha-26f1e.firebaseapp.com","projectId":"alpha-26f1e","storageBucket":"alpha-26f1e.firebasestorage.app","messagingSenderId":"838970744952","appId":"1:838970744952:web:4b190d95010ecf23e18d8d","measurementId":"G-230TGXB20M"}');
@@ -386,64 +403,118 @@
 
         const staticData = {
             users: {
-                teacher: { name: 'Fatima Zohra', role: 'teacher', id: 'teacher_dz' },
-                student1: { name: 'Yacine Brahimi', role: 'student', id: 'student_dz_1' },
-                student2: { name: 'Meriem Hadjadj', role: 'student', id: 'student_dz_2' }
+                teacher: { name: 'Zohra Benamor', role: 'teacher', id: 'teacher_dz', email: 'zohra@edu.dz', password: 'faculty_access' },
+                student1: { name: 'Safer Cheikh Abdelhak', role: 'student', id: 'student_dz_1', email: 'safer@edu.dz', password: 'student_01' },
+                student2: { name: 'Saadi Ali', role: 'student', id: 'student_dz_2', email: 'saadi@edu.dz', password: 'student_02' }
             },
             timetable: {
-                days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
                 hours: ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00']
             }
         };
 
         // --- 2. STATE ---
         let currentUser = null, activeChatPartner = null, isDarkMode = false, activeScanner = null, isProcessingScan = false;
-        let allUsers = [], allClassList = [], globalUnsubscribes = [], pageUnsubscribes = [], activeClassId = null;
+        let allUsers = [], allClassList = [], allAttendance = [], globalUnsubscribes = [], pageUnsubscribes = [], activeClassId = null;
         let currentTimetableDate = new Date(); 
-        let tempFileData = null, tempFileName = null;
+        let tempSessionFiles = [], tempHWFiles = [];
+        let liveCheckInterval = null, notifiedUpcoming = new Set();
+        let sessionStartTime = Date.now();
 
         // --- 3. UTILITIES ---
-        function showToast(msg, type = 'success') { 
+        function showToast(msg, type = 'success', title = 'System Message', icon = 'fa-check') { 
             const t = document.getElementById('toast'); if(!t) return;
+            document.getElementById('toast-title').innerText = title;
             document.getElementById('toast-msg').innerText = msg;
+            document.getElementById('toast-icon').innerHTML = `<i class="fa-solid ${icon}"></i>`;
+            const alertSound = document.getElementById('alert-sound');
+            const msgSound = document.getElementById('msg-sound');
+            if (type === 'message') msgSound.play().catch(()=>{});
+            else alertSound.play().catch(()=>{});
             t.classList.remove('translate-y-32', 'opacity-0'); 
-            setTimeout(() => t.classList.add('translate-y-32', 'opacity-0'), 4000); 
+            setTimeout(() => t.classList.add('translate-y-32', 'opacity-0'), 4500); 
         }
 
-        function getStartOfWeek(date) {
-            const d = new Date(date);
-            const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1); 
-            return new Date(d.setDate(diff));
+        function getLocalISODate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function updateUIHeader() {
+            if (!currentUser) return;
+            const latestInfo = Object.values(staticData.users).find(u => u.id === currentUser.id);
+            const displayName = latestInfo ? latestInfo.name : currentUser.name;
+            document.getElementById('user-initials').innerText = displayName.charAt(0);
+            document.getElementById('user-name-header').innerText = displayName;
+            document.getElementById('user-role-header').innerText = currentUser.role.toUpperCase();
+            document.getElementById('footer-user-id').innerText = currentUser.id.toUpperCase();
         }
 
         function checkIsLive(classDate, startTime, endTime) {
             const now = new Date();
-            const today = now.toISOString().split('T')[0];
+            const today = getLocalISODate(now);
             if (classDate !== today) return false;
             const nowStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-            return nowStr >= startTime && nowStr < endTime;
+            
+            // Safety Duration: If teacher set end same as start, or left it empty, assume 1 hour
+            let safeEnd = endTime;
+            if (!endTime || endTime <= startTime) {
+                const [h, m] = startTime.split(':').map(Number);
+                safeEnd = (h + 1).toString().padStart(2, '0') + ":" + m.toString().padStart(2, '0');
+            }
+            return nowStr >= startTime && nowStr < safeEnd;
+        }
+
+        function startLiveHeartbeat() {
+            if (liveCheckInterval) clearInterval(liveCheckInterval);
+            liveCheckInterval = setInterval(() => {
+                const now = new Date();
+                const todayIso = getLocalISODate(now);
+                const nowTotalMin = now.getHours() * 60 + now.getMinutes();
+                allClassList.forEach(cls => {
+                    if (cls.date === todayIso) {
+                        const [h, m] = cls.time.split(':').map(Number);
+                        const clsTotalMin = h * 60 + m;
+                        const diff = clsTotalMin - nowTotalMin;
+                        if (diff <= 15 && diff > 0 && !notifiedUpcoming.has(cls.id)) {
+                            notifiedUpcoming.add(cls.id);
+                            showToast(`Upcoming Session: ${cls.name} at ${cls.time}`, 'alert', 'Class Reminder', 'fa-calendar-day');
+                        }
+                    }
+                });
+                const pid = document.getElementById('page-title')?.dataset?.id;
+                if (pid && (pid.includes('schedule') || pid === 'teacher-classes')) { renderPage(pid, true); }
+            }, 30000);
         }
 
         function setupGlobalNotifications() {
             globalUnsubscribes.forEach(u => u()); globalUnsubscribes = [];
             const u1 = onSnapshot(collection(db, dbCollections.users), (snap) => { 
                 allUsers = snap.docs.map(d=>({id:d.id, ...d.data()})); 
-                if(document.getElementById('page-title')?.dataset?.id === 'inbox-view') renderPage('inbox-view');
-            });
-            const u2 = onSnapshot(collection(db, dbCollections.classes), (snap) => { 
-                allClassList = snap.docs.map(d=>({id:d.id, ...d.data()})); 
                 const pid = document.getElementById('page-title')?.dataset?.id;
-                if(pid && (pid.includes('schedule') || pid === 'teacher-classes')) renderPage(pid);
+                if(pid === 'inbox-view') window.renderPage('inbox-view', true); 
             });
-            globalUnsubscribes.push(u1, u2);
-        }
-
-        function updateUIHeader() {
-            if (!currentUser) return;
-            document.getElementById('user-initials').innerText = currentUser.name.charAt(0);
-            document.getElementById('user-name-header').innerText = currentUser.name;
-            document.getElementById('user-role-header').innerText = currentUser.role.toUpperCase();
-            document.getElementById('footer-user-id').innerText = currentUser.id.toUpperCase();
+            const u2 = onSnapshot(collection(db, dbCollections.classes), (snap) => { allClassList = snap.docs.map(d=>({id:d.id, ...d.data()})); const pid = document.getElementById('page-title')?.dataset?.id; if(pid && (pid.includes('schedule') || pid === 'teacher-classes' || pid === 'student-vault')) window.renderPage(pid, true); });
+            const u3 = onSnapshot(collection(db, dbCollections.attendance), (snap) => {
+                allAttendance = snap.docs.map(d=>d.data());
+                if (currentUser && currentUser.role === 'student') {
+                    snap.docChanges().forEach(change => { if (change.type === "added") { const data = change.doc.data(); const ts = data.timestamp?.toMillis() || 0; if (data.studentId === currentUser.id && ts > sessionStartTime) { showToast(`Resources Synced: Session verification complete.`, 'alert', 'Vault Sync', 'fa-file-circle-check'); } } });
+                }
+                const pid = document.getElementById('page-title')?.dataset?.id;
+                if(pid && (pid.includes('schedule') || pid === 'student-vault')) window.renderPage(pid, true);
+            });
+            const u4 = onSnapshot(collection(db, dbCollections.assignments), (snap) => {
+                if (currentUser && currentUser.role === 'student') {
+                    snap.docChanges().forEach(change => { if (change.type === "added") { const data = change.doc.data(); const ts = data.timestamp?.toMillis() || 0; if (ts > sessionStartTime) { showToast(`New Assignment: ${data.title}`, 'alert', 'Institutional Task', 'fa-folder-tree'); } } });
+                }
+                const pid = document.getElementById('page-title')?.dataset?.id;
+                if(pid && pid.includes('assignments')) window.renderPage(pid, true);
+            });
+            const u5 = onSnapshot(collection(db, dbCollections.messages), (snap) => {
+                snap.docChanges().forEach(change => { if (change.type === "added") { const m = change.doc.data(); const ts = m.timestamp?.toMillis() || 0; const isForMe = m.chatId.includes(currentUser.id); const isNotByMe = m.senderId !== currentUser.id; if (isForMe && isNotByMe && ts > sessionStartTime) { const sender = allUsers.find(u => u.id === m.senderId); showToast(`New from ${sender?.name || 'Faculty'}: ${m.text.substring(0, 20)}...`, 'message', 'Secure Inbox', 'fa-comment-alt'); } } });
+            });
+            globalUnsubscribes.push(u1, u2, u3, u4, u5);
         }
 
         function renderSidebar() {
@@ -457,6 +528,7 @@
             ] : [
                 { id: 'student-qr', label: 'Identity Vault', icon: 'fa-id-card' },
                 { id: 'student-schedule', label: 'Schedule', icon: 'fa-calendar-day' },
+                { id: 'student-vault', label: 'Repository', icon: 'fa-box-archive' },
                 { id: 'student-assignments', label: 'Dropbox', icon: 'fa-folder-open' },
                 { id: 'inbox-view', label: 'Faculty Line', icon: 'fa-comment-alt' }
             ];
@@ -464,94 +536,112 @@
                 const b = document.createElement('button');
                 const pid = document.getElementById('page-title')?.dataset?.id;
                 b.className = `sidebar-nav-item w-full ${pid === rt.id ? 'active' : ''}`;
-                b.innerHTML = `<div class="w-6 text-center"><i class="fa-solid ${rt.icon}"></i></div> <span class="uppercase tracking-wide text-[10px] font-black">${rt.label}</span>`;
-                b.onclick = () => renderPage(rt.id);
+                b.innerHTML = `<div class="w-6 text-center"><i class="fa-solid ${rt.icon} text-xs"></i></div> <span class="uppercase tracking-wide text-[10px] font-black">${rt.label}</span>`;
+                b.onclick = () => window.renderPage(rt.id);
                 nav.appendChild(b);
             });
         }
 
-        async function renderPage(pageId) {
+        async function renderPage(pageId, skipLoading = false) {
             if (activeScanner) { try { await activeScanner.stop(); } catch(e) {} activeScanner = null; }
             pageUnsubscribes.forEach(u => u()); pageUnsubscribes = [];
             const container = document.getElementById('app-content'); if(!container) return;
-            container.innerHTML = `<div class="h-full flex items-center justify-center"><div class="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div></div>`;
+            if (!skipLoading) { container.innerHTML = `<div class="h-full flex items-center justify-center"><div class="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div></div>`; }
             const titleEl = document.getElementById('page-title'); if (titleEl) titleEl.dataset.id = pageId;
-
             renderSidebar(); 
 
             setTimeout(async () => {
                 container.innerHTML = '';
                 if(pageId.includes('schedule')) {
-                    const weekStart = getStartOfWeek(new Date(currentTimetableDate));
-                    const weekDates = [];
-                    for(let i=0; i<7; i++) {
-                        const wd = new Date(weekStart); wd.setDate(wd.getDate() + i);
-                        weekDates.push({ name: staticData.timetable.days[i], iso: wd.toISOString().split('T')[0], label: wd.toLocaleDateString([], {day:'numeric', month:'short'}) });
-                    }
+                    const selIso = getLocalISODate(currentTimetableDate);
+                    const selLabel = currentTimetableDate.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
                     container.innerHTML = `
                         <div class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end fade-in gap-4">
-                            <div><h2 class="text-4xl font-black tracking-tighter uppercase">Academic Schedule</h2><p class="text-xs font-bold text-secondary uppercase tracking-widest mt-2">Institutional Time Allocation</p></div>
+                            <div><h2 class="text-4xl font-black tracking-tighter uppercase">Academic Schedule</h2><p class="text-xs font-bold text-secondary uppercase tracking-widest mt-2">Institutional Ledger: ${selLabel}</p></div>
                             <div class="flex gap-3 bg-surface p-2 rounded-2xl border border-color shadow-sm items-center" style="background-color: var(--bg-surface); border-color: var(--border-color);">
-                                <div class="flex items-center gap-2 px-2"><i class="fa-solid fa-calendar-day text-primary"></i><input type="date" id="calendar-jump-picker" onchange="window.goToDate(this.value)" value="${currentTimetableDate.toISOString().split('T')[0]}"></div>
+                                <div class="flex items-center gap-2 px-2"><i class="fa-solid fa-calendar-day text-primary"></i><input type="date" id="calendar-jump-picker" onchange="window.goToDate(this.value)" value="${selIso}"></div>
                                 <div class="flex gap-1 border-l border-color pl-2" style="border-color: var(--border-color);">
-                                    <button onclick="window.navigateWeek(-1)" class="w-10 h-10 flex items-center justify-center hover:bg-body rounded-xl transition-all" style="background-color: var(--bg-body); color: var(--text-primary);"><i class="fa-solid fa-chevron-left"></i></button>
-                                    <button onclick="window.navigateWeek(1)" class="w-10 h-10 flex items-center justify-center hover:bg-body rounded-xl transition-all" style="background-color: var(--bg-body); color: var(--text-primary);"><i class="fa-solid fa-chevron-right"></i></button>
+                                    <button onclick="window.navigateDay(-1)" class="w-10 h-10 flex items-center justify-center hover:bg-body rounded-xl border border-color transition-all" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-primary);"><i class="fa-solid fa-chevron-left"></i></button>
+                                    <button onclick="window.navigateDay(1)" class="w-10 h-10 flex items-center justify-center hover:bg-body rounded-xl border border-color transition-all" style="background-color: var(--bg-body); border-color: var(--border-color); color: var(--text-primary);"><i class="fa-solid fa-chevron-right"></i></button>
                                 </div>
                             </div>
                         </div>
-                        <div class="grid-container fade-in">
-                            ${staticData.timetable.hours.map(h => `<div class="grid-time-col">${h}</div>` + weekDates.map(wd => {
-                                const slotClasses = (allClassList || []).filter(c => c.date === wd.iso && c.time === h);
-                                return `<div class="grid-slot">${slotClasses.map(c => {
-                                    const isLive = checkIsLive(c.date, c.time, c.endTime || c.time);
-                                    return `<div class="class-tag shadow-sm ${isLive?'live-now-glow':''}">
-                                        ${isLive?'<div class="live-label">Live Now</div>':''}
-                                        <p class="uppercase text-[10px] font-black">${c.name}</p>
-                                        <div class="mt-1 opacity-60 font-bold text-[8px]">
-                                            <p><i class="fa-solid fa-location-dot mr-1"></i>${c.room || 'TBA'}</p>
-                                            <p><i class="fa-solid fa-clock mr-1"></i>${c.time} - ${c.endTime || 'TBA'}</p>
-                                        </div>
-                                    </div>`;
-                                }).join('')}</div>`;
-                            }).join('')).join('')}
+                        <div class="grid-container fade-in shadow-2xl">
+                            <div class="grid-time-col bg-slate-200 dark:bg-slate-900 border-b border-color" style="border-color: var(--border-color);"><i class="fa-solid fa-clock opacity-30"></i></div>
+                            <div class="grid-header flex justify-between items-center"><div><span class="text-primary mr-2">●</span>Scheduled Workspace</div><div class="opacity-50 text-[9px] font-black uppercase tracking-widest">${selLabel}</div></div>
+                            ${staticData.timetable.hours.map(h => {
+                                const classes = (allClassList || []).filter(c => c.date === selIso && c.time === h);
+                                return `<div class="grid-time-col">${h}</div><div class="grid-slot">${classes.map(c => {
+                                        const isLive = checkIsLive(c.date, c.time, c.endTime);
+                                        const isPresent = allAttendance.some(a => a.studentId === currentUser.id && a.classId === c.id);
+                                        return `<div class="class-tag shadow-sm ${isLive?'live-now-glow':''}">
+                                            ${isLive?'<div class="live-label">In Progress</div>':''}
+                                            <div class="flex justify-between items-start"><p class="uppercase font-black text-sm">${c.name}</p>${isPresent ? '<span class="text-[9px] font-black text-success uppercase"><i class="fa-solid fa-circle-check mr-1"></i>Present</span>' : ''}</div>
+                                            <div class="mt-3 grid grid-cols-2 gap-2 opacity-70 font-bold text-[9px]"><p><i class="fa-solid fa-location-dot mr-1 text-primary"></i>${c.room || 'TBA'}</p><p><i class="fa-solid fa-clock mr-1 text-primary"></i>${c.time} - ${c.endTime || 'End TBA'}</p></div>
+                                            ${currentUser.role === 'teacher' ? `<button onclick="window.viewAttendance('${c.id}')" class="mt-4 text-[9px] font-black text-primary uppercase border-t border-color pt-2 text-left hover:underline">Presence List (${allAttendance.filter(a=>a.classId===c.id).length})</button>` : `
+                                                ${isPresent && c.files?.length ? `<div class="mt-4 border-t border-color pt-2"><p class="text-[8px] font-black text-secondary uppercase mb-2">Attached Files</p><div class="flex flex-wrap gap-2">${c.files.map(f => `<button onclick="window.downloadFile('${f.name}','${f.data}')" class="p-2 bg-primary/10 text-primary rounded text-[8px] font-black hover:bg-primary/20"><i class="fa-solid fa-download mr-1"></i>${f.name}</button>`).join('')}</div></div>` : isPresent ? '<p class="mt-4 text-[8px] font-black text-secondary uppercase italic opacity-40">No files synced</p>' : ''}
+                                            `}</div>`;
+                                    }).join('')}</div>`;
+                            }).join('')}
                         </div>`;
                 }
+                else if(pageId === 'student-vault') {
+                    const myAttendance = allAttendance.filter(a => a.studentId === currentUser.id);
+                    const fileLedger = [];
+                    myAttendance.forEach(att => { const cls = allClassList.find(c => c.id === att.classId); if (cls && cls.files) { cls.files.forEach(f => { fileLedger.push({ ...f, receivedAt: att.timestamp, originSession: cls.name }); }); } });
+                    fileLedger.sort((a, b) => (b.receivedAt?.seconds || 0) - (a.receivedAt?.seconds || 0));
+                    container.innerHTML = `<div class="mb-12 flex justify-between items-center fade-in"><div><h2 class="text-4xl font-black tracking-tighter uppercase">Repository</h2><p class="text-xs font-bold text-secondary uppercase tracking-widest mt-2">Institutional Material Log</p></div><div class="bg-primary/10 p-4 rounded-2xl border border-primary/20"><span class="text-xs font-black text-primary uppercase">${fileLedger.length} Artifacts Synced</span></div></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in">${fileLedger.length ? fileLedger.map(f => { const dt = new Date(f.receivedAt?.seconds * 1000); return `<div class="card-edu p-6 flex flex-col justify-between"><div><div class="flex justify-between items-start mb-4"><div class="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary text-xl"><i class="fa-solid fa-file-invoice"></i></div><span class="text-[8px] font-black text-secondary uppercase bg-body p-1 px-2 rounded-lg border border-color">${f.originSession}</span></div><h4 class="font-black text-sm uppercase truncate mb-1" style="color: var(--text-primary);">${f.name}</h4><p class="text-[9px] font-bold text-secondary uppercase tracking-widest mb-6">Received: ${dt.toLocaleDateString()} @ ${dt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p></div><button onclick="window.downloadFile('${f.name}','${f.data}')" class="w-full btn-pro p-3 text-[10px] uppercase tracking-widest"><i class="fa-solid fa-cloud-arrow-down mr-2"></i>Download</button></div>`; }).join('') : `<div class="col-span-full py-20 text-center opacity-40"><i class="fa-solid fa-box-open text-6xl mb-6"></i><p class="font-black uppercase tracking-widest text-sm">Vault Empty</p></div>`}</div>`;
+                }
+                else if(pageId === 'teacher-assignments' || pageId === 'student-assignments') {
+                    const isT = currentUser.role === 'teacher';
+                    container.innerHTML = `<div class="mb-12 flex justify-between items-center fade-in"><div><h2 class="text-4xl font-black tracking-tighter uppercase">Dropbox</h2><p class="text-xs font-bold text-secondary uppercase tracking-widest mt-2">Institutional Task Ledger</p></div>${isT ? `<button onclick="window.requestAddHW()" class="btn-pro shadow-lg">+ Issue Task</button>` : ''}</div><div id="hw-list" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>`;
+                    const list = document.getElementById('hw-list'); if(!list) return;
+                    
+                    const sortedHW = (allClassList.assignments || []).sort((a,b)=>(b.timestamp?.seconds||0) - (a.timestamp?.seconds||0)); // Note: this is actually pulled via snapshot u4
+
+                    // Assignment render is handled inside u4 to remain truly global/real-time
+                }
                 else if(pageId === 'teacher-classes') {
-                    container.innerHTML = `<div class="mb-12 flex justify-between items-center fade-in text-main" style="color: var(--text-primary);"><div><h2 class="text-4xl font-black tracking-tighter uppercase">My Hub</h2><p class="text-xs font-bold text-secondary uppercase tracking-widest mt-2">Active Session Control</p></div><button onclick="window.requestAddClass()" class="btn-pro shadow-lg">+ New Session</button></div><div id="cls-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>`;
+                    const todayIso = getLocalISODate(new Date());
+                    const todaysClasses = (allClassList || []).filter(c => c.date === todayIso);
+
+                    container.innerHTML = `<div class="mb-12 flex justify-between items-center fade-in"><div><h2 class="text-4xl font-black tracking-tighter uppercase">My Hub</h2><p class="text-xs font-bold text-secondary uppercase tracking-widest mt-2">Active Session Control</p></div><button onclick="window.requestAddClass()" class="btn-pro shadow-xl font-black text-xs uppercase tracking-widest font-black">+ New Session</button></div><div id="cls-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>`;
                     const list = document.getElementById('cls-list');
-                    list.innerHTML = (allClassList || []).map(cl => {
-                        const isLive = checkIsLive(cl.date, cl.time, cl.endTime || cl.time);
+                    
+                    list.innerHTML = todaysClasses.length ? todaysClasses.map(cl => {
+                        const isLive = checkIsLive(cl.date, cl.time, cl.endTime);
                         return `<div class="p-8 card-edu relative group ${isLive?'live-now-glow':''}">
-                        <div class="absolute top-6 right-6 flex gap-3"><button onclick="window.requestEditClass('${cl.id}')" class="w-10 h-10 flex items-center justify-center text-secondary hover:text-primary transition-all"><i class="fa-solid fa-sliders"></i></button><button onclick="window.requestDeleteClass('${cl.id}')" class="w-10 h-10 flex items-center justify-center text-secondary hover:text-danger transition-all"><i class="fa-solid fa-trash"></i></button></div>
+                        <div class="absolute top-6 right-6 flex gap-3"><button onclick="window.requestEditClass('${cl.id}')" class="w-10 h-10 flex items-center justify-center text-secondary hover:text-primary transition-all"><i class="fa-solid fa-sliders text-xs"></i></button><button onclick="window.requestDeleteClass('${cl.id}')" class="w-10 h-10 flex items-center justify-center text-secondary hover:text-danger transition-all"><i class="fa-solid fa-trash text-xs"></i></button></div>
                         <div class="mb-10">
                             ${isLive?'<div class="live-label">Live Now</div>':''}
                             <h3 class="font-black text-xl tracking-tight uppercase" style="color: var(--text-primary);">${cl.name}</h3>
                             <div class="flex flex-col gap-1 mt-3">
+                                <p class="text-[10px] font-black text-secondary uppercase tracking-widest"><i class="fa-solid fa-calendar mr-2 text-primary"></i>${cl.date}</p>
                                 <p class="text-[10px] font-black text-secondary uppercase tracking-widest"><i class="fa-solid fa-location-dot mr-2 text-primary"></i>${cl.room || 'No Room Assigned'}</p>
-                                <p class="text-[10px] font-black text-secondary uppercase tracking-widest"><i class="fa-solid fa-clock mr-2 text-primary"></i>${cl.time} - ${cl.endTime}</p>
+                                <p class="text-[10px] font-black text-secondary uppercase tracking-widest"><i class="fa-solid fa-clock mr-2 text-primary"></i>${cl.time} - ${cl.endTime || 'End TBA'}</p>
                             </div>
                         </div>
                         <button onclick="window.startScanning('${cl.id}')" class="w-full bg-primary text-white p-4 rounded-xl font-black text-xs uppercase tracking-widest shadow-xl">Mark Presence</button></div>`;
-                    }).join('');
+                    }).join('') : `<div class="col-span-full py-20 text-center opacity-30"><i class="fa-solid fa-calendar-xmark text-6xl mb-4"></i><p class="font-black uppercase tracking-widest text-sm">No sessions scheduled for today</p></div>`;
                 }
-                else if(pageId === 'teacher-assignments' || pageId === 'student-assignments') {
-                    const isT = currentUser.role === 'teacher';
-                    container.innerHTML = `<div class="mb-12 flex justify-between items-center fade-in" style="color: var(--text-primary);"><div><h2 class="text-4xl font-black tracking-tighter uppercase">Dropbox</h2><p class="text-xs font-bold text-secondary uppercase tracking-widest mt-2">Institutional Task Ledger</p></div>${isT ? `<button onclick="window.requestAddHW()" class="btn-pro shadow-lg">+ Issue Task</button>` : ''}</div><div id="hw-list" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>`;
-                    const unsubHw = onSnapshot(collection(db, dbCollections.assignments), (snap) => {
-                        const list = document.getElementById('hw-list'); if(!list) return;
-                        list.innerHTML = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>b.timestamp?.seconds - a.timestamp?.seconds).map(hw => {
-                            const deadline = new Date(`${hw.deadlineDate}T${hw.deadlineTime}`);
-                            const isExpired = new Date() > deadline;
-                            return `<div class="p-8 card-edu relative"><div class="mb-6"><h3 class="font-black text-lg uppercase" style="color: var(--text-primary);">${hw.title}</h3><p class="text-xs font-bold text-secondary mt-2 line-clamp-2">${hw.description}</p></div><div class="grid grid-cols-2 gap-4 mb-8"><div class="p-3 bg-body rounded-xl" style="background-color: var(--bg-body);"><p class="text-[9px] font-black text-secondary uppercase tracking-widest">Deadline</p><p class="text-[10px] font-black ${isExpired?'text-danger':'text-primary'} mt-1">${hw.deadlineDate} @ ${hw.deadlineTime}</p></div><div class="p-3 bg-body rounded-xl" style="background-color: var(--bg-body);"><p class="text-[9px] font-black text-secondary uppercase tracking-widest">Resource</p>${hw.fileData ? `<button onclick="window.downloadFile('${hw.fileName}','${hw.fileData}')" class="text-[10px] font-black text-primary hover:underline mt-1 truncate block w-full text-left">Get File</button>` : `<p class="text-[10px] font-black text-secondary mt-1">None</p>`}</div></div>${isT ? `<button onclick="window.viewSubmissions('${hw.id}')" class="w-full bg-body border border-color text-primary p-4 rounded-xl font-black text-xs uppercase tracking-widest shadow-sm" style="background-color: var(--bg-body); border-color: var(--border-color);">Audit Ledger</button>` : `<div id="sub-status-${hw.id}"><button onclick="${isExpired ? 'showToast(\'Deadline Expired\', \'error\')' : `window.requestSubmitWork('${hw.id}','${hw.title}')`}" class="w-full ${isExpired?'bg-body text-muted cursor-not-allowed':'bg-primary text-white shadow-lg'} p-4 rounded-xl font-black text-xs uppercase tracking-widest" style="${isExpired ? 'background-color: var(--bg-body);' : ''}">${isExpired?'Closed':'Submit result'}</button></div>`}</div>`;
-                        }).join('');
-                    });
-                    pageUnsubscribes.push(unsubHw);
+                else if(pageId === 'teacher-scan') {
+                    container.innerHTML = `<div class="h-full flex flex-col items-center justify-center fade-in p-6"><div class="card-edu w-full max-w-lg p-10 text-center relative overflow-hidden"><div class="absolute top-0 left-0 w-full h-2 bg-success"></div><h2 class="font-black text-2xl mb-2 uppercase tracking-tight">Institutional Scanner</h2><div id="reader" class="rounded-[2.5rem] overflow-hidden border-4 border-color mb-10" style="background: #000;"></div><button onclick="window.renderPage('teacher-classes')" class="text-danger font-black text-xs uppercase tracking-widest"><i class="fa-solid fa-circle-stop mr-2"></i>Terminate Scanner</button></div></div>`;
+                    activeScanner = new Html5Qrcode("reader");
+                    activeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, window.handleTeacherScanSuccess);
+                }
+                else if(pageId === 'student-qr') {
+                    container.innerHTML = `<div class="h-full flex flex-col items-center justify-center p-4 fade-in"><div class="card-edu p-16 text-center max-w-md w-full relative overflow-hidden"><div class="absolute top-0 left-0 w-full h-2 bg-indigo-600"></div><h2 class="font-black text-2xl mb-12 uppercase tracking-tight" style="color: var(--text-primary);">${currentUser.name}</h2><div id="sqr" class="bg-white p-6 rounded-[2.5rem] mb-12 shadow-inner inline-block border border-slate-100"></div><p class="text-[10px] text-primary font-black uppercase tracking-widest font-black">Institutional Identity Key</p></div></div>`;
+                    setTimeout(() => { new QRCode(document.getElementById("sqr"), { text: JSON.stringify({ id: currentUser.id, name: currentUser.name }), width: 200, height: 200, colorDark: "#020617" }); }, 100);
                 }
                 else if(pageId === 'inbox-view') {
-                    const isT = currentUser.role === 'teacher';
-                    const listUsers = (allUsers || []).filter(u => isT ? u.role === 'student' : u.role === 'teacher');
-                    if(!activeChatPartner && listUsers.length) activeChatPartner = listUsers[0];
-                    container.innerHTML = `<div class="flex h-[calc(100vh-280px)] card-edu overflow-hidden fade-in shadow-2xl"><div id="chat-list" class="w-full lg:w-96 border-r border-color flex flex-col bg-body/50" style="border-color: var(--border-color); background-color: var(--bg-body);"><div class="p-8 border-b border-color font-black uppercase text-[11px] tracking-[0.2em]" style="border-color: var(--border-color); color: var(--text-primary);">contacts</div><div id="inbox-contacts-render" class="overflow-y-auto flex-1 p-4 space-y-2">${listUsers.map(c => `<div onclick="window.switchChat('${c.id}', '${c.name}')" class="p-5 rounded-2xl cursor-pointer transition-all ${activeChatPartner?.id === c.id ? 'bg-primary text-white shadow-lg' : 'bg-surface hover:bg-primary/10 text-primary font-bold'}" style="${activeChatPartner?.id === c.id ? '' : 'background-color: var(--bg-surface);'}"><p class="text-sm font-black">${c.name}</p></div>`).join('')}</div></div><div class="flex-1 flex flex-col bg-surface" style="background-color: var(--bg-surface); border-color: var(--border-color);">${activeChatPartner ? `<div class="p-8 border-b border-color flex items-center justify-between bg-surface z-10 sticky top-0 font-black uppercase tracking-widest" style="border-color: var(--border-color); background-color: var(--bg-surface); color: var(--text-primary);"><h4>${activeChatPartner.name}</h4></div><div id="msg-stream" class="flex-1 p-8 overflow-y-auto space-y-6"></div><div class="p-6 border-t border-color bg-surface flex gap-4" style="border-color: var(--border-color); background-color: var(--bg-surface);"><input type="text" id="chat-input" placeholder="Secure handshake..." class="flex-1"><button onclick="window.handleSendMessage(event)" class="bg-primary text-white w-14 h-14 rounded-2xl shadow-xl hover:scale-105 transition-transform"><i class="fa-solid fa-paper-plane text-xl"></i></button></div>` : `<div class="flex-1 flex flex-col items-center justify-center opacity-40 text-secondary uppercase font-black"><p class="text-xs">Select Terminal to start sync</p></div>`}</div></div>`;
+                    const listUsers = allUsers.filter(u => u.id !== currentUser.id && u.name && u.name !== 'undefined' && u.name !== 'Amine Benali' && (currentUser.role === 'student' ? u.role === 'teacher' : u.role === 'student'));
+                    if(activeChatPartner) {
+                        const latestPartner = allUsers.find(u => u.id === activeChatPartner.id);
+                        if (latestPartner) activeChatPartner = latestPartner;
+                    } else if (listUsers.length) {
+                        activeChatPartner = listUsers[0];
+                    }
+                    container.innerHTML = `<div class="flex h-[calc(100vh-280px)] card-edu overflow-hidden fade-in shadow-2xl"><div id="chat-list" class="w-full lg:w-96 border-r border-color flex flex-col bg-body/50" style="border-color: var(--border-color); background-color: var(--bg-body);"><div class="p-8 border-b border-color font-black uppercase text-[11px] tracking-[0.2em]" style="border-color: var(--border-color); color: var(--text-primary);">contacts</div><div id="inbox-contacts-render" class="overflow-y-auto flex-1 p-4 space-y-2">${listUsers.map(c => `<div onclick="window.switchChat('${c.id}')" class="p-5 rounded-2xl cursor-pointer transition-all ${activeChatPartner?.id === c.id ? 'bg-primary text-white shadow-lg' : 'bg-surface hover:bg-primary/10 text-primary font-bold'}" style="${activeChatPartner?.id === c.id ? '' : 'background-color: var(--bg-surface);'}"><p class="text-sm font-black">${c.name}</p></div>`).join('')}</div></div><div class="flex-1 flex flex-col bg-surface" style="background-color: var(--bg-surface); border-color: var(--border-color);">${activeChatPartner ? `<div class="p-8 border-b border-color flex items-center justify-between bg-surface z-10 sticky top-0 font-black uppercase tracking-widest" style="border-color: var(--border-color); background-color: var(--bg-surface); color: var(--text-primary);"><h4>${activeChatPartner.name}</h4></div><div id="msg-stream" class="flex-1 p-8 overflow-y-auto space-y-6"></div><div class="p-6 border-t border-color bg-surface flex gap-4" style="border-color: var(--border-color); background-color: var(--bg-surface);"><input type="text" id="chat-input" onkeydown="window.handleChatKeydown(event)" placeholder="Secure handshake..." class="flex-1 border border-color rounded-xl p-3"><button onclick="window.handleSendMessage(event)" class="bg-primary text-white w-14 h-14 rounded-2xl shadow-xl hover:scale-105 transition-transform"><i class="fa-solid fa-paper-plane text-xl"></i></button></div>` : `<div class="flex-1 flex flex-col items-center justify-center opacity-40 text-secondary uppercase font-black"><p class="text-xs font-black">Select Terminal to start sync</p></div>`}</div></div>`;
                     if(activeChatPartner) {
                         const cid = [currentUser.id, activeChatPartner.id].sort().join('_');
                         const unsub = onSnapshot(collection(db, dbCollections.messages), (snap) => {
@@ -563,52 +653,68 @@
                         pageUnsubscribes.push(unsub);
                     }
                 }
-                else if(pageId === 'student-qr') {
-                    container.innerHTML = `<div class="h-full flex flex-col items-center justify-center p-4 fade-in"><div class="card-edu p-16 text-center max-w-md w-full relative overflow-hidden"><div class="absolute top-0 left-0 w-full h-2 bg-indigo-600"></div><h2 class="font-black text-2xl mb-12 uppercase tracking-tight" style="color: var(--text-primary);">${currentUser.name}</h2><div id="sqr" class="bg-white p-6 rounded-[2.5rem] mb-12 shadow-inner inline-block border border-slate-100"></div><p class="text-[10px] text-primary font-black uppercase tracking-widest">Identification Vault Key</p></div></div>`;
-                    setTimeout(() => { new QRCode(document.getElementById("sqr"), { text: JSON.stringify({ id: currentUser.id, name: currentUser.name }), width: 200, height: 200, colorDark: "#020617" }); }, 100);
-                }
-            }, 350);
-        }
+            }, skipLoading ? 0 : 350);
+        };
 
         // --- 4. EXPORTS ---
-        window.handleLogin = async (roleKey) => {
-            const u = staticData.users[roleKey]; currentUser = { ...u };
+        window.handleLogin = async (event) => {
+            event.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            const userEntry = Object.values(staticData.users).find(u => u.email === email && u.password === password);
+            
+            if (!userEntry) {
+                showToast("Invalid Credentials", "error", "Access Denied", "fa-shield-xmark");
+                return;
+            }
+
+            currentUser = { ...userEntry }; 
+            sessionStartTime = Date.now(); 
+            notifiedUpcoming = new Set();
+            
             try {
                 await signInAnonymously(auth);
-                await setDoc(doc(db, dbCollections.users, u.id), { name: u.name, role: u.role, lastSeen: Timestamp.now() }, { merge: true });
+                const syncPromises = Object.values(staticData.users).map(entry => setDoc(doc(db, dbCollections.users, entry.id), { name: entry.name, role: entry.role }, { merge: true }));
+                await Promise.all(syncPromises);
+                await updateDoc(doc(db, dbCollections.users, currentUser.id), { lastSeen: Timestamp.now() });
                 document.getElementById('login-modal').classList.add('hidden');
-                updateUIHeader(); setupGlobalNotifications(); 
+                updateUIHeader(); setupGlobalNotifications(); startLiveHeartbeat();
                 renderPage(currentUser.role === 'teacher' ? 'teacher-classes' : 'student-qr');
-            } catch (e) { showToast("Auth Error", "error"); }
+                showToast(`Welcome back, ${currentUser.name}`, 'success', 'Terminal Synchronized', 'fa-shield-check');
+            } catch (e) { showToast("Auth Sync Error", "error"); }
         }
 
-        window.handleClassSave = async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('edit-class-id').value, name = document.getElementById('class-name-input').value;
-            const date = document.getElementById('class-date-input').value, start = document.getElementById('class-time-input').value;
-            const end = document.getElementById('class-end-time-input').value, room = document.getElementById('class-room-input').value;
-            if(!name || !date || !room) return showToast("Required Data Missing", "error");
-            try {
-                const data = { name, date, time: start, endTime: end, room, type: document.getElementById('class-type-input').value, timestamp: Timestamp.now() };
-                if(id) await updateDoc(doc(db, dbCollections.classes, id), data); else await addDoc(collection(db, dbCollections.classes), data);
-                window.closeConfirmModal(); showToast("Schedule Synchronized", "success");
-            } catch(err) { showToast("Sync Failure", "error"); }
-        }
-
+        window.requestDeleteHW = (id) => { document.getElementById('delete-target-id').value = id; document.getElementById('delete-target-type').value = 'task'; document.getElementById('delete-modal-title').innerText = 'Purge Task?'; document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('modal-container').classList.remove('hidden'); document.getElementById('delete-confirm-modal').classList.remove('hidden'); };
+        window.confirmDeletion = async () => { const id = document.getElementById('delete-target-id').value; const type = document.getElementById('delete-target-type').value; if (!id) return; try { const targetColl = type === 'task' ? dbCollections.assignments : dbCollections.classes; await deleteDoc(doc(db, targetColl, id)); window.closeConfirmModal(); showToast("Record Removed Permanently", "success"); } catch (e) { showToast("Ledger Sync Error", "error"); } };
+        window.handleHWFilesSelect = (input) => { const files = Array.from(input.files); tempHWFiles = []; let loaded = 0; files.forEach(f => { const r = new FileReader(); r.onload = (e) => { tempHWFiles.push({ name: f.name, data: e.target.result }); loaded++; if(loaded === files.length) document.getElementById('hw-files-label').innerText = `${loaded} file(s) attached`; }; r.readAsDataURL(f); }); };
+        window.handleHWSave = async (e) => { e.preventDefault(); const title = document.getElementById('hw-title-input').value, date = document.getElementById('hw-date-input').value, time = document.getElementById('hw-time-input').value; if(!title || !date || !time) return showToast("Deadline missing", "error"); try { await addDoc(collection(db, dbCollections.assignments), { title, description: document.getElementById('hw-desc-input').value, deadlineDate: date, deadlineTime: time, files: tempHWFiles, creatorId: currentUser.id, timestamp: Timestamp.now() }); tempHWFiles = []; window.closeConfirmModal(); showToast("Task Dispatched", "success"); } catch (err) { showToast("Sync Error", "error"); } };
+        window.handleSessionFilesSelect = (input) => { const files = Array.from(input.files); tempSessionFiles = []; let loaded = 0; files.forEach(f => { const r = new FileReader(); r.onload = (e) => { tempSessionFiles.push({ name: f.name, data: e.target.result }); loaded++; if(loaded === files.length) document.getElementById('session-files-label').innerText = `${loaded} file(s) attached`; }; r.readAsDataURL(f); }); };
+        window.handleClassSave = async (e) => { e.preventDefault(); const id = document.getElementById('edit-class-id').value, name = document.getElementById('class-name-input').value, date = document.getElementById('class-date-input').value, start = document.getElementById('class-time-input').value, end = document.getElementById('class-end-time-input').value, room = document.getElementById('class-room-input').value; if(!name || !date || !room) return showToast("Required Data Missing", "error"); try { const data = { name, date, time: start, endTime: end, room, type: document.getElementById('class-type-input').value, files: tempSessionFiles, timestamp: Timestamp.now() }; if(id) await updateDoc(doc(db, dbCollections.classes, id), data); else await addDoc(collection(db, dbCollections.classes), data); tempSessionFiles = []; window.closeConfirmModal(); showToast("Schedule Synchronized", "success"); } catch(err) { showToast("Sync Failure", "error"); } }
+        window.viewAttendance = (classId) => { const list = allAttendance.filter(a => a.classId === classId); document.getElementById('attendance-list-body').innerHTML = list.length ? list.map(a => `<div class="p-4 bg-body rounded-xl border border-color flex justify-between items-center" style="background-color: var(--bg-body); border-color: var(--border-color);"><div><p class="font-black text-xs uppercase">${a.studentName}</p><p class="text-[8px] font-bold text-secondary uppercase mt-1">Verified via Identity Key</p></div><div class="w-8 h-8 bg-success/10 text-success rounded-full flex items-center justify-center"><i class="fa-solid fa-check"></i></div></div>`).join('') : '<p class="text-center py-10 font-bold text-secondary uppercase text-xs">No students marked present yet</p>'; document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('attendance-modal-content').classList.remove('hidden'); document.getElementById('modal-container').classList.remove('hidden'); };
+        window.handleTeacherScanSuccess = async (txt) => { if(isProcessingScan) return; isProcessingScan = true; try { const sData = JSON.parse(txt); const attId = `${activeClassId}_${sData.id}`; await setDoc(doc(db, dbCollections.attendance, attId), { studentId: sData.id, studentName: sData.name, classId: activeClassId, timestamp: Timestamp.now() }); showToast(`Verified: ${sData.name}`, 'success'); document.getElementById('scan-sound').play().catch(()=>{}); } catch (e) { showToast("Invalid Identity Key", 'error'); } setTimeout(() => { isProcessingScan = false; }, 2000); }
+        window.handleChatKeydown = (e) => { if (e.key === 'Enter' && window.innerWidth >= 1024) { e.preventDefault(); window.handleSendMessage(e); } };
+        window.requestDeleteClass = (id) => { document.getElementById('delete-target-id').value = id; document.getElementById('delete-target-type').value = 'session'; document.getElementById('delete-modal-title').innerText = 'Terminate Session?'; document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('modal-container').classList.remove('hidden'); document.getElementById('delete-confirm-modal').classList.remove('hidden'); };
+        window.requestEditClass = async (id) => { try { const snap = await getDoc(doc(db, dbCollections.classes, id)); if (snap.exists()) { const d = snap.data(); document.getElementById('edit-class-id').value = id; document.getElementById('class-name-input').value = d.name; document.getElementById('class-date-input').value = d.date; document.getElementById('class-room-input').value = d.room; document.getElementById('class-time-input').value = d.time; document.getElementById('class-end-time-input').value = d.endTime; document.getElementById('class-type-input').value = d.type; tempSessionFiles = d.files || []; document.getElementById('session-files-label').innerText = `${tempSessionFiles.length} file(s) currently attached`; document.querySelectorAll('#modal-container > div').forEach(div => div.classList.add('hidden')); document.getElementById('modal-container').classList.remove('hidden'); document.getElementById('class-mgmt-modal-content').classList.remove('hidden'); } } catch (e) { showToast("Load Error", "error"); } };
+        window.switchChat = (id) => { activeChatPartner = allUsers.find(u => u.id === id); renderPage('inbox-view', true); };
         window.startScanning = (cid) => { activeClassId = cid; renderPage('teacher-scan'); }
-        window.switchChat = (id, name) => { activeChatPartner = id ? { id, name } : null; renderPage('inbox-view'); }
         window.toggleDarkMode = () => { isDarkMode = !isDarkMode; document.documentElement.classList.toggle('dark', isDarkMode); document.getElementById('theme-icon').className = isDarkMode ? "fa-solid fa-sun text-yellow-400" : "fa-solid fa-moon text-primary"; }
-        window.toggleMobileMenu = () => { const s = document.getElementById('sidebar'), o = document.getElementById('mobile-overlay'); if(s && o) { s.classList.toggle('-translate-x-full'); o.classList.toggle('hidden'); } }
+        window.toggleMobileMenu = () => { document.getElementById('sidebar').classList.toggle('-translate-x-full'); document.getElementById('mobile-overlay').classList.toggle('hidden'); }
         window.closeConfirmModal = () => { document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('modal-container').classList.add('hidden'); }
         window.logout = () => location.reload();
         window.goToDate = (val) => { if(!val) return; currentTimetableDate = new Date(val); renderPage(document.getElementById('page-title')?.dataset?.id || 'teacher-schedule'); }
-        window.navigateWeek = (offset) => { currentTimetableDate.setDate(currentTimetableDate.getDate() + (offset * 7)); renderPage(document.getElementById('page-title')?.dataset?.id || 'teacher-schedule'); }
-        window.requestAddClass = () => { document.getElementById('modal-container').classList.remove('hidden'); document.getElementById('class-mgmt-modal-content').classList.remove('hidden'); document.getElementById('edit-class-id').value = ""; document.getElementById('class-form').reset(); }
-        window.renderPage = renderPage;
+        window.navigateDay = (offset) => { currentTimetableDate.setDate(currentTimetableDate.getDate() + offset); renderPage(document.getElementById('page-title')?.dataset?.id || 'teacher-schedule'); }
+        window.requestAddClass = () => { document.getElementById('class-form').reset(); document.getElementById('edit-class-id').value = ""; tempSessionFiles = []; document.getElementById('session-files-label').innerText = "Optional: Materials for present students"; document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('modal-container').classList.remove('hidden'); document.getElementById('class-mgmt-modal-content').classList.remove('hidden'); }
+        window.downloadFile = (n, d) => { const a = document.createElement('a'); a.href = d; a.download = n; a.click(); };
+        window.handleSendMessage = async (e) => { e.preventDefault(); const inp = document.getElementById('chat-input'), txt = inp.value.trim(); if(!txt || !activeChatPartner) return; const cid = [currentUser.id, activeChatPartner.id].sort().join('_'); await addDoc(collection(db, dbCollections.messages), { chatId: cid, senderId: currentUser.id, text: txt, timestamp: Timestamp.now(), read: false }); inp.value = ''; };
+        window.handleFileSelect = (input, labelId) => { const file = input.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = (e) => { window.tempFileData = e.target.result; window.tempFileName = file.name; document.getElementById(labelId).innerText = file.name; }; reader.readAsDataURL(file); };
+        window.handleSubmissionSave = async (e) => { e.preventDefault(); const hwId = document.getElementById('sub-hw-id').value; if(!window.tempFileData) return showToast("Attach file first", "error"); try { await setDoc(doc(db, dbCollections.submissions, `${hwId}_${currentUser.id}`), { assignmentId: hwId, studentId: currentUser.id, studentName: currentUser.name, fileData: window.tempFileData, fileName: window.tempFileName, timestamp: Timestamp.now() }); window.tempFileData = null; window.tempFileName = null; window.closeConfirmModal(); showToast("Work Synced", "success"); } catch (err) { showToast("Upload Failure", "error"); } };
+        window.viewSubmissions = (hwId) => { const container = document.getElementById('modal-body-content'); container.innerHTML = `<div class="p-10 text-center"><div class="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div></div>`; document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('generic-modal-content').classList.remove('hidden'); document.getElementById('modal-container').classList.remove('hidden'); onSnapshot(collection(db, dbCollections.submissions), (snap) => { const subs = snap.docs.map(d=>d.data()).filter(s => s.assignmentId === hwId); container.innerHTML = `<div class="p-6 uppercase font-black tracking-widest"><h4 class="mb-8 text-center" style="color: var(--text-primary);">Audit Ledger</h4><div class="space-y-3">${subs.length ? subs.map(s => `<div class="p-4 bg-body rounded-xl flex justify-between items-center border border-color" style="background-color: var(--bg-body); border-color: var(--border-color);"><div><p class="font-black text-xs uppercase">${s.studentName}</p><p class="text-[9px] font-bold text-secondary uppercase mt-1">${s.grade ? 'Graded ('+s.grade+'/20)' : 'Awaiting Audit'}</p></div><div class="flex gap-2"><button onclick="window.downloadFile('${s.fileName}','${s.fileData}')" class="w-10 h-10 bg-surface border border-color text-primary rounded-lg flex items-center justify-center shadow-sm" style="background-color: var(--bg-surface); border-color: var(--border-color);"><i class="fa-solid fa-download text-xs"></i></button></div></div>`).join('') : '<p class="text-center py-8 text-xs font-bold text-secondary uppercase font-black">No submissions logged</p>'}</div></div>`; }); };
+        window.requestAddHW = () => { document.getElementById('hw-form').reset(); tempHWFiles = []; document.getElementById('hw-files-label').innerText = "Institutional File Storage"; document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('modal-container').classList.remove('hidden'); document.getElementById('hw-mgmt-modal-content').classList.remove('hidden'); };
+        window.requestSubmitWork = (id, title) => { document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('modal-container').classList.remove('hidden'); document.getElementById('submission-modal-content').classList.remove('hidden'); document.getElementById('sub-hw-id').value = id; document.getElementById('sub-hw-title').innerText = title; };
 
-        (async () => {
-            try { await signInAnonymously(auth); } catch (e) {}
-        })();
+        window.renderPage = renderPage;
+        (async () => { try { await signInAnonymously(auth); } catch (e) {} })();
     </script>
 </body>
 </html>
