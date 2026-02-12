@@ -339,12 +339,12 @@
             </form>
         </div>
 
-        <!-- Student Card Scanner Modal -->
-        <div id="card-scanner-modal-content" class="bg-surface rounded-[2rem] shadow-2xl max-md w-full p-10 fade-in hidden border border-color relative flex flex-col items-center" style="background-color: var(--bg-surface); border-color: var(--border-color);">
+        <!-- Identity Scanner Modal (Any QR Accepted) -->
+        <div id="identity-scanner-modal-content" class="bg-surface rounded-[2rem] shadow-2xl max-w-2xl w-full p-10 fade-in hidden border border-color relative flex flex-col items-center" style="background-color: var(--bg-surface); border-color: var(--border-color);">
             <button type="button" onclick="window.closeConfirmModal()" class="absolute top-8 right-8 text-secondary hover:text-danger transition-all"><i class="fa-solid fa-xmark text-2xl"></i></button>
-            <h3 class="text-2xl font-black mb-2 uppercase tracking-tight">Card Sync</h3>
-            <p class="text-[10px] font-bold text-secondary uppercase tracking-widest mb-8">Scan your institutional student card</p>
-            <div id="card-reader" class="w-full rounded-[2.5rem] overflow-hidden border-4 border-color mb-8" style="background: #000; aspect-ratio: 1/1;"></div>
+            <h3 class="text-2xl font-black mb-2 uppercase tracking-tight">Identity Sync</h3>
+            <p class="text-[10px] font-bold text-secondary uppercase tracking-widest mb-8">Scan any QR code to link it to your account</p>
+            <div id="identity-reader" class="w-full rounded-[2.5rem] overflow-hidden border-4 border-color mb-8" style="background: #000; aspect-ratio: 1/1;"></div>
             <button onclick="window.closeConfirmModal()" class="text-danger font-black text-xs uppercase tracking-widest"><i class="fa-solid fa-circle-stop mr-2"></i>Cancel Scanner</button>
         </div>
 
@@ -502,13 +502,21 @@
             const u1 = onSnapshot(collection(db, dbCollections.users), (snap) => { 
                 allUsers = snap.docs.map(d=>({id:d.id, ...d.data()})); 
                 const pid = document.getElementById('page-title')?.dataset?.id;
-                if(pid === 'inbox-view') window.renderPage('inbox-view', true); 
+                
                 if (currentUser) {
                     const currentRecord = allUsers.find(u => u.id === currentUser.id);
-                    if (currentRecord) currentUser = { ...currentUser, ...currentRecord };
+                    if (currentRecord) {
+                        currentUser = { ...currentUser, ...currentRecord };
+                    }
                 }
+
+                if(pid === 'inbox-view') window.renderPage('inbox-view', true); 
             });
-            const u2 = onSnapshot(collection(db, dbCollections.classes), (snap) => { allClassList = snap.docs.map(d=>({id:d.id, ...d.data()})); const pid = document.getElementById('page-title')?.dataset?.id; if(pid && (pid.includes('schedule') || pid === 'teacher-classes' || pid === 'student-vault')) window.renderPage(pid, true); });
+            const u2 = onSnapshot(collection(db, dbCollections.classes), (snap) => { 
+                allClassList = snap.docs.map(d=>({id:d.id, ...d.data()})); 
+                const pid = document.getElementById('page-title')?.dataset?.id; 
+                if(pid && (pid.includes('schedule') || pid === 'teacher-classes' || pid === 'student-vault')) window.renderPage(pid, true); 
+            });
             const u3 = onSnapshot(collection(db, dbCollections.attendance), (snap) => {
                 allAttendance = snap.docs.map(d=>d.data());
                 if (currentUser && currentUser.role === 'student') {
@@ -645,9 +653,28 @@
                     activeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, window.handleTeacherScanSuccess);
                 }
                 else if(pageId === 'student-qr') {
-                    container.innerHTML = `<div class="h-full flex flex-col items-center justify-center p-4 fade-in"><div class="card-edu p-16 text-center max-w-md w-full relative overflow-hidden"><div class="absolute top-0 left-0 w-full h-2 bg-indigo-600"></div><h2 class="font-black text-2xl mb-12 uppercase tracking-tight" style="color: var(--text-primary);">${currentUser.name}</h2><div id="sqr" class="bg-white p-6 rounded-[2.5rem] mb-12 shadow-inner inline-block border border-slate-100"></div><p class="text-[10px] text-primary font-black uppercase tracking-widest font-black">Institutional Identity Key</p></div></div>`;
-                    const qrContent = currentUser.qrData || JSON.stringify({ id: currentUser.id, name: currentUser.name });
-                    setTimeout(() => { new QRCode(document.getElementById("sqr"), { text: qrContent, width: 200, height: 200, colorDark: "#020617" }); }, 100);
+                    container.innerHTML = `<div class="h-full flex flex-col items-center justify-center p-4 fade-in"><div class="card-edu p-16 text-center max-w-md w-full relative overflow-hidden"><div class="absolute top-0 left-0 w-full h-2 bg-indigo-600"></div><h2 class="font-black text-2xl mb-12 uppercase tracking-tight" id="vault-user-name" style="color: var(--text-primary);">${currentUser.name}</h2><div class="bg-white p-6 rounded-[2.5rem] mb-12 shadow-inner inline-block border border-slate-100"><img id="vault-qr-image" class="mx-auto" style="width: 200px; height: 200px;" src=""></div><p class="text-[10px] text-primary font-black uppercase tracking-widest font-black">Institutional Identity Key</p></div></div>`;
+                    
+                    const unsub = onSnapshot(doc(db, dbCollections.users, currentUser.id), (docSnap) => {
+                        const qrImg = document.getElementById("vault-qr-image");
+                        const nameBox = document.getElementById("vault-user-name");
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            if (nameBox) nameBox.innerText = data.name || currentUser.name;
+                            if (qrImg) {
+                                const qrContent = data.qrData || JSON.stringify({ id: currentUser.id, name: currentUser.name });
+                                const tempDiv = document.createElement('div');
+                                new QRCode(tempDiv, { text: qrContent, width: 256, height: 256 });
+                                setTimeout(() => {
+                                    const generated = tempDiv.querySelector('canvas') || tempDiv.querySelector('img');
+                                    if (generated) {
+                                        qrImg.src = (generated.tagName === 'CANVAS') ? generated.toDataURL() : generated.src;
+                                    }
+                                }, 50);
+                            }
+                        }
+                    });
+                    pageUnsubscribes.push(unsub);
                 }
                 else if(pageId === 'account-settings') {
                     container.innerHTML = `
@@ -672,15 +699,15 @@
                                 ${currentUser.role === 'student' ? `
                                 <div class="pt-6 border-t border-color">
                                     <label class="text-[10px] font-black uppercase text-secondary mb-4 block">Institutional Identity Key</label>
-                                    <button type="button" onclick="window.requestScanStudentCard()" class="w-full bg-body border-2 border-dashed border-color p-8 rounded-2xl flex flex-col items-center gap-3 hover:border-primary transition-all" style="background-color: var(--bg-body); border-color: var(--border-color);">
-                                        <i class="fa-solid fa-id-card text-3xl text-primary"></i>
+                                    <button type="button" onclick="window.requestScanNewIdentity()" class="w-full bg-body border-2 border-dashed border-color p-10 rounded-2xl flex flex-col items-center gap-3 hover:border-primary transition-all" style="background-color: var(--bg-body); border-color: var(--border-color);">
+                                        <i class="fa-solid fa-camera text-4xl text-primary"></i>
                                         <div class="text-center">
-                                            <span class="block text-[11px] font-black uppercase tracking-widest mb-1">Sync Physical Card</span>
-                                            <span class="block text-[8px] font-bold text-secondary uppercase opacity-60">Overwrites digital handshake key</span>
+                                            <span class="block text-[11px] font-black uppercase tracking-widest mb-1">Scan New QR Code</span>
+                                            <span class="block text-[8px] font-bold text-secondary uppercase opacity-60">Permanently link any presented QR artifact</span>
                                         </div>
                                     </button>
                                     <p id="card-sync-status" class="text-[9px] font-black text-success uppercase mt-4 text-center ${currentUser.qrData ? '' : 'hidden'}">
-                                        <i class="fa-solid fa-circle-check mr-1"></i> Physical card linked to ledger
+                                        <i class="fa-solid fa-circle-check mr-1"></i> Custom artifact linked to ledger
                                     </p>
                                 </div>` : ''}
                             </div>
@@ -694,7 +721,7 @@
                     } else if (listUsers.length) {
                         activeChatPartner = listUsers[0];
                     }
-                    container.innerHTML = `<div class="flex h-[calc(100vh-280px)] card-edu overflow-hidden fade-in shadow-2xl"><div id="chat-list" class="w-full lg:w-96 border-r border-color flex flex-col bg-body/50" style="border-color: var(--border-color); background-color: var(--bg-body);"><div class="p-8 border-b border-color font-black uppercase text-[11px] tracking-[0.2em]" style="border-color: var(--border-color); color: var(--text-primary);">contacts</div><div id="inbox-contacts-render" class="overflow-y-auto flex-1 p-4 space-y-2">${listUsers.map(c => `<div onclick="window.switchChat('${c.id}')" class="p-5 rounded-2xl cursor-pointer transition-all ${activeChatPartner?.id === c.id ? 'bg-primary text-white shadow-lg' : 'bg-surface hover:bg-primary/10 text-primary font-bold'}" style="${activeChatPartner?.id === c.id ? '' : 'background-color: var(--bg-surface);'}"><p class="text-sm font-black">${c.name}</p></div>`).join('')}</div></div><div class="flex-1 flex flex-col bg-surface" style="background-color: var(--bg-surface); border-color: var(--border-color);">${activeChatPartner ? `<div class="p-8 border-b border-color flex items-center justify-between bg-surface z-10 sticky top-0 font-black uppercase tracking-widest" style="border-color: var(--border-color); background-color: var(--bg-surface); color: var(--text-primary);"><h4>${activeChatPartner.name}</h4></div><div id="msg-stream" class="flex-1 p-8 overflow-y-auto space-y-6"></div><div class="p-6 border-t border-color bg-surface flex gap-4" style="border-color: var(--border-color); background-color: var(--bg-surface);"><input type="text" id="chat-input" onkeydown="window.handleChatKeydown(event)" placeholder="Secure handshake..." class="flex-1 border border-color rounded-xl p-3"><button onclick="window.handleSendMessage(event)" class="bg-primary text-white w-14 h-14 rounded-2xl shadow-xl hover:scale-105 transition-transform"><i class="fa-solid fa-paper-plane text-xl"></i></button></div>` : `<div class="flex-1 flex flex-col items-center justify-center opacity-40 text-secondary uppercase font-black"><p class="text-xs font-black">Select Terminal to start sync</p></div>`}</div></div>`;
+                    container.innerHTML = `<div class="flex h-[calc(100vh-280px)] card-edu overflow-hidden fade-in shadow-2xl"><div id="chat-list" class="w-full lg:w-96 border-r border-color flex flex-col bg-body/50" style="border-color: var(--border-color); background-color: var(--bg-body);"><div class="p-8 border-b border-color font-black uppercase text-[11px] tracking-[0.2em]" style="border-color: var(--border-color); color: var(--text-primary);">contacts</div><div id="inbox-contacts-render" class="overflow-y-auto flex-1 p-4 space-y-2">${listUsers.map(c => `<div onclick="window.switchChat('${c.id}')" class="p-5 rounded-2xl cursor-pointer transition-all ${activeChatPartner?.id === c.id ? 'bg-primary text-white shadow-lg' : 'bg-surface hover:bg-primary/10 text-primary font-bold'}" style="${activeChatPartner?.id === c.id ? '' : 'background-color: var(--bg-surface);'}"><p class="text-sm font-black">${c.name}</p></div>`).join('')}</div></div><div class="flex-1 flex flex-col bg-surface" style="background-color: var(--bg-surface); border-color: var(--border-color);"> ${activeChatPartner ? `<div class="p-8 border-b border-color flex items-center justify-between bg-surface z-10 sticky top-0 font-black uppercase tracking-widest" style="border-color: var(--border-color); background-color: var(--bg-surface); color: var(--text-primary);"><h4>${activeChatPartner.name}</h4></div><div id="msg-stream" class="flex-1 p-8 overflow-y-auto space-y-6"></div><div class="p-6 border-t border-color bg-surface flex gap-4" style="border-color: var(--border-color); background-color: var(--bg-surface);"><input type="text" id="chat-input" onkeydown="window.handleChatKeydown(event)" placeholder="Secure handshake..." class="flex-1 border border-color rounded-xl p-3"><button onclick="window.handleSendMessage(event)" class="bg-primary text-white w-14 h-14 rounded-2xl shadow-xl hover:scale-105 transition-transform"><i class="fa-solid fa-paper-plane text-xl"></i></button></div>` : `<div class="flex-1 flex flex-col items-center justify-center opacity-40 text-secondary uppercase font-black"><p class="text-xs font-black">Select Terminal to start sync</p></div>`}</div></div>`;
                     if(activeChatPartner) {
                         const cid = [currentUser.id, activeChatPartner.id].sort().join('_');
                         const unsub = onSnapshot(collection(db, dbCollections.messages), (snap) => {
@@ -720,13 +747,9 @@
                 const usersSnap = await getDocs(collection(db, dbCollections.users));
                 const usersInDb = usersSnap.docs.map(d => ({id: d.id, ...d.data()}));
 
-                // Priority: Easy-to-remember values in staticData override existing DB entries
                 const defaultEntry = Object.values(staticData.users).find(u => u.email === email && u.password === password);
-                let userEntry = defaultEntry;
-                
-                if (!userEntry) {
-                    userEntry = usersInDb.find(u => u.email === email && u.password === password);
-                }
+                const dbMatch = usersInDb.find(u => (defaultEntry && u.id === defaultEntry.id) || (u.email === email && u.password === password));
+                let userEntry = dbMatch || defaultEntry;
 
                 if (!userEntry) {
                     showToast("Invalid Credentials", "error", "Access Denied", "fa-shield-xmark");
@@ -737,7 +760,6 @@
                 sessionStartTime = Date.now(); 
                 notifiedUpcoming = new Set();
                 
-                // Immediately synchronize DB with the login credentials if it's a default/reset entry
                 await setDoc(doc(db, dbCollections.users, currentUser.id), { 
                     name: currentUser.name, 
                     role: currentUser.role,
@@ -766,16 +788,10 @@
             if (emailExists) return showToast("Email already registered", "error");
 
             try {
-                // Persistent database update
                 await updateDoc(doc(db, dbCollections.users, currentUser.id), { 
                     email: email, 
                     password: pass || currentUser.password 
                 });
-
-                // Update session state
-                currentUser.email = email;
-                if (pass) currentUser.password = pass;
-
                 showToast("Credentials Updated Permanently", "success", "Institutional Commit", "fa-user-check");
                 renderPage('account-settings', true);
             } catch (err) {
@@ -783,27 +799,29 @@
             }
         };
 
-        window.requestScanStudentCard = async () => {
+        window.requestScanNewIdentity = async () => {
             document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden'));
             document.getElementById('modal-container').classList.remove('hidden');
-            document.getElementById('card-scanner-modal-content').classList.remove('hidden');
-            activeScanner = new Html5Qrcode("card-reader");
-            activeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, window.handleStudentCardScanSuccess);
+            document.getElementById('identity-scanner-modal-content').classList.remove('hidden');
+            activeScanner = new Html5Qrcode("identity-reader");
+            activeScanner.start(
+                { facingMode: "environment" }, 
+                { fps: 15, qrbox: { width: 350, height: 350 } }, 
+                window.handleNewIdentityScanSuccess
+            );
         };
 
-        window.handleStudentCardScanSuccess = async (txt) => {
+        window.handleNewIdentityScanSuccess = async (txt) => {
             if (isProcessingScan) return;
             isProcessingScan = true;
             try {
-                // Link new QR data to current user
                 await updateDoc(doc(db, dbCollections.users, currentUser.id), { qrData: txt });
-                currentUser.qrData = txt;
-                showToast("Identity Key Synced", "success", "Institutional Ledger", "fa-id-card");
+                showToast("Identity Key Synchronized", "success", "Database Update Confirmed", "fa-id-card");
                 document.getElementById('scan-sound').play().catch(()=>{});
                 window.closeConfirmModal();
                 renderPage('account-settings', true);
             } catch (e) {
-                showToast("Sync Failure", "error");
+                showToast("Identity Sync Failure", "error");
             }
             setTimeout(() => { isProcessingScan = false; }, 2000);
         };
@@ -813,13 +831,11 @@
             isProcessingScan = true;
             try {
                 let studentId, studentName;
-                // Lookup user by custom qrData first
                 const matchedUser = allUsers.find(u => u.qrData === txt);
                 if (matchedUser) {
                     studentId = matchedUser.id;
                     studentName = matchedUser.name;
                 } else {
-                    // Fallback to default JSON logic
                     const sData = JSON.parse(txt);
                     studentId = sData.id;
                     studentName = sData.name;
@@ -841,7 +857,24 @@
         }
 
         window.requestDeleteHW = (id) => { document.getElementById('delete-target-id').value = id; document.getElementById('delete-target-type').value = 'task'; document.getElementById('delete-modal-title').innerText = 'Purge Task?'; document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('modal-container').classList.remove('hidden'); document.getElementById('delete-confirm-modal').classList.remove('hidden'); };
-        window.confirmDeletion = async () => { const id = document.getElementById('delete-target-id').value; const type = document.getElementById('delete-target-type').value; if (!id) return; try { const targetColl = type === 'task' ? dbCollections.assignments : dbCollections.classes; await deleteDoc(doc(db, targetColl, id)); window.closeConfirmModal(); showToast("Record Removed Permanently", "success"); } catch (e) { showToast("Ledger Sync Error", "error"); } };
+        window.confirmDeletion = async () => { 
+            const id = document.getElementById('delete-target-id').value; 
+            const type = document.getElementById('delete-target-type').value; 
+            if (!id) return; 
+            try { 
+                // Using path segments as per RULE 1 for reliable immediate deletion
+                const collName = type === 'task' ? 'assignments' : 'classes';
+                await deleteDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', collName, id)); 
+                window.closeConfirmModal(); 
+                showToast("Record Removed Permanently", "success", "Database Synchronized", "fa-trash-can"); 
+                // Force immediate local UI cleanup if snapshot is delayed
+                const pid = document.getElementById('page-title')?.dataset?.id;
+                if (pid) renderPage(pid, true);
+            } catch (e) { 
+                showToast("Ledger Sync Error", "error"); 
+            } 
+        };
+        
         window.handleHWFilesSelect = (input) => { const files = Array.from(input.files); tempHWFiles = []; let loaded = 0; files.forEach(f => { const r = new FileReader(); r.onload = (e) => { tempHWFiles.push({ name: f.name, data: e.target.result }); loaded++; if(loaded === files.length) document.getElementById('hw-files-label').innerText = `${loaded} file(s) attached`; }; r.readAsDataURL(f); }); };
         window.handleHWSave = async (e) => { e.preventDefault(); const title = document.getElementById('hw-title-input').value, date = document.getElementById('hw-date-input').value, time = document.getElementById('hw-time-input').value; if(!title || !date || !time) return showToast("Deadline missing", "error"); try { await addDoc(collection(db, dbCollections.assignments), { title, description: document.getElementById('hw-desc-input').value, deadlineDate: date, deadlineTime: time, files: tempHWFiles, creatorId: currentUser.id, timestamp: Timestamp.now() }); tempHWFiles = []; window.closeConfirmModal(); showToast("Task Dispatched", "success"); } catch (err) { showToast("Sync Error", "error"); } };
         window.handleSessionFilesSelect = (input) => { const files = Array.from(input.files); tempSessionFiles = []; let loaded = 0; files.forEach(f => { const r = new FileReader(); r.onload = (e) => { tempSessionFiles.push({ name: f.name, data: e.target.result }); loaded++; if(loaded === files.length) document.getElementById('session-files-label').innerText = `${loaded} file(s) attached`; }; r.readAsDataURL(f); }); };
@@ -863,7 +896,7 @@
         window.handleSendMessage = async (e) => { e.preventDefault(); const inp = document.getElementById('chat-input'), txt = inp.value.trim(); if(!txt || !activeChatPartner) return; const cid = [currentUser.id, activeChatPartner.id].sort().join('_'); await addDoc(collection(db, dbCollections.messages), { chatId: cid, senderId: currentUser.id, text: txt, timestamp: Timestamp.now(), read: false }); inp.value = ''; };
         window.handleFileSelect = (input, labelId) => { const file = input.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = (e) => { window.tempFileData = e.target.result; window.tempFileName = file.name; document.getElementById(labelId).innerText = file.name; }; reader.readAsDataURL(file); };
         window.handleSubmissionSave = async (e) => { e.preventDefault(); const hwId = document.getElementById('sub-hw-id').value; if(!window.tempFileData) return showToast("Attach file first", "error"); try { await setDoc(doc(db, dbCollections.submissions, `${hwId}_${currentUser.id}`), { assignmentId: hwId, studentId: currentUser.id, studentName: currentUser.name, fileData: window.tempFileData, fileName: window.tempFileName, timestamp: Timestamp.now() }); window.tempFileData = null; window.tempFileName = null; window.closeConfirmModal(); showToast("Work Synced", "success"); } catch (err) { showToast("Upload Failure", "error"); } };
-        window.viewSubmissions = (hwId) => { const container = document.getElementById('modal-body-content'); container.innerHTML = `<div class="p-10 text-center"><div class="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div></div>`; document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('generic-modal-content').classList.remove('hidden'); document.getElementById('modal-container').classList.remove('hidden'); onSnapshot(collection(db, dbCollections.submissions), (snap) => { const subs = snap.docs.map(d=>d.data()).filter(s => s.assignmentId === hwId); container.innerHTML = `<div class="p-6 uppercase font-black tracking-widest"><h4 class="mb-8 text-center" style="color: var(--text-primary);">Audit Ledger</h4><div class="space-y-3">${subs.length ? subs.map(s => `<div class="p-4 bg-body rounded-xl flex justify-between items-center border border-color" style="background-color: var(--bg-body); border-color: var(--border-color);"><div><p class="font-black text-xs uppercase">${s.studentName}</p><p class="text-[9px] font-bold text-secondary uppercase mt-1">${s.grade ? 'Graded ('+s.grade+'/20)' : 'Awaiting Audit'}</p></div><div class="flex gap-2"><button onclick="window.downloadFile('${s.fileName}','${s.fileData}')" class="w-10 h-10 bg-surface border border-color text-primary rounded-lg flex items-center justify-center shadow-sm" style="background-color: var(--bg-surface); border-color: var(--border-color);"><i class="fa-solid fa-download text-xs"></i></button></div></div>`).join('') : '<p class="text-center py-8 text-xs font-bold text-secondary uppercase font-black">No submissions logged</p>'}</div></div>`; }); };
+        window.viewSubmissions = (hwId) => { const container = document.getElementById('modal-body-content'); container.innerHTML = `<div class="p-10 text-center"><div class="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div></div>`; document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('generic-modal-content').classList.remove('hidden'); document.getElementById('modal-container').classList.remove('hidden'); onSnapshot(collection(db, dbCollections.submissions), (snap) => { const subs = snap.docs.map(d=>d.data()).filter(s => s.assignmentId === hwId); container.innerHTML = `<div class="p-6 uppercase font-black tracking-widest"><h4 class="mb-8 text-center" style="color: var(--text-primary);">Audit Ledger</h4><div class="space-y-3">${subs.length ? subs.map(s => `<div class="p-4 bg-body rounded-xl flex justify-between items-center border border-color" style="background-color: var(--bg-body); border-color: var(--border-color);"><div><p class="font-black text-xs uppercase">${s.studentName}</p><p class="text-[9px] font-bold text-secondary uppercase mt-1">${s.grade ? 'Graded ('+s.grade+'/20)' : 'Awaiting Audit'}</p></div><div class="flex gap-2"><button onclick="window.downloadFile('${s.fileName}','${s.fileData}')" class="w-10 h-10 bg-surface border border-color text-primary rounded-lg flex items-center justify-center shadow-sm" style="background-color: var(--bg-surface); border-color: var(--border-color);">Property of Alpha Group</button></div></div>`).join('') : '<p class="text-center py-8 text-xs font-bold text-secondary uppercase font-black">No submissions logged</p>'}</div></div>`; }); };
         window.requestAddHW = () => { document.getElementById('hw-form').reset(); tempHWFiles = []; document.getElementById('hw-files-label').innerText = "Institutional File Storage"; document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('modal-container').classList.remove('hidden'); document.getElementById('hw-mgmt-modal-content').classList.remove('hidden'); };
         window.requestSubmitWork = (id, title) => { document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('modal-container').classList.remove('hidden'); document.getElementById('submission-modal-content').classList.remove('hidden'); document.getElementById('sub-hw-id').value = id; document.getElementById('sub-hw-title').innerText = title; };
 
