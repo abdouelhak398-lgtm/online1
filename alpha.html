@@ -297,6 +297,40 @@
             <div id="attendance-list-body" class="space-y-3 max-h-96 overflow-y-auto"></div>
         </div>
 
+        <!-- User Creation/Editing (Admin) -->
+        <div id="admin-user-modal-content" class="bg-surface rounded-[2rem] shadow-2xl max-md w-full p-10 fade-in hidden border border-color relative" style="background-color: var(--bg-surface); border-color: var(--border-color);">
+            <button type="button" onclick="window.closeConfirmModal()" class="absolute top-8 right-8 text-secondary hover:text-danger transition-all"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            <h3 id="admin-user-modal-title" class="text-2xl font-black mb-8 text-center uppercase tracking-tight">Account Configuration</h3>
+            <form id="admin-user-form" onsubmit="window.handleAdminUserSave(event)" class="space-y-5">
+                <input type="hidden" id="admin-edit-user-id">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase text-secondary">Legal Name</label>
+                    <input id="admin-user-name" type="text" placeholder="Full Name" class="font-bold" required>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase text-secondary">Institutional Email</label>
+                    <input id="admin-user-email" type="email" placeholder="name@edu-alg.dz" class="font-bold" required>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase text-secondary">Security Key</label>
+                    <input id="admin-user-pass" type="password" placeholder="Key Payload" class="font-bold" required>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black uppercase text-secondary">Permission Tier</label>
+                    <select id="admin-user-role" class="font-bold">
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div id="admin-student-extras" class="hidden space-y-1">
+                    <label class="text-[10px] font-black uppercase text-secondary">Custom Identity Key (QR Data)</label>
+                    <textarea id="admin-user-qrdata" rows="2" class="font-mono text-xs p-3 w-full border border-color rounded-lg outline-none bg-body" placeholder="Raw QR Data String"></textarea>
+                </div>
+                <button type="submit" class="w-full btn-pro uppercase tracking-widest text-sm shadow-xl p-4">Finalize Entry</button>
+            </form>
+        </div>
+
         <!-- Assignment Creation (Teacher) -->
         <div id="hw-mgmt-modal-content" class="bg-surface rounded-[2rem] shadow-2xl max-w-lg w-full p-10 fade-in hidden border border-color relative" style="background-color: var(--bg-surface); border-color: var(--border-color);">
             <button type="button" onclick="window.closeConfirmModal()" class="absolute top-8 right-8 text-secondary hover:text-danger transition-all"><i class="fa-solid fa-xmark text-2xl"></i></button>
@@ -412,6 +446,7 @@
 
         const staticData = {
             users: {
+                admin: { name: 'Institutional Admin', role: 'admin', id: 'admin_dz', email: 'admin@edu.dz', password: 'root_access' },
                 teacher: { name: 'Zohra Benamor', role: 'teacher', id: 'teacher_dz', email: 'teacher@edu.dz', password: 'admin123' },
                 student1: { name: 'Safer Cheikh Abdelhak', role: 'student', id: 'student_dz_1', email: 'student1@edu.dz', password: 'pass123' },
                 student2: { name: 'Saadi Ali', role: 'student', id: 'student_dz_2', email: 'student2@edu.dz', password: 'pass456' }
@@ -452,12 +487,11 @@
 
         function updateUIHeader() {
             if (!currentUser) return;
-            const latestInfo = Object.values(staticData.users).find(u => u.id === currentUser.id);
-            const displayName = latestInfo ? latestInfo.name : currentUser.name;
+            const displayName = currentUser.name || "Account";
             document.getElementById('user-initials').innerText = displayName.charAt(0);
             document.getElementById('user-name-header').innerText = displayName;
-            document.getElementById('user-role-header').innerText = currentUser.role.toUpperCase();
-            document.getElementById('footer-user-id').innerText = currentUser.id.toUpperCase();
+            document.getElementById('user-role-header').innerText = (currentUser.role || 'linked').toUpperCase();
+            document.getElementById('footer-user-id').innerText = (currentUser.id || 'idle').toUpperCase();
         }
 
         function checkIsLive(classDate, startTime, endTime) {
@@ -466,7 +500,6 @@
             if (classDate !== today) return false;
             const nowStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
             
-            // Safety Duration: If teacher set end same as start, or left it empty, assume 1 hour
             let safeEnd = endTime;
             if (!endTime || endTime <= startTime) {
                 const [h, m] = startTime.split(':').map(Number);
@@ -499,7 +532,7 @@
 
         function setupGlobalNotifications() {
             globalUnsubscribes.forEach(u => u()); globalUnsubscribes = [];
-            const u1 = onSnapshot(collection(db, dbCollections.users), (snap) => { 
+            const u1 = onSnapshot(collection(db, 'artifacts', APP_ID, 'public', 'data', 'users'), (snap) => { 
                 allUsers = snap.docs.map(d=>({id:d.id, ...d.data()})); 
                 const pid = document.getElementById('page-title')?.dataset?.id;
                 
@@ -510,14 +543,14 @@
                     }
                 }
 
-                if(pid === 'inbox-view') window.renderPage('inbox-view', true); 
+                if(pid === 'inbox-view' || pid === 'user-management') window.renderPage(pid, true); 
             });
-            const u2 = onSnapshot(collection(db, dbCollections.classes), (snap) => { 
+            const u2 = onSnapshot(collection(db, 'artifacts', APP_ID, 'public', 'data', 'classes'), (snap) => { 
                 allClassList = snap.docs.map(d=>({id:d.id, ...d.data()})); 
                 const pid = document.getElementById('page-title')?.dataset?.id; 
                 if(pid && (pid.includes('schedule') || pid === 'teacher-classes' || pid === 'student-vault')) window.renderPage(pid, true); 
             });
-            const u3 = onSnapshot(collection(db, dbCollections.attendance), (snap) => {
+            const u3 = onSnapshot(collection(db, 'artifacts', APP_ID, 'public', 'data', 'attendance'), (snap) => {
                 allAttendance = snap.docs.map(d=>d.data());
                 if (currentUser && currentUser.role === 'student') {
                     snap.docChanges().forEach(change => { if (change.type === "added") { const data = change.doc.data(); const ts = data.timestamp?.toMillis() || 0; if (data.studentId === currentUser.id && ts > sessionStartTime) { showToast(`Resources Synced: Session verification complete.`, 'alert', 'Vault Sync', 'fa-file-circle-check'); } } });
@@ -525,14 +558,14 @@
                 const pid = document.getElementById('page-title')?.dataset?.id;
                 if(pid && (pid.includes('schedule') || pid === 'student-vault')) window.renderPage(pid, true);
             });
-            const u4 = onSnapshot(collection(db, dbCollections.assignments), (snap) => {
+            const u4 = onSnapshot(collection(db, 'artifacts', APP_ID, 'public', 'data', 'assignments'), (snap) => {
                 if (currentUser && currentUser.role === 'student') {
                     snap.docChanges().forEach(change => { if (change.type === "added") { const data = change.doc.data(); const ts = data.timestamp?.toMillis() || 0; if (ts > sessionStartTime) { showToast(`New Assignment: ${data.title}`, 'alert', 'Institutional Task', 'fa-folder-tree'); } } });
                 }
                 const pid = document.getElementById('page-title')?.dataset?.id;
                 if(pid && pid.includes('assignments')) window.renderPage(pid, true);
             });
-            const u5 = onSnapshot(collection(db, dbCollections.messages), (snap) => {
+            const u5 = onSnapshot(collection(db, 'artifacts', APP_ID, 'public', 'data', 'messages'), (snap) => {
                 snap.docChanges().forEach(change => { if (change.type === "added") { const m = change.doc.data(); const ts = m.timestamp?.toMillis() || 0; const isForMe = m.chatId.includes(currentUser.id); const isNotByMe = m.senderId !== currentUser.id; if (isForMe && isNotByMe && ts > sessionStartTime) { const sender = allUsers.find(u => u.id === m.senderId); showToast(`New from ${sender?.name || 'Faculty'}: ${m.text.substring(0, 20)}...`, 'message', 'Inbox', 'fa-comment-alt'); } } });
             });
             globalUnsubscribes.push(u1, u2, u3, u4, u5);
@@ -541,20 +574,31 @@
         function renderSidebar() {
             const nav = document.getElementById('nav-menu'); if (!nav || !currentUser) return;
             nav.innerHTML = '';
-            const routes = currentUser.role === 'teacher' ? [
-                { id: 'teacher-classes', label: 'My Hub', icon: 'fa-layer-group' },
-                { id: 'teacher-schedule', label: 'Schedule', icon: 'fa-calendar-day' },
-                { id: 'teacher-assignments', label: 'Dropbox', icon: 'fa-folder-tree' },
-                { id: 'inbox-view', label: 'Inbox', icon: 'fa-comment-alt' },
-                { id: 'account-settings', label: 'Credentials', icon: 'fa-user-shield' }
-            ] : [
-                { id: 'student-qr', label: 'Identity Vault', icon: 'fa-id-card' },
-                { id: 'student-schedule', label: 'Schedule', icon: 'fa-calendar-day' },
-                { id: 'student-vault', label: 'Repository', icon: 'fa-box-archive' },
-                { id: 'student-assignments', label: 'Dropbox', icon: 'fa-folder-open' },
-                { id: 'inbox-view', label: 'Faculty Line', icon: 'fa-comment-alt' },
-                { id: 'account-settings', label: 'Credentials', icon: 'fa-user-shield' }
-            ];
+            let routes = [];
+            
+            if (currentUser.role === 'admin') {
+                routes = [
+                    { id: 'user-management', label: 'User Management', icon: 'fa-users-gear' }
+                ];
+            } else if (currentUser.role === 'teacher') {
+                routes = [
+                    { id: 'teacher-classes', label: 'My Hub', icon: 'fa-layer-group' },
+                    { id: 'teacher-schedule', label: 'Schedule', icon: 'fa-calendar-day' },
+                    { id: 'teacher-assignments', label: 'Dropbox', icon: 'fa-folder-tree' },
+                    { id: 'inbox-view', label: 'Inbox', icon: 'fa-comment-alt' },
+                    { id: 'account-settings', label: 'Credentials', icon: 'fa-user-shield' }
+                ];
+            } else {
+                routes = [
+                    { id: 'student-qr', label: 'Identity Vault', icon: 'fa-id-card' },
+                    { id: 'student-schedule', label: 'Schedule', icon: 'fa-calendar-day' },
+                    { id: 'student-vault', label: 'Repository', icon: 'fa-box-archive' },
+                    { id: 'student-assignments', label: 'Dropbox', icon: 'fa-folder-open' },
+                    { id: 'inbox-view', label: 'Faculty Line', icon: 'fa-comment-alt' },
+                    { id: 'account-settings', label: 'Credentials', icon: 'fa-user-shield' }
+                ];
+            }
+
             routes.forEach((rt) => {
                 const b = document.createElement('button');
                 const pid = document.getElementById('page-title')?.dataset?.id;
@@ -608,6 +652,50 @@
                             }).join('')}
                         </div>`;
                 }
+                else if(pageId === 'user-management') {
+                    container.innerHTML = `
+                        <div class="mb-12 flex justify-between items-center fade-in">
+                            <div><h2 class="text-4xl font-black tracking-tighter uppercase">User Management</h2><p class="text-xs font-bold text-secondary uppercase tracking-widest mt-2">Institutional Entity Control</p></div>
+                            <button onclick="window.requestAdminAddUser()" class="btn-pro shadow-xl font-black text-xs uppercase tracking-widest">+ Provision Account</button>
+                        </div>
+                        <div class="card-edu overflow-hidden fade-in shadow-2xl">
+                            <table class="w-full text-left">
+                                <thead class="bg-body/50 border-b border-color uppercase text-[10px] font-black tracking-widest text-secondary">
+                                    <tr>
+                                        <th class="p-6">Identity</th>
+                                        <th class="p-6">Institutional Metadata</th>
+                                        <th class="p-6">Permission Tier</th>
+                                        <th class="p-6 text-right">Ledger Control</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-color" style="border-color: var(--border-color);">
+                                    ${allUsers.map(u => `
+                                        <tr class="hover:bg-body/30 transition-colors">
+                                            <td class="p-6">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-black text-sm">${u.name?.charAt(0)}</div>
+                                                    <div><p class="font-black text-sm uppercase">${u.name}</p><p class="text-[9px] font-bold text-secondary uppercase">${u.id}</p></div>
+                                                </div>
+                                            </td>
+                                            <td class="p-6">
+                                                <p class="text-[10px] font-black opacity-80">${u.email || 'NO_HANDSHAKE_EMAIL'}</p>
+                                                <p class="text-[9px] font-bold text-secondary opacity-50 uppercase tracking-tighter">Security Key: ••••••••</p>
+                                                ${u.role === 'student' ? `<p class="text-[8px] font-black text-primary uppercase mt-1">QR Key: ${u.qrData ? (u.qrData.length > 15 ? u.qrData.substring(0, 15) + '...' : u.qrData) : 'DEFAULT'}</p>` : ''}
+                                            </td>
+                                            <td class="p-6">
+                                                <span class="text-[9px] font-black uppercase tracking-widest px-3 py-1 bg-primary/10 text-primary rounded-full border border-primary/20">${u.role}</span>
+                                            </td>
+                                            <td class="p-6 text-right space-x-2">
+                                                <button onclick="window.requestAdminEditUser('${u.id}')" class="w-10 h-10 rounded-xl bg-body border border-color text-secondary hover:text-primary transition-all"><i class="fa-solid fa-user-pen text-xs"></i></button>
+                                                <button onclick="window.handleAdminDeleteUser('${u.id}')" class="w-10 h-10 rounded-xl bg-danger/10 text-danger hover:bg-danger/20 transition-all"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
                 else if(pageId === 'student-vault') {
                     const myAttendance = allAttendance.filter(a => a.studentId === currentUser.id);
                     const fileLedger = [];
@@ -618,19 +706,12 @@
                 else if(pageId === 'teacher-assignments' || pageId === 'student-assignments') {
                     const isT = currentUser.role === 'teacher';
                     container.innerHTML = `<div class="mb-12 flex justify-between items-center fade-in"><div><h2 class="text-4xl font-black tracking-tighter uppercase">Dropbox</h2><p class="text-xs font-bold text-secondary uppercase tracking-widest mt-2">Institutional Task Ledger</p></div>${isT ? `<button onclick="window.requestAddHW()" class="btn-pro shadow-lg">+ Issue Task</button>` : ''}</div><div id="hw-list" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>`;
-                    const list = document.getElementById('hw-list'); if(!list) return;
-                    
-                    const sortedHW = (allClassList.assignments || []).sort((a,b)=>(b.timestamp?.seconds||0) - (a.timestamp?.seconds||0)); // Note: this is actually pulled via snapshot u4
-
-                    // Assignment render is handled inside u4 to remain truly global/real-time
                 }
                 else if(pageId === 'teacher-classes') {
                     const todayIso = getLocalISODate(new Date());
                     const todaysClasses = (allClassList || []).filter(c => c.date === todayIso);
-
                     container.innerHTML = `<div class="mb-12 flex justify-between items-center fade-in"><div><h2 class="text-4xl font-black tracking-tighter uppercase">My Hub</h2><p class="text-xs font-bold text-secondary uppercase tracking-widest mt-2">Active Session Control</p></div><button onclick="window.requestAddClass()" class="btn-pro shadow-xl font-black text-xs uppercase tracking-widest font-black">+ New Session</button></div><div id="cls-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>`;
                     const list = document.getElementById('cls-list');
-                    
                     list.innerHTML = todaysClasses.length ? todaysClasses.map(cl => {
                         const isLive = checkIsLive(cl.date, cl.time, cl.endTime);
                         return `<div class="p-8 card-edu relative group ${isLive?'live-now-glow':''}">
@@ -647,22 +728,16 @@
                         <button onclick="window.startScanning('${cl.id}')" class="w-full bg-primary text-white p-4 rounded-xl font-black text-xs uppercase tracking-widest shadow-xl">Mark Presence</button></div>`;
                     }).join('') : `<div class="col-span-full py-20 text-center opacity-30"><i class="fa-solid fa-calendar-xmark text-6xl mb-4"></i><p class="font-black uppercase tracking-widest text-sm">No sessions scheduled for today</p></div>`;
                 }
-                else if(pageId === 'teacher-scan') {
-                    container.innerHTML = `<div class="h-full flex flex-col items-center justify-center fade-in p-6"><div class="card-edu w-full max-w-lg p-10 text-center relative overflow-hidden"><div class="absolute top-0 left-0 w-full h-2 bg-success"></div><h2 class="font-black text-2xl mb-2 uppercase tracking-tight">Institutional Scanner</h2><div id="reader" class="rounded-[2.5rem] overflow-hidden border-4 border-color mb-10" style="background: #000;"></div><button onclick="window.renderPage('teacher-classes')" class="text-danger font-black text-xs uppercase tracking-widest"><i class="fa-solid fa-circle-stop mr-2"></i>Terminate Scanner</button></div></div>`;
-                    activeScanner = new Html5Qrcode("reader");
-                    activeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, window.handleTeacherScanSuccess);
-                }
                 else if(pageId === 'student-qr') {
                     container.innerHTML = `<div class="h-full flex flex-col items-center justify-center p-4 fade-in"><div class="card-edu p-16 text-center max-w-md w-full relative overflow-hidden"><div class="absolute top-0 left-0 w-full h-2 bg-indigo-600"></div><h2 class="font-black text-2xl mb-12 uppercase tracking-tight" id="vault-user-name" style="color: var(--text-primary);">${currentUser.name}</h2><div class="bg-white p-6 rounded-[2.5rem] mb-12 shadow-inner inline-block border border-slate-100"><img id="vault-qr-image" class="mx-auto" style="width: 200px; height: 200px;" src=""></div><p class="text-[10px] text-primary font-black uppercase tracking-widest font-black">Institutional Identity Key</p></div></div>`;
-                    
-                    const unsub = onSnapshot(doc(db, dbCollections.users, currentUser.id), (docSnap) => {
+                    const unsub = onSnapshot(doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', currentUser.id), (docSnap) => {
                         const qrImg = document.getElementById("vault-qr-image");
                         const nameBox = document.getElementById("vault-user-name");
                         if (docSnap.exists()) {
                             const data = docSnap.data();
                             if (nameBox) nameBox.innerText = data.name || currentUser.name;
                             if (qrImg) {
-                                const qrContent = data.qrData || JSON.stringify({ id: currentUser.id, name: currentUser.name });
+                                const qrContent = data.qrData || JSON.stringify({ id: data.uid || currentUser.id, name: data.name });
                                 const tempDiv = document.createElement('div');
                                 new QRCode(tempDiv, { text: qrContent, width: 256, height: 256 });
                                 setTimeout(() => {
@@ -695,7 +770,6 @@
                                         <button type="submit" class="w-full btn-pro uppercase tracking-widest text-sm shadow-xl p-5">Commit Updates</button>
                                     </div>
                                 </form>
-
                                 ${currentUser.role === 'student' ? `
                                 <div class="pt-6 border-t border-color">
                                     <label class="text-[10px] font-black uppercase text-secondary mb-4 block">Institutional Identity Key</label>
@@ -724,7 +798,7 @@
                     container.innerHTML = `<div class="flex h-[calc(100vh-280px)] card-edu overflow-hidden fade-in shadow-2xl"><div id="chat-list" class="w-full lg:w-96 border-r border-color flex flex-col bg-body/50" style="border-color: var(--border-color); background-color: var(--bg-body);"><div class="p-8 border-b border-color font-black uppercase text-[11px] tracking-[0.2em]" style="border-color: var(--border-color); color: var(--text-primary);">contacts</div><div id="inbox-contacts-render" class="overflow-y-auto flex-1 p-4 space-y-2">${listUsers.map(c => `<div onclick="window.switchChat('${c.id}')" class="p-5 rounded-2xl cursor-pointer transition-all ${activeChatPartner?.id === c.id ? 'bg-primary text-white shadow-lg' : 'bg-surface hover:bg-primary/10 text-primary font-bold'}" style="${activeChatPartner?.id === c.id ? '' : 'background-color: var(--bg-surface);'}"><p class="text-sm font-black">${c.name}</p></div>`).join('')}</div></div><div class="flex-1 flex flex-col bg-surface" style="background-color: var(--bg-surface); border-color: var(--border-color);"> ${activeChatPartner ? `<div class="p-8 border-b border-color flex items-center justify-between bg-surface z-10 sticky top-0 font-black uppercase tracking-widest" style="border-color: var(--border-color); background-color: var(--bg-surface); color: var(--text-primary);"><h4>${activeChatPartner.name}</h4></div><div id="msg-stream" class="flex-1 p-8 overflow-y-auto space-y-6"></div><div class="p-6 border-t border-color bg-surface flex gap-4" style="border-color: var(--border-color); background-color: var(--bg-surface);"><input type="text" id="chat-input" onkeydown="window.handleChatKeydown(event)" placeholder="Secure handshake..." class="flex-1 border border-color rounded-xl p-3"><button onclick="window.handleSendMessage(event)" class="bg-primary text-white w-14 h-14 rounded-2xl shadow-xl hover:scale-105 transition-transform"><i class="fa-solid fa-paper-plane text-xl"></i></button></div>` : `<div class="flex-1 flex flex-col items-center justify-center opacity-40 text-secondary uppercase font-black"><p class="text-xs font-black">Select Terminal to start sync</p></div>`}</div></div>`;
                     if(activeChatPartner) {
                         const cid = [currentUser.id, activeChatPartner.id].sort().join('_');
-                        const unsub = onSnapshot(collection(db, dbCollections.messages), (snap) => {
+                        const unsub = onSnapshot(collection(db, 'artifacts', APP_ID, 'public', 'data', 'messages'), (snap) => {
                             let msgs = snap.docs.map(d=>d.data()).filter(m => m.chatId === cid).sort((a,b)=>(a.timestamp?.seconds||0)-(b.timestamp?.seconds||0));
                             const div = document.getElementById('msg-stream'); if(!div) return;
                             div.innerHTML = msgs.map(m => `<div class="flex w-full ${m.senderId === currentUser.id?'justify-end':'justify-start'} mb-2 group animate-fade-in"><div class="msg-bubble ${m.senderId === currentUser.id?'msg-sent shadow-md':'msg-received'}"><p class="font-bold tracking-tight text-inherit">${m.text}</p><div class="text-[8px] opacity-70 text-right mt-2 font-black tracking-widest flex items-center justify-end uppercase font-black">${new Date(m.timestamp?.seconds*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div></div></div>`).join('');
@@ -743,36 +817,50 @@
             const password = document.getElementById('login-password').value;
             
             try {
-                await signInAnonymously(auth);
-                const usersSnap = await getDocs(collection(db, dbCollections.users));
+                const credential = await signInAnonymously(auth);
+                const uid = credential.user.uid;
+                
+                const usersSnap = await getDocs(collection(db, 'artifacts', APP_ID, 'public', 'data', 'users'));
                 const usersInDb = usersSnap.docs.map(d => ({id: d.id, ...d.data()}));
 
-                const defaultEntry = Object.values(staticData.users).find(u => u.email === email && u.password === password);
-                const dbMatch = usersInDb.find(u => (defaultEntry && u.id === defaultEntry.id) || (u.email === email && u.password === password));
-                let userEntry = dbMatch || defaultEntry;
+                const staticEntry = Object.values(staticData.users).find(u => u.email === email && u.password === password);
+                const dbEntry = usersInDb.find(u => u.email === email && u.password === password);
+                let userEntry = dbEntry || staticEntry;
 
                 if (!userEntry) {
                     showToast("Invalid Credentials", "error", "Access Denied", "fa-shield-xmark");
                     return;
                 }
 
-                currentUser = { ...userEntry }; 
+                const targetId = userEntry.id || uid;
+                currentUser = { ...userEntry, id: targetId }; 
                 sessionStartTime = Date.now(); 
                 notifiedUpcoming = new Set();
                 
-                await setDoc(doc(db, dbCollections.users, currentUser.id), { 
-                    name: currentUser.name, 
-                    role: currentUser.role,
-                    email: currentUser.email,
-                    password: currentUser.password,
-                    lastSeen: Timestamp.now() 
-                }, { merge: true });
+                const userDocRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', targetId);
+                const existingSnap = await getDoc(userDocRef);
+
+                if (!existingSnap.exists()) {
+                    await setDoc(userDocRef, { 
+                        uid: uid,
+                        name: currentUser.name, 
+                        role: currentUser.role,
+                        email: currentUser.email,
+                        password: currentUser.password,
+                        lastSeen: Timestamp.now(),
+                        createdAt: Timestamp.now()
+                    });
+                } else {
+                    await updateDoc(userDocRef, { lastSeen: Timestamp.now() });
+                }
 
                 document.getElementById('login-modal').classList.add('hidden');
                 updateUIHeader(); setupGlobalNotifications(); startLiveHeartbeat();
-                renderPage(currentUser.role === 'teacher' ? 'teacher-classes' : 'student-qr');
+                renderPage(currentUser.role === 'admin' ? 'user-management' : (currentUser.role === 'teacher' ? 'teacher-classes' : 'student-qr'));
                 showToast(`Welcome back, ${currentUser.name}`, 'success', 'Terminal Synchronized', 'fa-shield-check');
-            } catch (e) { showToast("Auth Sync Error", "error"); }
+            } catch (e) { 
+                showToast("Auth Sync Error", "error");
+            }
         }
 
         window.handleUpdateCredentials = async (e) => {
@@ -788,7 +876,7 @@
             if (emailExists) return showToast("Email already registered", "error");
 
             try {
-                await updateDoc(doc(db, dbCollections.users, currentUser.id), { 
+                await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', currentUser.id), { 
                     email: email, 
                     password: pass || currentUser.password 
                 });
@@ -797,6 +885,73 @@
             } catch (err) {
                 showToast("Sync failure to database", "error");
             }
+        };
+
+        window.requestAdminAddUser = () => {
+            document.getElementById('admin-edit-user-id').value = '';
+            document.getElementById('admin-user-form').reset();
+            document.getElementById('admin-student-extras').classList.add('hidden');
+            document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden'));
+            document.getElementById('modal-container').classList.remove('hidden');
+            document.getElementById('admin-user-modal-content').classList.remove('hidden');
+        };
+
+        window.requestAdminEditUser = async (userId) => {
+            try {
+                const snap = await getDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', userId));
+                if (snap.exists()) {
+                    const u = snap.data();
+                    document.getElementById('admin-edit-user-id').value = userId;
+                    document.getElementById('admin-user-name').value = u.name;
+                    document.getElementById('admin-user-email').value = u.email;
+                    document.getElementById('admin-user-pass').value = u.password;
+                    document.getElementById('admin-user-role').value = u.role;
+                    
+                    const studentExtras = document.getElementById('admin-student-extras');
+                    if (u.role === 'student') {
+                        studentExtras.classList.remove('hidden');
+                        document.getElementById('admin-user-qrdata').value = u.qrData || '';
+                    } else {
+                        studentExtras.classList.add('hidden');
+                    }
+
+                    document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden'));
+                    document.getElementById('modal-container').classList.remove('hidden');
+                    document.getElementById('admin-user-modal-content').classList.remove('hidden');
+                }
+            } catch (err) { showToast("Load Error", "error"); }
+        };
+
+        window.handleAdminUserSave = async (e) => {
+            e.preventDefault();
+            const editId = document.getElementById('admin-edit-user-id').value;
+            const name = document.getElementById('admin-user-name').value;
+            const email = document.getElementById('admin-user-email').value;
+            const pass = document.getElementById('admin-user-pass').value;
+            const role = document.getElementById('admin-user-role').value;
+            const qrData = document.getElementById('admin-user-qrdata').value;
+            
+            const targetId = editId || 'ext_' + Math.random().toString(36).substr(2, 9);
+            const data = { name, email, password: pass, role, lastSeen: Timestamp.now() };
+            if (role === 'student') data.qrData = qrData;
+            if (!editId) data.createdAt = Timestamp.now();
+
+            try {
+                await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', targetId), data, { merge: true });
+                showToast(editId ? "Entity Updated" : "Entity Provisioned", "success");
+                window.closeConfirmModal();
+            } catch (err) {
+                showToast("Provisioning Sync Error", "error");
+            }
+        };
+
+        window.handleAdminDeleteUser = async (userId) => {
+            document.getElementById('delete-target-id').value = userId; 
+            document.getElementById('delete-target-type').value = 'user'; 
+            document.getElementById('delete-modal-title').innerText = 'Purge Entity?'; 
+            document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); 
+            document.getElementById('modal-container').classList.remove('hidden'); 
+            document.getElementById('delete-confirm-modal').classList.remove('hidden');
         };
 
         window.requestScanNewIdentity = async () => {
@@ -815,7 +970,7 @@
             if (isProcessingScan) return;
             isProcessingScan = true;
             try {
-                await updateDoc(doc(db, dbCollections.users, currentUser.id), { qrData: txt });
+                await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', currentUser.id), { qrData: txt });
                 showToast("Identity Key Synchronized", "success", "Database Update Confirmed", "fa-id-card");
                 document.getElementById('scan-sound').play().catch(()=>{});
                 window.closeConfirmModal();
@@ -842,7 +997,7 @@
                 }
                 
                 const attId = `${activeClassId}_${studentId}`;
-                await setDoc(doc(db, dbCollections.attendance, attId), { 
+                await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'attendance', attId), { 
                     studentId: studentId, 
                     studentName: studentName, 
                     classId: activeClassId, 
@@ -862,12 +1017,14 @@
             const type = document.getElementById('delete-target-type').value; 
             if (!id) return; 
             try { 
-                // Using path segments as per RULE 1 for reliable immediate deletion
-                const collName = type === 'task' ? 'assignments' : 'classes';
+                let collName;
+                if (type === 'task') collName = 'assignments';
+                else if (type === 'session') collName = 'classes';
+                else if (type === 'user') collName = 'users';
+
                 await deleteDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', collName, id)); 
                 window.closeConfirmModal(); 
                 showToast("Record Removed Permanently", "success", "Database Synchronized", "fa-trash-can"); 
-                // Force immediate local UI cleanup if snapshot is delayed
                 const pid = document.getElementById('page-title')?.dataset?.id;
                 if (pid) renderPage(pid, true);
             } catch (e) { 
@@ -876,13 +1033,13 @@
         };
         
         window.handleHWFilesSelect = (input) => { const files = Array.from(input.files); tempHWFiles = []; let loaded = 0; files.forEach(f => { const r = new FileReader(); r.onload = (e) => { tempHWFiles.push({ name: f.name, data: e.target.result }); loaded++; if(loaded === files.length) document.getElementById('hw-files-label').innerText = `${loaded} file(s) attached`; }; r.readAsDataURL(f); }); };
-        window.handleHWSave = async (e) => { e.preventDefault(); const title = document.getElementById('hw-title-input').value, date = document.getElementById('hw-date-input').value, time = document.getElementById('hw-time-input').value; if(!title || !date || !time) return showToast("Deadline missing", "error"); try { await addDoc(collection(db, dbCollections.assignments), { title, description: document.getElementById('hw-desc-input').value, deadlineDate: date, deadlineTime: time, files: tempHWFiles, creatorId: currentUser.id, timestamp: Timestamp.now() }); tempHWFiles = []; window.closeConfirmModal(); showToast("Task Dispatched", "success"); } catch (err) { showToast("Sync Error", "error"); } };
+        window.handleHWSave = async (e) => { e.preventDefault(); const title = document.getElementById('hw-title-input').value, date = document.getElementById('hw-date-input').value, time = document.getElementById('hw-time-input').value; if(!title || !date || !time) return showToast("Deadline missing", "error"); try { await addDoc(collection(db, 'artifacts', APP_ID, 'public', 'data', 'assignments'), { title, description: document.getElementById('hw-desc-input').value, deadlineDate: date, deadlineTime: time, files: tempHWFiles, creatorId: currentUser.id, timestamp: Timestamp.now() }); tempHWFiles = []; window.closeConfirmModal(); showToast("Task Dispatched", "success"); } catch (err) { showToast("Sync Error", "error"); } };
         window.handleSessionFilesSelect = (input) => { const files = Array.from(input.files); tempSessionFiles = []; let loaded = 0; files.forEach(f => { const r = new FileReader(); r.onload = (e) => { tempSessionFiles.push({ name: f.name, data: e.target.result }); loaded++; if(loaded === files.length) document.getElementById('session-files-label').innerText = `${loaded} file(s) attached`; }; r.readAsDataURL(f); }); };
-        window.handleClassSave = async (e) => { e.preventDefault(); const id = document.getElementById('edit-class-id').value, name = document.getElementById('class-name-input').value, date = document.getElementById('class-date-input').value, start = document.getElementById('class-time-input').value, end = document.getElementById('class-end-time-input').value, room = document.getElementById('class-room-input').value; if(!name || !date || !room) return showToast("Required Data Missing", "error"); try { const data = { name, date, time: start, endTime: end, room, type: document.getElementById('class-type-input').value, files: tempSessionFiles, timestamp: Timestamp.now() }; if(id) await updateDoc(doc(db, dbCollections.classes, id), data); else await addDoc(collection(db, dbCollections.classes), data); tempSessionFiles = []; window.closeConfirmModal(); showToast("Schedule Synchronized", "success"); } catch(err) { showToast("Sync Failure", "error"); } }
+        window.handleClassSave = async (e) => { e.preventDefault(); const id = document.getElementById('edit-class-id').value, name = document.getElementById('class-name-input').value, date = document.getElementById('class-date-input').value, start = document.getElementById('class-time-input').value, end = document.getElementById('class-end-time-input').value, room = document.getElementById('class-room-input').value; if(!name || !date || !room) return showToast("Required Data Missing", "error"); try { const data = { name, date, time: start, endTime: end, room, type: document.getElementById('class-type-input').value, files: tempSessionFiles, timestamp: Timestamp.now() }; if(id) await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'classes', id), data); else await addDoc(collection(db, 'artifacts', APP_ID, 'public', 'data', 'classes'), data); tempSessionFiles = []; window.closeConfirmModal(); showToast("Schedule Synchronized", "success"); } catch(err) { showToast("Sync Failure", "error"); } }
         window.viewAttendance = (classId) => { const list = allAttendance.filter(a => a.classId === classId); document.getElementById('attendance-list-body').innerHTML = list.length ? list.map(a => `<div class="p-4 bg-body rounded-xl border border-color flex justify-between items-center" style="background-color: var(--bg-body); border-color: var(--border-color);"><div><p class="font-black text-xs uppercase">${a.studentName}</p><p class="text-[8px] font-bold text-secondary uppercase mt-1">Verified via Identity Key</p></div><div class="w-8 h-8 bg-success/10 text-success rounded-full flex items-center justify-center"><i class="fa-solid fa-check"></i></div></div>`).join('') : '<p class="text-center py-10 font-bold text-secondary uppercase text-xs">No students marked present yet</p>'; document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('attendance-modal-content').classList.remove('hidden'); document.getElementById('modal-container').classList.remove('hidden'); };
         window.handleChatKeydown = (e) => { if (e.key === 'Enter' && window.innerWidth >= 1024) { e.preventDefault(); window.handleSendMessage(e); } };
-        window.requestDeleteClass = (id) => { document.getElementById('delete-target-id').value = id; document.getElementById('delete-target-type').value = 'session'; document.getElementById('delete-modal-title').innerText = 'Terminate Session?'; document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('modal-container').classList.remove('hidden'); document.getElementById('delete-confirm-modal').classList.remove('hidden'); };
-        window.requestEditClass = async (id) => { try { const snap = await getDoc(doc(db, dbCollections.classes, id)); if (snap.exists()) { const d = snap.data(); document.getElementById('edit-class-id').value = id; document.getElementById('class-name-input').value = d.name; document.getElementById('class-date-input').value = d.date; document.getElementById('class-room-input').value = d.room; document.getElementById('class-time-input').value = d.time; document.getElementById('class-end-time-input').value = d.endTime; document.getElementById('class-type-input').value = d.type; tempSessionFiles = d.files || []; document.getElementById('session-files-label').innerText = `${tempSessionFiles.length} file(s) currently attached`; document.querySelectorAll('#modal-container > div').forEach(div => div.classList.add('hidden')); document.getElementById('modal-container').classList.remove('hidden'); document.getElementById('class-mgmt-modal-content').classList.remove('hidden'); } } catch (e) { showToast("Load Error", "error"); } };
+        window.requestDeleteClass = (id) => { document.getElementById('delete-target-id').value = id; document.getElementById('delete-target-type').value = 'session'; document.getElementById('delete-modal-title').innerText = 'Terminate Session?'; document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('modal-container').classList.add('hidden'); document.getElementById('delete-confirm-modal').classList.remove('hidden'); };
+        window.requestEditClass = async (id) => { try { const snap = await getDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'classes', id)); if (snap.exists()) { const d = snap.data(); document.getElementById('edit-class-id').value = id; document.getElementById('class-name-input').value = d.name; document.getElementById('class-date-input').value = d.date; document.getElementById('class-room-input').value = d.room; document.getElementById('class-time-input').value = d.time; document.getElementById('class-end-time-input').value = d.endTime; document.getElementById('class-type-input').value = d.type; tempSessionFiles = d.files || []; document.getElementById('session-files-label').innerText = `${tempSessionFiles.length} file(s) currently attached`; document.querySelectorAll('#modal-container > div').forEach(div => div.classList.add('hidden')); document.getElementById('modal-container').classList.remove('hidden'); document.getElementById('class-mgmt-modal-content').classList.remove('hidden'); } } catch (e) { showToast("Load Error", "error"); } };
         window.switchChat = (id) => { activeChatPartner = allUsers.find(u => u.id === id); renderPage('inbox-view', true); };
         window.startScanning = (cid) => { activeClassId = cid; renderPage('teacher-scan'); }
         window.toggleDarkMode = () => { isDarkMode = !isDarkMode; document.documentElement.classList.toggle('dark', isDarkMode); document.getElementById('theme-icon').className = isDarkMode ? "fa-solid fa-sun text-yellow-400" : "fa-solid fa-moon text-primary"; }
@@ -893,11 +1050,10 @@
         window.navigateDay = (offset) => { currentTimetableDate.setDate(currentTimetableDate.getDate() + offset); renderPage(document.getElementById('page-title')?.dataset?.id || 'teacher-schedule'); }
         window.requestAddClass = () => { document.getElementById('class-form').reset(); document.getElementById('edit-class-id').value = ""; tempSessionFiles = []; document.getElementById('session-files-label').innerText = "Optional: Materials for present students"; document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('modal-container').classList.remove('hidden'); document.getElementById('class-mgmt-modal-content').classList.remove('hidden'); }
         window.downloadFile = (n, d) => { const a = document.createElement('a'); a.href = d; a.download = n; a.click(); };
-        window.handleSendMessage = async (e) => { e.preventDefault(); const inp = document.getElementById('chat-input'), txt = inp.value.trim(); if(!txt || !activeChatPartner) return; const cid = [currentUser.id, activeChatPartner.id].sort().join('_'); await addDoc(collection(db, dbCollections.messages), { chatId: cid, senderId: currentUser.id, text: txt, timestamp: Timestamp.now(), read: false }); inp.value = ''; };
+        window.handleSendMessage = async (e) => { e.preventDefault(); const inp = document.getElementById('chat-input'), txt = inp.value.trim(); if(!txt || !activeChatPartner) return; const cid = [currentUser.id, activeChatPartner.id].sort().join('_'); await addDoc(collection(db, 'artifacts', APP_ID, 'public', 'data', 'messages'), { chatId: cid, senderId: currentUser.id, text: txt, timestamp: Timestamp.now(), read: false }); inp.value = ''; };
         window.handleFileSelect = (input, labelId) => { const file = input.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = (e) => { window.tempFileData = e.target.result; window.tempFileName = file.name; document.getElementById(labelId).innerText = file.name; }; reader.readAsDataURL(file); };
-        window.handleSubmissionSave = async (e) => { e.preventDefault(); const hwId = document.getElementById('sub-hw-id').value; if(!window.tempFileData) return showToast("Attach file first", "error"); try { await setDoc(doc(db, dbCollections.submissions, `${hwId}_${currentUser.id}`), { assignmentId: hwId, studentId: currentUser.id, studentName: currentUser.name, fileData: window.tempFileData, fileName: window.tempFileName, timestamp: Timestamp.now() }); window.tempFileData = null; window.tempFileName = null; window.closeConfirmModal(); showToast("Work Synced", "success"); } catch (err) { showToast("Upload Failure", "error"); } };
-        window.viewSubmissions = (hwId) => { const container = document.getElementById('modal-body-content'); container.innerHTML = `<div class="p-10 text-center"><div class="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div></div>`; document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('generic-modal-content').classList.remove('hidden'); document.getElementById('modal-container').classList.remove('hidden'); onSnapshot(collection(db, dbCollections.submissions), (snap) => { const subs = snap.docs.map(d=>d.data()).filter(s => s.assignmentId === hwId); container.innerHTML = `<div class="p-6 uppercase font-black tracking-widest"><h4 class="mb-8 text-center" style="color: var(--text-primary);">Audit Ledger</h4><div class="space-y-3">${subs.length ? subs.map(s => `<div class="p-4 bg-body rounded-xl flex justify-between items-center border border-color" style="background-color: var(--bg-body); border-color: var(--border-color);"><div><p class="font-black text-xs uppercase">${s.studentName}</p><p class="text-[9px] font-bold text-secondary uppercase mt-1">${s.grade ? 'Graded ('+s.grade+'/20)' : 'Awaiting Audit'}</p></div><div class="flex gap-2"><button onclick="window.downloadFile('${s.fileName}','${s.fileData}')" class="w-10 h-10 bg-surface border border-color text-primary rounded-lg flex items-center justify-center shadow-sm" style="background-color: var(--bg-surface); border-color: var(--border-color);">Property of Alpha Group</button></div></div>`).join('') : '<p class="text-center py-8 text-xs font-bold text-secondary uppercase font-black">No submissions logged</p>'}</div></div>`; }); };
-        window.requestAddHW = () => { document.getElementById('hw-form').reset(); tempHWFiles = []; document.getElementById('hw-files-label').innerText = "Institutional File Storage"; document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('modal-container').classList.remove('hidden'); document.getElementById('hw-mgmt-modal-content').classList.remove('hidden'); };
+        window.handleSubmissionSave = async (e) => { e.preventDefault(); const hwId = document.getElementById('sub-hw-id').value; if(!window.tempFileData) return showToast("Attach file first", "error"); try { await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'submissions', `${hwId}_${currentUser.id}`), { assignmentId: hwId, studentId: currentUser.id, studentName: currentUser.name, fileData: window.tempFileData, fileName: window.tempFileName, timestamp: Timestamp.now() }); window.tempFileData = null; window.tempFileName = null; window.closeConfirmModal(); showToast("Work Synced", "success"); } catch (err) { showToast("Upload Failure", "error"); } };
+        window.viewSubmissions = (hwId) => { const container = document.getElementById('modal-body-content'); container.innerHTML = `<div class="p-10 text-center"><div class="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div></div>`; document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('generic-modal-content').classList.remove('hidden'); document.getElementById('modal-container').classList.remove('hidden'); onSnapshot(collection(db, 'artifacts', APP_ID, 'public', 'data', 'submissions'), (snap) => { const subs = snap.docs.map(d=>d.data()).filter(s => s.assignmentId === hwId); container.innerHTML = `<div class="p-6 uppercase font-black tracking-widest"><h4 class="mb-8 text-center" style="color: var(--text-primary);">Audit Ledger</h4><div class="space-y-3">${subs.length ? subs.map(s => `<div class="p-4 bg-body rounded-xl flex justify-between items-center border border-color" style="background-color: var(--bg-body); border-color: var(--border-color);"><div><p class="font-black text-xs uppercase">${s.studentName}</p><p class="text-[9px] font-bold text-secondary uppercase mt-1">${s.grade ? 'Graded ('+s.grade+'/20)' : 'Awaiting Audit'}</p></div><div class="flex gap-2"><button onclick="window.downloadFile('${s.fileName}','${s.fileData}')" class="w-10 h-10 bg-surface border border-color text-primary rounded-lg flex items-center justify-center shadow-sm" style="background-color: var(--bg-surface); border-color: var(--border-color);">Property of Alpha Group</button></div></div>`).join('') : '<p class="text-center py-8 text-xs font-bold text-secondary uppercase font-black">No submissions logged</p>'}</div></div>`; }); };
         window.requestSubmitWork = (id, title) => { document.querySelectorAll('#modal-container > div').forEach(d => d.classList.add('hidden')); document.getElementById('modal-container').classList.remove('hidden'); document.getElementById('submission-modal-content').classList.remove('hidden'); document.getElementById('sub-hw-id').value = id; document.getElementById('sub-hw-title').innerText = title; };
 
         window.renderPage = renderPage;
